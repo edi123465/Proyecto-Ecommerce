@@ -563,6 +563,7 @@ if ($categoria_id) {
                                                         data-id="<?php echo htmlspecialchars($pop['id'] ?? ''); ?>"
                                                         data-nombre="<?php echo htmlspecialchars($pop['nombreProducto'] ?? ''); ?>"
                                                         data-precio="<?php echo number_format($pop['precio_1'] ?? 0, 2); ?>"
+                                                        data-descueto="<?php echo number_format($pop['descuento']?? 0, 2) ?>"
                                                         data-imagen="<?php echo htmlspecialchars($rutaImagen ?? 'default-image.jpg'); ?>"> <!-- Icono del botón "Add" -->
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                                                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Iniciar el carrusel con slick después de insertar las categorías
                     iniciarCarrusel();
                 } else {
-                    alert(result.message); // Si hay algún error
+                    alert("Resultado". result.message); // Si hay algún error
                 }
             })
             .catch(error => {

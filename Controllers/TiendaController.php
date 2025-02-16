@@ -182,6 +182,6 @@ if (isset($_GET['action'])) {
             break;
     }
 } else {
-    echo json_encode(['error' => 'Parámetro action faltante']);
+    //echo json_encode(['error' => 'Parámetro action faltante']);
 }
 

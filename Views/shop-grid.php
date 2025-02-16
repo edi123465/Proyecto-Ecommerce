@@ -15,7 +15,6 @@ $connection = getDatabaseConnection();
 // Instanciar el controlador de categorías
 $tiendaController = new TiendaController($connection);
 $productoController = new ProductoController($connection);
-$productosPopulares = $productoController->ProductosPopulares();
 // Obtener categorías con subcategorías
 $categorias = $tiendaController->getCategoriasConSubcategorias(); // Este es el método que deberías usar
 // Manejar la solicitud y llamada al controlador
@@ -102,6 +101,24 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
 <body>
     <?php
     require_once "../Views/Navigation/navigation.php";
+       // Verificar si la variable 'user_role' está definida en la sesión
+       if (!isset($_SESSION['user_role'])) {
+        // Si no está definida, asignar 'Invitado' como rol predeterminado
+        $_SESSION['user_role'] = 'Invitado';
+    }
+    // Verificar si el usuario tiene rol de administrador y, en caso afirmativo, asignarlo
+    if ($_SESSION['user_role'] == 'Administrador') {
+        // El usuario tiene rol de Administrador
+        $userRole = 'Administrador';
+    } else {
+        // El usuario no tiene rol de Administrador (puede ser Invitado, Cliente, etc.)
+        $userRole = 'Invitado';
+    }
+    // Verificar si el usuario ha iniciado sesión (puedes usar tu propia lógica de autenticación)
+    $isUserLoggedIn = isset($_SESSION['user_id']); // Suponiendo que 'userId' esté en la sesión
+    // Pasar el estado de la sesión a JavaScript
+    echo "<script>var isUserLoggedIn = " . ($isUserLoggedIn ? 'true' : 'false') . ";</script>";
+    echo '<div id="role" data-role="' . $userRole . '"></div>';
     ?>
 
 
@@ -475,74 +492,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                         </div>
                     </div>
                     <!-- row -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2">
+                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-populares-container">
+                            
 
-
-                        <?php if ($productosPopulares): ?>
-                            <?php foreach ($productosPopulares as $pop): ?>
-                                <!-- col -->
-                                <div class="col">
-                                    <!-- card -->
-                                    <div class="card card-product">
-                                        <div class="card-body">
-                                            <!-- badge -->
-                                            <div class="text-center position-relative">
-                                                <?php
-                                                $rutaImagen = '/Milogar/assets/imagenesMilogar/productos/' . $pop['imagen'];
-                                                echo '<img class="mb-3 img-fluid" src="' . htmlspecialchars($rutaImagen) . '" style="max-width:100%; height:auto;">';
-                                                ?>
-                                                <!-- action btn -->
-                                                <div class="card-product-action">
-                                                    <a href="" class="btn-action btn-ver-detalles" data-bs-toggle="modal" data-bs-target="#quickViewModal" data-id="<?php echo $pop['id']; ?>"><i
-                                                            class="bi bi-eye" data-bs-toggle="tooltip" data-bs-html="true" title="Quick View"></i></a>
-
-                                                    <a href="#!" class="btn-action" data-bs-toggle="tooltip" data-bs-html="true" title="Wishlist"><i
-                                                            class="bi bi-heart"></i></a>
-                                                    <a href="#!" class="btn-action" data-bs-toggle="tooltip" data-bs-html="true" title="Compare"><i
-                                                            class="bi bi-arrow-left-right"></i></a>
-                                                </div>
-                                            </div>
-                                            <!-- heading -->
-                                            <h2 class="fs-6"><a href="#!" class="text-inherit text-decoration-none"><?php echo $pop['nombreProducto']; ?></a></h2>
-                                            <div class="text-warning">
-                                                <!-- rating -->
-                                                <small> <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-half"></i></small> <span class="text-muted small">4.5 (67)</span>
-                                            </div>
-                                            <!-- price -->
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <div><span class="text-dark"><?php echo '$' . number_format($pop['precio_1'], 2); ?>
-                                                    </span> <span class="text-decoration-line-through text-muted">$5</span>
-                                                </div>
-                                                <!-- btn -->
-                                                <div><!-- Botón "Add to Cart" con los atributos data-* -->
-                                                    <a href="#!" class="btn btn-primary btn-sm add-to-cart"
-                                                        data-id="<?php echo htmlspecialchars($pop['id'] ?? ''); ?>"
-                                                        data-nombre="<?php echo htmlspecialchars($pop['nombreProducto'] ?? ''); ?>"
-                                                        data-precio="<?php echo number_format($pop['precio_1'] ?? 0, 2); ?>"
-                                                        data-imagen="<?php echo htmlspecialchars($rutaImagen ?? 'default-image.jpg'); ?>"> <!-- Icono del botón "Add" -->
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                            class="feather feather-plus">
-                                                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                                                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                                                        </svg>
-                                                        Add
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="col">
-                                <p>No hay productos disponibles para esta categoría o subcategoría.</p>
-                            </div>
-                        <?php endif; ?>
+                        
                     </div>
                     <div class="row mt-8">
                         <div class="col">
@@ -572,8 +525,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             </div>
         </div>
     </section>
-     <!-- Modal -->
-     <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true" data-id="<?php echo $pop['id'];  ?>">
+    <!-- Modal -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true" data-id="<?php echo $pop['id'];  ?>">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body p-8">
@@ -581,20 +534,20 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
+                    <div class="col-md-6">
                             <!-- Imagen principal sin efecto de zoom -->
                             <div class="product productModal" id="productModal">
                                 <div>
-                                    <img class="product-image" src="../assets/images/products/product-single-img-1.jpg" alt="">
+                                    <img id="product-image" class="product-image" alt="Product Image">
                                 </div>
                             </div>
 
                             <!-- Miniatura -->
-                            <div class="prodxuct-tools">
+                            <div class="product-tools">
                                 <div class="thumbnails row g-3" id="productModalThumbnails">
                                     <div class="col-3">
                                         <div class="thumbnails-img">
-                                            <img src="../assets/images/products/product-single-img-1.jpg" alt="">
+                                            <img src="../assets/images/products/product-single-img-1.jpg" alt="Thumbnail">
                                         </div>
                                     </div>
                                 </div>
@@ -634,7 +587,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                         </div>
                                     </div>
                                     <div class="ms-2 col-4 d-grid">
-                                        <button type="button" class="btn btn-primary" data-id="<?php echo $pop['id']; ?>" data-nombre="<?php echo $pop['nombreProducto']; ?>" data-precio="<?php echo number_format($pop['precio_1'], 2); ?>" data-imagen="<?php echo htmlspecialchars($rutaImagen); ?>"><i class="feather-icon icon-shopping-bag me-2 add-to-cart"></i>Add to cart</button>
+                                        <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Add to cart</button>
                                     </div>
                                     <div class="ms-2 col-4">
                                         <a class="btn btn-light" href="#" data-bs-toggle="tooltip" data-bs-html="true" title="Compare"><i class="bi bi-arrow-left-right"></i></a>

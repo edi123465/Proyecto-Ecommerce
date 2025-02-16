@@ -324,6 +324,45 @@ class ProductoController
         return $this->model->obtenerProductosPopulares();
     }
 
+    //metodo para obtener los productos populares(Tienda virtual)
+    public function obtenerProductosPopulares()
+    {
+        // Establece el encabezado para indicar que la respuesta es JSON
+        header('Content-Type: application/json');
+
+        try {
+            // Llama al modelo para obtener los productos en promoción
+            $productosPromocion = $this->model->obtenerProductosPopulares();
+
+            // Agregar un log para ver los datos que se están trayendo
+            error_log("Productos Populares: " . print_r($productosPromocion, true)); // Imprime los datos en el log
+
+            // Verifica si los productos fueron encontrados
+            if (!empty($productosPromocion)) {
+                // Envía los productos como JSON
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $productosPromocion
+                ]);
+            } else {
+                // Si no hay productos en promoción, envía un mensaje de error
+                echo json_encode([
+                    'status' => 'error',
+                    'mensaje' => 'No se encontraron productos en promoción'
+                ]);
+            }
+        } catch (Exception $e) {
+            // Si ocurre un error, captura la excepción y muestra el mensaje de error
+            error_log("Error al obtener productos en promoción: " . $e->getMessage()); // Loguea el error de la excepción
+            echo json_encode([
+                'status' => 'error',
+                'mensaje' => 'Error al obtener los productos en promoción',
+                'detalle' => $e->getMessage() // Muestra el mensaje de error de la excepción
+            ]);
+        }
+    }
+
+
     // Método para obtener todas las categorías
     public function obtenerCategorias()
     {
@@ -456,6 +495,10 @@ if (isset($_GET['action'])) {
             // Llamar al método que obtiene los productos en promoción
             $productoController->obtenerProductosPromocion();
             break;
+        case 'obtenerProductosPopulares':
+            $productoController = new ProductoController($db);
+            $productoController->obtenerProductosPopulares();
+            break;
         case 'obtenerTodo':
             $productoController = new ProductoController($db);
             //llamamos al metodo que obtiene todos los productos
@@ -505,7 +548,7 @@ if (isset($_GET['action'])) {
             $productoController = new ProductoController($db);
             $productoController->obtenerProductoPorId();
             break;
-                break;
+            break;
 
         case 'search':
             $query = isset($_GET['q']) ? trim($_GET['q']) : '';

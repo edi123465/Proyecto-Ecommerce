@@ -189,10 +189,10 @@ class ProductoModel
 
 
 
-// Obtener un producto por su ID
-public function getById($id)
-{
-    $query = "SELECT 
+    // Obtener un producto por su ID
+    public function getById($id)
+    {
+        $query = "SELECT 
         p.id, p.nombreProducto, p.descripcionProducto, p.codigo_barras,p.precio,
         p.precio_1, p.precio_2, p.precio_3, p.precio_4, p.imagen, 
         p.descuento, p.stock, p.categoria_id, p.subcategoria_id, 
@@ -202,23 +202,23 @@ public function getById($id)
     LEFT JOIN subcategorias s ON p.subcategoria_id = s.id
     WHERE p.id = :id"; // Corregido: Usar :id para el parámetro
 
-    $stmt = $this->conn->prepare($query);
+        $stmt = $this->conn->prepare($query);
 
-    // Usamos bindParam para vincular el parámetro de la consulta
-    $stmt->bindParam(':id', $id, PDO::PARAM_INT);  // Correcto: Vinculamos el valor de id
+        // Usamos bindParam para vincular el parámetro de la consulta
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);  // Correcto: Vinculamos el valor de id
 
-    // Ejecutar la consulta
-    $stmt->execute();
+        // Ejecutar la consulta
+        $stmt->execute();
 
-    // Obtener el resultado
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Obtener el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($result) {
-        return $result;  // Devolver los detalles del producto
-    } else {
-        return null;  // No se encontró el producto
+        if ($result) {
+            return $result;  // Devolver los detalles del producto
+        } else {
+            return null;  // No se encontró el producto
+        }
     }
-}
 
 
     public function update($id, $data)
@@ -241,9 +241,9 @@ public function getById($id)
             descuento = :descuento, 
             categoria_id = :categoria_id 
             WHERE id = :id";
-    
+
         $stmt = $this->conn->prepare($query);
-    
+
         // Vincular los parámetros con los datos
         $stmt->bindParam(':nombreProducto', $data['nombreProducto']);
         $stmt->bindParam(':descripcionProducto', $data['descripcionProducto']);
@@ -261,7 +261,7 @@ public function getById($id)
         $stmt->bindParam(':descuento', $data['descuento']); // Nuevo campo de descuento
         $stmt->bindParam(':categoria_id', $data['categoria_id']); // Nueva categoría asociada
         $stmt->bindParam(':id', $id); // Aquí pasas el ID directamente
-    
+
         // Ejecutar la consulta
         if ($stmt->execute()) {
             return true;
@@ -272,7 +272,7 @@ public function getById($id)
             return false;
         }
     }
-    
+
 
     // Eliminar un producto
     public function delete($id)
@@ -302,32 +302,36 @@ public function getById($id)
         return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos un array con los resultados
     }
 
-    // Leer (obtener) todos los productos
     public function ObtenerProductosPopulares()
     {
         $sql = "SELECT p.id, 
-           p.nombreProducto, 
-           p.descripcionProducto, 
-           p.precio, 
-           p.precio_1, 
-           p.precio_2, 
-           p.precio_3, 
-           p.precio_4, 
-           p.stock, 
-           p.codigo_barras, 
-           p.imagen, 
-           p.isActive, 
-           p.fechaCreacion, 
-           c.nombreCategoria AS nombreCategoria, 
-           s.nombrSubcategoria AS nombreSubcategoria
-            FROM productos p
-            INNER JOIN subcategorias s ON p.subcategoria_id = s.id  -- Relacionar productos con subcategorías
-            INNER JOIN categorias c ON s.categoria_id = c.id;  -- Relacionar subcategorías con categorías";
+                     p.nombreProducto, 
+                     p.descripcionProducto, 
+                     p.precio, 
+                     p.precio_1, 
+                     p.precio_2, 
+                     p.precio_3, 
+                     p.precio_4, 
+                     p.stock, 
+                     p.codigo_barras, 
+                     p.imagen, 
+                     p.isActive, 
+                     p.fechaCreacion, 
+                     p.is_promocion, 
+                     p.descuento, 
+                     c.nombreCategoria AS nombreCategoria, 
+                     s.nombrSubcategoria AS nombreSubcategoria
+                 FROM Productos p
+                 INNER JOIN subcategorias s ON p.subcategoria_id = s.id
+                 INNER JOIN categorias c ON s.categoria_id = c.id
+                 ;
+";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     // Método para obtener productos por categoría
     // Método para obtener productos por categoría
     public function getProductsByCategory($categoria_id)

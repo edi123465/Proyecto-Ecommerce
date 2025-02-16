@@ -690,7 +690,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                         </div>
                                     </div>
                                     <div class="ms-2 col-4 d-grid">
-                                        <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2 add-to-cart2"></i>Add to cart</button>
+                                        <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Add to cart</button>
                                     </div>
                                     <div class="ms-2 col-4">
                                         <a class="btn btn-light" href="#" data-bs-toggle="tooltip" data-bs-html="true" title="Compare"><i class="bi bi-arrow-left-right"></i></a>

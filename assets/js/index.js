@@ -97,116 +97,155 @@ document.addEventListener("DOMContentLoaded", function () {
                     // Agregar el HTML del producto al contenedor
                     productosPromocionContainer.innerHTML += productHTML;
                 });
+                // Escucha el evento cuando el modal se abre
                 $('#quickViewModal').on('show.bs.modal', function (event) {
-                    var button = $(event.relatedTarget); // El botón que activó el modal
-                    var productoId = button.data('id'); // El ID del producto
-                    var modal = $(this); // El modal
-                
-                    console.log("ID del producto " + productoId);
-                
-                    // Hacer la solicitud fetch
-                    fetch('http://localhost:8088/Milogar/controllers/ProductoController.php?action=verDetalle&id=' + productoId, {
-                        method: 'GET', // Cambiar a GET para enviar parámetros en la URL
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Datos recibidos:', data); // Verifica lo que está llegando
-                        if (data.status === 'success') {
-                            var producto = data.data;
-                            console.log('Producto:', producto);
-                
-                            // Actualizar el modal con la información del producto
-                            modal.find('#product-name').text(producto.nombreProducto);
-                            modal.find('#product-description').text(producto.descripcionProducto);
-                
-                            // Mostrar el precio original y el descuento en el modal
-                            var precioOriginal = producto.precio_1;
-                            var descuento = producto.descuento || 0;
-                            var precioConDescuento = (precioOriginal - (precioOriginal * descuento / 100)).toFixed(2);
-                
-                            modal.find('#product-price').text(`$${precioConDescuento}`);
-                            modal.find('#original-price').text(`$${precioOriginal}`);
-                            modal.find('#discount-percent').text(`${descuento}% Off`);
-                
-                            // Otros detalles
-                            modal.find('#product-code').text(producto.codigo_barras);
-                            modal.find('#availability').text(producto.stock > 0 ? 'In Stock' : 'Out of Stock');
-                            modal.find('#Category').text(producto.categoria_nombre || 'Unknown Category');
-                            modal.find('#Subcategory').text(producto.subcategoria_nombre || 'Unknown Subcategory');
-                            modal.find('.product-image').attr('src', 'http://localhost:8088/Milogar/assets/imagenesMilogar/productos/' + producto.imagen);
-                
-                            // Miniaturas
-                            var thumbnailsHTML = '';
-                            if (producto.imagen) {
-                                var imagenRuta = 'http://localhost:8088/Milogar/assets/imagenesMilogar/Productos/' + producto.imagen;
-                                thumbnailsHTML += `
-                                    <div class="col-3">
-                                        <div class="thumbnails-img">
-                                            <img src="${imagenRuta}" alt="${producto.nombreProducto}">
-                                        </div>
-                                    </div>
-                                `;
-                            }
+                    var button = $(event.relatedTarget);
+                    var productoId = button.data('id');
+                    var modal = $(this);
+                    const imagenProducto = "imagenesMilogar/productos/" + $(this).data('imagen');
 
-                            modal.find('#productModalThumbnails').html(thumbnailsHTML); // Cargar miniaturas en el modal
-                            // Asignar el evento para el botón "Add to cart" dentro del modal
-                            const addToCartBtn = modal.find('#add-to-cart2')[0]; // Seleccionar el botón "Add to cart"
-                            addToCartBtn.addEventListener('click', () => {
-                                // Obtener los datos del producto desde el modal
-                                const nombreProducto = modal.find('#product-name').text();
-                                const precioProducto = parseFloat(precioOriginal); // Usamos el precio original aquí
-                                const precioConDescuentoFinal = parseFloat(precioConDescuento); // Usamos el precio con descuento
-                                const imagenProducto = modal.find('.product-image').attr('src');
-                                // Verifica si el producto ya está en el carrito
-                                const productoExistente = carrito.find(producto => producto.id === productoId);
-                                // Si el producto ya está en el carrito, incrementa la cantidad
-                                if (productoExistente) {
-                                    productoExistente.cantidad++;
-                                } else {
-                                    // Si no está, lo añade al carrito con cantidad 1
-                                    carrito.push({
-                                        id: productoId,
-                                        nombre: nombreProducto,
-                                        precio: precioConDescuentoFinal, // Guardamos el precio con descuento
-                                        cantidad: 1,
-                                        precioOriginal: precioProducto, // Añadir el precio original
-                                        imagen: imagenProducto,
-                                        descuento: descuento,
-                                    });
-                                }
-                
-                                // Guarda el carrito en localStorage
-                                guardarCarrito();
-                
-                                // Actualiza el carrito en el modal (si es necesario)
-                                actualizarCarrito();
-                
-                                // Mostrar la alerta con SweetAlert2
-                                Swal.fire({
-                                    position: 'bottom-left',  // Ubicación de la alerta (abajo a la izquierda)
-                                    icon: 'success',  // Tipo de alerta (puede ser 'success', 'error', etc.)
-                                    title: '¡Agregado correctamente!',  // Mensaje de la alerta
-                                    showConfirmButton: false,  // No mostrar el botón de confirmación
-                                    timer: 4000,  // La alerta desaparecerá después de 4 segundos
-                                    toast: true,  // Activar la opción de "toast" para que sea una alerta pequeña
-                                    timerProgressBar: true,  // Mostrar barra de progreso en el timer
-                                });
-                
-                                // Actualiza el contador en el icono
-                                actualizarContadorCarrito();
-                            });
-                        } else {
-                            console.error('Error al obtener los detalles del producto:', data.message);
-                        }
+                    console.log("Ruta de imagen:", imagenProducto);
+                    console.log("ID del producto " + productoId);
+
+                    // Hacer la solicitud fetch
+                    fetch('http://localhost:8088/Milogar/Controllers/ProductoController.php?action=verDetalle&id=' + productoId, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
                     })
-                    .catch(error => {
-                        console.error('Error en la solicitud:', error);
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Datos recibidos:', data);
+                            if (data.status === 'success') {
+                                var producto = data.data;
+
+                                // Actualizar la información del producto en el modal
+                                modal.find('#product-name').text(producto.nombreProducto);
+                                modal.find('#product-description').text(producto.descripcionProducto);
+
+                                var precioOriginal = producto.precio_1;
+                                var descuento = producto.descuento || 0;
+                                var precioConDescuento = (precioOriginal - (precioOriginal * descuento / 100)).toFixed(2);
+
+                                modal.find('#product-price').text(`$${precioConDescuento}`);
+                                modal.find('#original-price').text(`$${precioOriginal}`);
+                                modal.find('#discount-percent').text(`${descuento}% Off`);
+                                modal.find('#product-code').text(producto.codigo_barras);
+                                modal.find('#availability').text(producto.stock > 0 ? 'In Stock' : 'Out of Stock');
+                                modal.find('#Category').text(producto.categoria_nombre || 'Unknown Category');
+                                modal.find('#Subcategory').text(producto.subcategoria_nombre || 'Unknown Subcategory');
+                                modal.find('#product-image').attr('src', 'http://localhost:8088/Milogar/assets/imagenesMilogar/productos/' + producto.imagen);
+
+                                // Generar miniaturas
+                                var thumbnailsHTML = '';
+                                if (producto.imagen) {
+                                    var imagenRuta = 'http://localhost:8088/Milogar/assets/imagenesMilogar/Productos/' + producto.imagen;
+                                    thumbnailsHTML += `
+                <div class="col-3">
+                    <div class="thumbnails-img">
+                        <img src="${imagenRuta}" alt="${producto.nombreProducto}">
+                    </div>
+                </div>
+                `;
+                                }
+                                modal.find('#productModalThumbnails').html(thumbnailsHTML);
+
+                                modal.find('#add-to-cart2').off('click').on('click', function () {
+                                    const productoId = producto.id; // Se obtiene del objeto 'producto'
+                                    const nombreProducto = producto.nombreProducto;
+                                    const precioProducto = parseFloat(producto.precio_1);
+                                    const descuento = parseFloat(producto.descuento) || 0;
+                                    
+                                    // Verificar el objeto producto completo
+                                    console.log("Objeto producto:", producto);
+                                
+                                    // Acceder a la ruta de la imagen
+                                    const imagenProducto = producto.imagenRuta; // Asegúrate de que esta propiedad existe
+                                
+                                    // Imprimir la ruta de la imagen
+                                    console.log("Ruta de la imagen:", imagenProducto);
+                                
+                                    // Calcular el precio con descuento
+                                    const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
+                                
+                                    // Imprimir en consola los datos antes de agregar al carrito
+                                    console.log("ID del producto:", productoId);
+                                    console.log("Nombre del producto:", nombreProducto);
+                                    console.log("Precio del producto:", precioProducto);
+                                    console.log("Descuento:", descuento);
+                                    console.log("Precio con descuento:", precioConDescuento);
+                                
+                                    // Verificar si el producto ya está en el carrito
+                                    const productoExistente = carrito.find(producto => producto.id === productoId);
+                                
+                                    if (productoExistente) {
+                                        productoExistente.cantidad++;
+                                    } else {
+                                        carrito.push({
+                                            id: productoId,
+                                            nombre: nombreProducto,
+                                            precio: precioConDescuento,
+                                            cantidad: 1,
+                                            precioOriginal: precioProducto,
+                                            imagen: imagenProducto, // Usar la ruta completa
+                                            descuento: descuento,
+                                        });
+                                    }
+                                
+                                    // Guardar el carrito en localStorage
+                                    guardarCarrito();
+                                    actualizarCarrito();
+                                
+                                    // Mostrar alerta con SweetAlert2
+                                    Swal.fire({
+                                        position: 'bottom-left',
+                                        icon: 'success',
+                                        title: '¡Agregado correctamente!',
+                                        showConfirmButton: false,
+                                        timer: 4000,
+                                        toast: true,
+                                        timerProgressBar: true,
+                                    });
+                                
+                                    // Actualizar el contador del carrito
+                                    actualizarContadorCarrito();
+                                });
+                                                                // ✅ SOLO SE ASIGNAN EVENTOS UNA VEZ CUANDO SE ABRE EL MODAL
+                                modal.on('shown.bs.modal', function () {
+                                    const buttonsMinus = document.querySelectorAll(".button-minus");
+                                    const buttonsPlus = document.querySelectorAll(".button-plus");
+
+                                    buttonsMinus.forEach(button => {
+                                        button.removeEventListener("click", restarCantidad);
+                                        button.addEventListener("click", restarCantidad);
+                                    });
+
+                                    buttonsPlus.forEach(button => {
+                                        button.removeEventListener("click", sumarCantidad);
+                                        button.addEventListener("click", sumarCantidad);
+                                    });
+                                });
+
+                                function restarCantidad() {
+                                    let input = this.nextElementSibling;
+                                    let value = parseInt(input.value, 10);
+                                    if (value > 1) {
+                                        input.value = value - 1;
+                                    }
+                                }
+
+                                function sumarCantidad() {
+                                    let input = this.previousElementSibling;
+                                    let value = parseInt(input.value, 10);
+                                    let max = parseInt(input.getAttribute("max"), 10);
+                                    if (!max || value < max) {
+                                        input.value = value + 1;
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => console.error("Error al obtener datos:", error));
                 });
-                
+
                 document.querySelectorAll('.add-to-cart').forEach(btn => {
                     btn.addEventListener('click', (event) => {
                         // Obtén los datos del producto desde los atributos data-* del botón
@@ -215,13 +254,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         const precioProducto = parseFloat(event.target.dataset.precio);
                         const descuento = parseFloat(event.target.getAttribute('data-descuento')) || 0; // Aseguramos que el descuento sea un número
                         const imagenProducto = event.target.dataset.imagen;
-                
+
                         // Calcular el precio con descuento
                         const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
-                
+
                         // Verifica si el producto ya está en el carrito
                         const productoExistente = carrito.find(producto => producto.id === productoId);
-                
+
                         // Si el producto ya está en el carrito, incrementa la cantidad
                         if (productoExistente) {
                             productoExistente.cantidad++;
@@ -238,13 +277,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             });
                         }
-                        
+
                         // Guarda el carrito en localStorage
                         guardarCarrito();
-                        
+
                         // Actualiza el carrito en el modal (si es necesario)
                         actualizarCarrito();
-                
+
                         // Mostrar la alerta con SweetAlert2
                         Swal.fire({
                             position: 'bottom-left',  // Ubicación de la alerta (abajo a la izquierda)
@@ -255,12 +294,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             toast: true,  // Activar la opción de "toast" para que sea una alerta pequeña
                             timerProgressBar: true,  // Mostrar barra de progreso en el timer
                         });
-                
+
                         // Actualiza el contador en el icono
                         actualizarContadorCarrito();
                     });
                 });
-                
+
             } else {
                 // Si no hay productos en promoción, mostrar mensaje
                 productosPromocionContainer.innerHTML = '<p>No hay productos en promoción en este momento.</p>';

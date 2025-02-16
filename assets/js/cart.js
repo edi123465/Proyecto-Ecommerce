@@ -28,9 +28,13 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
         // Obtén los datos del producto desde los atributos data-* del botón
         const productoId = event.target.dataset.id;
         const nombreProducto = event.target.dataset.nombre;
-        const precioProducto = parseFloat(event.target.dataset.precio_1);
+        const precioProducto = parseFloat(event.target.dataset.precio);
+        const descuento = parseFloat(event.target.getAttribute('data-descuento')) || 0; // Aseguramos que el descuento sea un número
         const imagenProducto = event.target.dataset.imagen;
-        const descuentoProducto = parseFloat(event.target.dataset.descuento);
+
+        // Calcular el precio con descuento
+        const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
+
         // Verifica si el producto ya está en el carrito
         const productoExistente = carrito.find(producto => producto.id === productoId);
 
@@ -42,19 +46,21 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
             carrito.push({
                 id: productoId,
                 nombre: nombreProducto,
-                precio: precioProducto,
+                precio: precioConDescuento, // Guardamos el precio con descuento
                 cantidad: 1,
+                precioOriginal: precioProducto, // Añadir el precio original
                 imagen: imagenProducto,
-                descuento: descuentoProducto
+                descuento: descuento,
+
             });
         }
 
         // Guarda el carrito en localStorage
         guardarCarrito();
 
-
         // Actualiza el carrito en el modal (si es necesario)
         actualizarCarrito();
+
         // Mostrar la alerta con SweetAlert2
         Swal.fire({
             position: 'bottom-left',  // Ubicación de la alerta (abajo a la izquierda)
@@ -65,11 +71,11 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
             toast: true,  // Activar la opción de "toast" para que sea una alerta pequeña
             timerProgressBar: true,  // Mostrar barra de progreso en el timer
         });
-        //actualiza el contador en el icono
+
+        // Actualiza el contador en el icono
         actualizarContadorCarrito();
     });
 });
-
 
 // Llamar a cargarCarrito al cargar la página
 document.addEventListener('DOMContentLoaded', cargarCarrito);
@@ -85,7 +91,7 @@ function actualizarCarrito() {
         const precioConDescuento = producto.precio;  // Precio con descuento
         const precioUnitario = producto.precioOriginal;  // Precio original sin descuento
         const descuento = producto.descuento || 0;  // El descuento en porcentaje
-
+        
         // Calcular el subtotal con el precio con descuento
         const subtotal = precioConDescuento * producto.cantidad;
 
