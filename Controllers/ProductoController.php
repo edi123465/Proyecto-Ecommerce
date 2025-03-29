@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../Models/ProductoModel.php';
 require_once __DIR__ . '/../Models/CategoriaModel.php'; // Asegúrate de que la ruta es correcta
+require_once __DIR__ . '/../Config/db.php'; // Incluye la configuración de la base de datos
+
 // Asegúrate de que la ruta es correcta
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
@@ -418,50 +420,42 @@ class ProductoController
         return $numeroPedido;
     }
 
+    
     public function obtenerFechaActual()
     {
+        date_default_timezone_set('America/Bogota'); // Quito y Bogotá tienen la misma zona horaria
         return date('Y-m-d H:i:s');
-    }
-
-
+    }   
     public function busquedaDinamica()
     {
+        header('Content-Type: application/json'); // Asegurar respuesta JSON
 
-        // Depuración: Log de parámetros recibidos
-        error_log("Parámetros GET recibidos: " . print_r($_GET, true));
-
-        // Validar que se proporcionó un término de búsqueda
-        if (!isset($_GET['q']) || empty(trim($_GET['q']))) {
-            echo json_encode(['error' => 'No se proporcionó un término de búsqueda.']);
-            return;
-        }
-
-        // Validar el parámetro 'action'
-        if (!isset($_GET['action']) || $_GET['action'] !== 'search') {
-            echo json_encode(['error' => 'No se proporcionó una acción válida.']);
-            return;
-        }
-
-        $query = trim($_GET['q']); // Sanitizar el término de búsqueda
-
-        // Llamar al modelo para buscar los productos
         try {
+            // Verificar si se proporcionó el parámetro de búsqueda
+            $query = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+            if (empty($query)) {
+                echo json_encode(['error' => 'No se proporcionó un término de búsqueda.']);
+                return;
+            }
+
+            // Llamar al modelo para obtener los productos
             $resultados = $this->model->searchProducts($query);
 
+            // Verificar si hay resultados
             if (empty($resultados)) {
-                header('Content-Type: application/json'); // Asegura que la respuesta esté en formato JSON
-                echo json_encode(['message' => 'No se encontraron productos para el término proporcionado.']);
-            } else {
-
-                echo json_encode([
-                    'success' => true,
-                    'query' => $query,
-                    'productos' => $resultados
-                ]);
+                echo json_encode(['message' => 'No se encontraron productos.']);
+                return;
             }
+
+            // Devolver productos en formato JSON
+            echo json_encode([
+                'success' => true,
+                'query' => $query,
+                'productos' => $resultados
+            ]);
         } catch (Exception $e) {
-            header('Content-Type: application/json');
-            error_log("Error al buscar productos: " . $e->getMessage());
+            error_log("Error en la búsqueda: " . $e->getMessage());
             echo json_encode(['error' => 'Ocurrió un error al realizar la búsqueda.']);
         }
     }
@@ -548,9 +542,8 @@ if (isset($_GET['action'])) {
             $productoController = new ProductoController($db);
             $productoController->obtenerProductoPorId();
             break;
-            break;
-
         case 'search':
+            
             $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 
             if (empty($query)) {
@@ -562,23 +555,12 @@ if (isset($_GET['action'])) {
             $productos = $productoModel->searchProducts($query);
 
             if (!empty($productos)) {
-                // Guardar los productos encontrados en la sesión
-                $_SESSION['productosBusqueda'] = $productos;
-                // Redirigir a resultadosBusqueda.php solo si no estamos ya allí
-                if ($_SERVER['REQUEST_URI'] !== '/Milogar/Views/resultadosBusqueda.php?action=search&q=' . urlencode($query)) {
-                    header('Location: /Milogar/Views/resultadosBusqueda.php?action=search&q=' . urlencode($query));
-                    exit;
-                }
+                echo json_encode(['productos' => $productos]); // Devuelve los productos en JSON
             } else {
-                // Si no se encontraron productos, redirigir con mensaje de error
-                $_SESSION['errorBusqueda'] = 'No se encontraron productos para el término proporcionado.';
-                if ($_SERVER['REQUEST_URI'] !== '/Milogar/Views/resultadosBusqueda.php?action=search&q=' . urlencode($query)) {
-                    header('Location: /Milogar/Views/resultadosBusqueda.php?action=search&q=' . urlencode($query));
-                    exit;
-                }
+                echo json_encode(['error' => 'No se encontraron productos.']);
             }
-            break;
+            exit;
     }
 } else {
-    echo json_encode(['error' => 'Parámetro action faltante']);
+    //echo json_encode(['error' => 'Parámetro action faltante']);
 }

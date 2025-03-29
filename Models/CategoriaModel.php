@@ -40,7 +40,7 @@ class CategoriaModel
     {
         // Prepara la consulta SQL para la tabla Categorías
         $query = "INSERT INTO Categorias (nombreCategoria, descripcionCategoria, isActive, fechaCreacion, imagen) 
-                  VALUES (:nombre, :descripcion, :isActive, GETDATE(), :imagen)";  // Se agrega el campo 'imagen'
+                  VALUES (:nombre, :descripcion, :isActive, now(), :imagen)";  // Se agrega el campo 'imagen'
 
         // Prepara la declaración
         $stmt = $this->conn->prepare($query);

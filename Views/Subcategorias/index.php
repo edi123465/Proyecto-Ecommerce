@@ -7,7 +7,10 @@ require_once __DIR__ . '/../../Models/SubcategoriaModel.php';       // Cargar el
 // Crear una instancia de la conexión
 $db = new Database1();
 $connection = $db->getConnection();
-
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /Milogar/index.php");
+    exit();
+}
 
 ?>
 
@@ -140,10 +143,10 @@ $connection = $db->getConnection();
             <div class="content">
                 <div class="container-fluid">
                     <!-- Enlace para crear una subcategorías -->
-                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#createSubCategoryModal">Crear Categoría</a>
+                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#createSubCategoryModal">Crear Subcategoría</a>
 
                     <!-- Enlace para regresar a la consulta -->
-                    <a href="../menu.php" class="btn btn-secondary">Regresar al menú</a>
+                    <a href="../../menu" class="btn btn-secondary">Regresar al menú</a>
 
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
@@ -187,13 +190,10 @@ $connection = $db->getConnection();
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="index3.html" class="nav-link">Home</a>
+                    <a href="../../menu" class="nav-link">Home</a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="login/logout.php" class="nav-link">Cerrar Sesión</a>
+                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>
@@ -330,15 +330,6 @@ $connection = $db->getConnection();
             <!-- Control sidebar content goes here -->
         </aside>
         <!-- /.control-sidebar -->
-
-        <!-- Main Footer -->
-        <footer class="main-footer">
-            <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
-            All rights reserved.
-            <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 3.2.0
-            </div>
-        </footer>
     </div>
     <!-- ./wrapper -->
 

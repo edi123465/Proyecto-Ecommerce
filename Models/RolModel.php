@@ -6,7 +6,7 @@ class RolModel
 {
 
     private $conn;
-    private $table = 'Roles';
+    private $table = 'roles';
     public $RolID;
     public $RolName;
     public $RolDescription;
@@ -33,40 +33,33 @@ class RolModel
     }
 
     public function crearRol($data)
-    {
-        // Consulta SQL
-        $query = "INSERT INTO " . $this->table . " (RolName, RolDescription, IsActive, CreatedAt) 
-                  VALUES (:rolName, :rolDescription, :isActive, GETDATE())"; // Utiliza GETDATE() para la fecha actual
+{
+    // Consulta SQL para MySQL
+    $query = "INSERT INTO " . $this->table . " (RolName, RolDescription, IsActive, CreatedAt) 
+              VALUES (:rolName, :rolDescription, :isActive, NOW())"; // Se usa NOW() para la fecha actual
 
+    try {
         // Preparar la consulta
         $stmt = $this->conn->prepare($query);
 
-        // Verificar si la preparación de la consulta fue exitosa
-        if ($stmt === false) {
-            echo "Error al preparar la consulta.";
-            return false;
-        }
-
         // Vincular los parámetros
-        $stmt->bindParam(':rolName', $data['RolName']);
-        $stmt->bindParam(':rolDescription', $data['RolDescription']);
-        $stmt->bindParam(':isActive', $data['IsActive']);
+        $stmt->bindParam(':rolName', $data['RolName'], PDO::PARAM_STR);
+        $stmt->bindParam(':rolDescription', $data['RolDescription'], PDO::PARAM_STR);
+        $stmt->bindParam(':isActive', $data['IsActive'], PDO::PARAM_INT); // Asegurar que es un número entero
 
-        // Intentar ejecutar la consulta
-        try {
-            // Ejecutar la consulta
-            if ($stmt->execute()) {
-                return true;
-            } else {
-                echo "Error al ejecutar la consulta.";
-                return false;
-            }
-        } catch (Exception $e) {
-            // Capturar cualquier excepción y mostrar el error
-            echo "Error en la ejecución: " . $e->getMessage();
+        // Ejecutar la consulta
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            error_log("Error al ejecutar la consulta: " . implode(" ", $stmt->errorInfo()));
             return false;
         }
+    } catch (PDOException $e) {
+        // Capturar cualquier error de base de datos
+        error_log("Error en la base de datos: " . $e->getMessage());
+        return false;
     }
+}
 
     // Método para obtener los roles desde la base de datos
     public function obtenerRoles()
@@ -90,7 +83,7 @@ class RolModel
     //obtener el id y nombre del Rol para actualizar 
     public function obtenerRol(){
         try {
-            $query = "SELECT ID, RolName FROM Roles";
+            $query = "SELECT ID, RolName FROM roles";
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -111,21 +104,36 @@ class RolModel
     }
     public function actualizarRol($id, $roleName, $roleDescription, $isActive)
     {
-        $query = "UPDATE roles SET RolName = :roleName, RolDescription = :roleDescription, IsActive = :isActive WHERE ID = :id";
-        $stmt = $this->conn->prepare($query);
+        try {
+            $query = "UPDATE roles SET RolName = :roleName, RolDescription = :roleDescription, IsActive = :isActive WHERE ID = :id";
+            $stmt = $this->conn->prepare($query);
     
-        // Vincular los parámetros
-        $stmt->bindParam(':roleName', $roleName);
-        $stmt->bindParam(':roleDescription', $roleDescription);
-        $stmt->bindParam(':isActive', $isActive, PDO::PARAM_INT);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta.");
+            }
     
-        return $stmt->execute();
+            // Vincular los parámetros con validación
+            $stmt->bindParam(':roleName', $roleName, PDO::PARAM_STR);
+            $stmt->bindParam(':roleDescription', $roleDescription, PDO::PARAM_STR);
+            $stmt->bindParam(':isActive', $isActive, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    
+            // Ejecutar la consulta
+            if ($stmt->execute()) {
+                return true; // Éxito
+            } else {
+                throw new Exception("Error al ejecutar la consulta.");
+            }
+        } catch (Exception $e) {
+            echo "Error en la actualización del rol: " . $e->getMessage();
+            return false;
+        }
     }
+    
 
     // Función para eliminar un rol
     public function eliminarRol($id) {
-        $query = "DELETE FROM Roles WHERE id = :id"; // Asumiendo que el nombre de la tabla es 'roles'
+        $query = "DELETE FROM roles WHERE id = :id"; // Asumiendo que el nombre de la tabla es 'roles'
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 

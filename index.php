@@ -28,6 +28,7 @@ $productoController = new ProductoController($connection);
 $numPedido = $productoController->generarNumeroPedido();
 
 
+
 ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
 ?>
 
@@ -43,7 +44,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="FreshCart is a beautiful eCommerce HTML template specially designed for multipurpose shops & online stores selling products. Most Loved by Developers to build a store website easily.">
+    <meta name="description" content="Milogar - Tienda en línea con los mejores productos del hogar. Compra fácil, rápido y seguro. ¡Descubre nuestras ofertas!">
     <meta content="Codescandy" name="author" />
 
 
@@ -62,6 +63,8 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <link href="assets/libs/tiny-slider/dist/tiny-slider.css" rel="stylesheet">
     <link href="assets/libs/dropzone/dist/min/dropzone.min.css" rel="stylesheet" />
     <link href="assets/libs/prismjs/themes/prism-okaidia.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
     <!-- Theme CSS -->
     <link rel="stylesheet" href="assets/css/theme.min.css">
 
@@ -126,6 +129,64 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .whatsapp-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .whatsapp-icon {
+            position: relative;
+            display: inline-block;
+        }
+
+        .whatsapp-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .whatsapp-icon:hover img {
+            transform: scale(1.1);
+        }
+
+        .whatsapp-text {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background-color: #25D366;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .whatsapp-icon:hover .whatsapp-text {
+            opacity: 1;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+        }
+
+        .swiper {
+            position: relative;
+            padding: 20px;
+        }
+
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: #333;
+            /* Color de las flechas */
         }
     </style>
 
@@ -221,70 +282,37 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </form>
         </div>
     </div>
-    <!-- Modal -->
-    <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content">
+    
+    <section class="mt-8">
+        <!-- contianer -->
+        <div class="container">
+            <div class="row">
+                <!-- col -->
+                <div class="col-12">
+                    <!-- cta -->
+                    <div
+                        class="bg-light d-lg-flex justify-content-between align-items-center py-6 py-lg-3 px-8 rounded-3 text-center text-lg-start">
+                        <!-- img -->
+                        <div class="d-lg-flex align-items-center">
+                            <img src="assets/imagenesMilogar/logomilo.jpg" alt="" width="200px;" height="200px;" style="border-radius: 20px;" class="img-fluid">
+                            <!-- text -->
 
-                <div class="modal-body p-6">
-                    <div class="d-flex justify-content-between align-items-start ">
-                        <div>
-                            <h5 class="mb-1" id="locationModalLabel">Choose your Delivery Location</h5>
-                            <p class="mb-0 small">Enter your address and we will specify the offer you area. </p>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="my-5">
-                        <input type="search" class="form-control" placeholder="Search your area">
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">Select Location</h6>
-                        <a href="#" class="btn btn-outline-gray-400 text-muted btn-sm">Clear All</a>
+                            <div class="ms-lg-4">
+                                <h1 class="fs-2 mb-1">Bienvenidos a MILOGAR</h1>
+                                <span>Todo lo que necesitas en un solo lugar a los mejores precios</span>
 
-
-                    </div>
-                    <div>
-                        <div data-simplebar style="height:300px;">
-                            <div class="list-group list-group-flush">
-
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action active">
-                                    <span>Alabama</span><span>Min:$20</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Alaska</span><span>Min:$30</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Arizona</span><span>Min:$50</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>California</span><span>Min:$29</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Colorado</span><span>Min:$80</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Florida</span><span>Min:$90</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Arizona</span><span>Min:$50</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>California</span><span>Min:$29</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Colorado</span><span>Min:$80</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Florida</span><span>Min:$90</span></a>
                             </div>
+
+                        </div>
+                        <div class="mt-3 mt-lg-0">
+                            <!-- btn -->
+                            <a href="#" class="btn btn-dark">Inicia sessión para aceder a promociones y más.</a>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-    </div>
+    </section>
     <!-- section -->
     <section class="mt-8">
         <div class="container">
@@ -322,7 +350,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <h2 class="text-white display-5 fw-bold mb-3">Plásticos Desechables para Alimentos</h2>
                                 <p class="fs-5 text-white">¡Equipa tu negocio o evento! Encuentra precios increíbles en productos de calidad.</p>
                                 <!-- btn -->
-                                <a href="#!" class="btn btn-primary">Explorar Descuentos <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/shop-grid?search=desechables" class="btn btn-primary">Explorar Descuentos <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                         <div class=" "
@@ -356,7 +384,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <p class="fs-5 text-white">Organiza tu espacio con productos duraderos y de alta calidad.</p>
 
                                 <!-- btn -->
-                                <a href="#!" class="btn btn-primary text-light">Explora la Colección
+                                <a href="/Milogar/shop-grid?search=Hogar" class="btn btn-primary text-light">Explora la Colección
                                     <i class="feather-icon icon-arrow-right ms-1"></i>
                                 </a>
                             </div>
@@ -393,7 +421,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <!-- para -->
                                 <p class="fs-5 text-light">Equipa tu hogar con productos esenciales que garantizan bienestar y satisfacción para toda la familia.</p>
                                 <!-- btn -->
-                                <a href="#!" class="btn btn-primary text-dark">Explorar Ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/shop-grid?search=Primera" class="btn btn-primary text-dark">Explorar Ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                         <div class=""
@@ -426,7 +454,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <!-- para -->
                                 <p class="fs-5 text-white">Descubre nuestra colección de cristal y porcelana, perfecta para realzar la belleza de tu mesa.</p>
                                 <!-- btn -->
-                                <a href="#!" class="btn btn-primary text-white">Explorar Colección <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/shop-grid?search=cristaleria" class="btn btn-primary text-white">Explorar Colección <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                         <div class=""
@@ -459,7 +487,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <!-- para -->
                                 <p class="fs-5 text-white">Encuentra el equilibrio perfecto entre diseño, comodidad y funcionalidad para tu hogar.</p>
                                 <!-- btn -->
-                                <a href="#!" class="btn btn-light text-dark">Explorar Muebles <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/shop-grid?search=muebles" class="btn btn-light text-dark">Explorar Muebles <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
 
@@ -480,7 +508,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <div class="my-2" style="font-size: 1rem;">
                                     <span style="color: white; font-weight: 600;">Lo mejor en bebidas alcoholicas para eventos.</span>
                                 </div>
-                                <a href="#" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 25px;">Shop Now</a>
+                                <a href="/Milogar/shop-grid?search=bebidas" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 25px;">Shop Now</a>
                             </div>
                         </div>
                     </div>
@@ -494,7 +522,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 padding: 20px; border-radius: .5rem; width: 100%; height: 100%;">
                                 <h3 class="fs-4 fw-bold lh-1 mb-2">¡Limieza y aseo personal!</h3>
                                 <p class="fs-6">Descubre productos de limpieza y aseo personal que te brindan frescura y confianza todos los días.</p>
-                                <a href="#" class="btn btn-primary mt-2">Explora las Ofertas</a>
+                                <a href="/Milogar/shop-grid?search=aseo" class="btn btn-primary mt-2">Explora las Ofertas</a>
                             </div>
                         </div>
                     </div>
@@ -502,10 +530,11 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </div>
         </div>
     </section>
-    <h2 style="text-align: center;">Todas nuestras categorias</h2>
+    <br><h2 style="text-align: center;">Todas nuestras categorias</h2><br>
     <div class="product-carousel">
         <!-- Las categorías se agregarán dinámicamente aquí -->
     </div>
+ 
     <!-- Modal de Edición de Producto -->
     <div class="modal fade" id="editarProductoModal" tabindex="-1" aria-labelledby="editarProductoModalLabel">
         <div class="modal-dialog">
@@ -676,11 +705,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                     <span><small class="fs-6 ms-2 text-danger" id="discount-percent"></small></span> <!-- Descuento en porcentaje -->
                                 </div>
                                 <hr class="my-6">
-                                <div>
-                                    <button type="button" class="btn btn-outline-secondary" id="size-250g">250g</button>
-                                    <button type="button" class="btn btn-outline-secondary" id="size-500g">500g</button>
-                                    <button type="button" class="btn btn-outline-secondary" id="size-1kg">1kg</button>
-                                </div>
+                             
                                 <div class="mt-5 d-flex justify-content-start">
                                     <div class="col-2">
                                         <div class="input-group flex-nowrap justify-content-center">
@@ -692,10 +717,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                     <div class="ms-2 col-4 d-grid">
                                         <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Add to cart</button>
                                     </div>
-                                    <div class="ms-2 col-4">
-                                        <a class="btn btn-light" href="#" data-bs-toggle="tooltip" data-bs-html="true" title="Compare"><i class="bi bi-arrow-left-right"></i></a>
-                                        <a class="btn btn-light" href="shop-wishlist.html" data-bs-toggle="tooltip" data-bs-html="true" title="Wishlist"><i class="feather-icon icon-heart"></i></a>
-                                    </div>
+                                   
                                 </div>
                                 <hr class="my-6">
                                 <div>
@@ -721,10 +743,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                                 <td>Subcategoría</td>
                                                 <td id="Subcategory">Fruits</td>
                                             </tr>
-                                            <tr>
-                                                <td>Shipping:</td>
-                                                <td><small>01 day shipping.<span class="text-muted">(Free pickup today)</span></small></td>
-                                            </tr>
+                                        
                                         </tbody>
                                     </table>
                                 </div>
@@ -752,6 +771,68 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </div>
         </div>
     </section>
+    <div class="whatsapp-container">
+        <a href="https://wa.me/593989082073" target="_blank" class="whatsapp-icon">
+            <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
+            <span class="whatsapp-text">¿Cómo podemos ayudarte?</span>
+        </a>
+    </div>
+
+
+    <!-- featured section -->
+    <section class="my-lg-14 my-8">
+        <div class="container">
+            <!-- row -->
+            <div class="row">
+                <div class="col-md-6 col-lg-3">
+                    <div class="mb-8 mb-lg-0">
+                        <!-- img -->
+                        <div class="mb-6"><img src="assets/icons/clock.svg" alt=""></div>
+                        <!-- title -->
+                        <h3 class="h5 mb-3">
+                            Compra desde cualquier lugar
+                        </h3>
+                        <!-- text -->
+                        <p class="mb-0">Recibe tu pedido en la puerta de tu casa o recógelo en tu tienda Milogar ¡Rápido, fácil y seguro! 🚀🏡</p>
+                    </div>
+                </div>
+                
+                <!-- col -->
+                <div class="col-md-6  col-lg-3">
+                    <div class="mb-8 mb-lg-0">
+                        <!-- img -->
+                        <div class="mb-6"><img src="assets/icons/gift.svg" alt=""></div>
+                        <!-- title -->
+                        <h3 class="h5 mb-3">Ahorra mas en cada compra</h3>
+                        <!-- text -->
+                        <p class="mb-0">En Milogar, cada compra te acerca a los mejores descuentos y ofertas exclusivas. ¡Aprovecha hoy mismo!
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="mb-8 mb-lg-0">
+                        <!-- img -->
+                        <div class="mb-6"><img src="assets/icons/package.svg" alt=""></div>
+                        <!-- title -->
+                        <h3 class="h5 mb-3">Variedad para tu hogar</h3>
+                        <!-- text -->
+                        <p class="mb-0">Haz tus compras de manera fácil y rápida con nuestra gran variedad de productos esenciales para el hogar.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="mb-8 mb-lg-0">
+                        <!-- img -->
+                        <div class="mb-6"><img src="assets/icons/refresh-cw.svg" alt=""></div>
+                        <!-- title -->
+                        <h3 class="h5 mb-3"> Compra sin preocupaciones</h3>
+                        <!-- text -->
+                        <p class="mb-0">¿No estás satisfecho con tu compra? Devuélvela sin problemas y obtén tu reembolso de forma rápida y sencilla.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
 
     <?php
@@ -761,6 +842,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     </div>
     <!-- Javascript-->
     <!-- Libs JS -->
+
     <script src="assets/libs/jquery/dist/jquery.min.js"></script>
     <script src="assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/libs/jquery-countdown/dist/jquery.countdown.min.js"></script>
@@ -777,6 +859,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <script src="assets/libs/dropzone/dist/min/dropzone.min.js"></script>
     <script src="assets/libs/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
 
     <!-- Theme JS -->
     <script src="assets/js/theme.min.js"></script>
@@ -788,6 +871,32 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <script src="assets/js/index.js"></script>
     <script src="assets/js/mostrarCategorias.js"></script>
     <!-- choose one -->
+    <script>
+        var swiper = new Swiper(".mySwiper", {
+            slidesPerView: 4,
+            spaceBetween: 20,
+            loop: true,
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            breakpoints: {
+                320: {
+                    slidesPerView: 2
+                },
+                768: {
+                    slidesPerView: 3
+                },
+                1024: {
+                    slidesPerView: 5
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

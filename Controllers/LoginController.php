@@ -56,10 +56,14 @@ class LoginController
     
         if ($usuario) {
             if (password_verify($password, $usuario['Contrasenia'])) {
+                $email = $usuario['Email'];  // Ahora tenemos el correo electrónico del usuario
+
                 $role = $this->model->getRoleById($usuario['RolID']);
     
                 $_SESSION['user_id'] = $usuario['ID'];
                 $_SESSION['user_name'] = $usuario['NombreUsuario'];
+                $_SESSION['user_email'] = $email;  // Guardar el correo electrónico en la sesión
+
                 $_SESSION['user_role'] = $role['RolName'];
                 $_SESSION['is_logged_in'] = true;
                 $_SESSION['show_welcome_alert'] = true;
@@ -67,7 +71,7 @@ class LoginController
                 $redirect = '';
 
                 if ($_SESSION['user_role'] === 'Administrador') {
-                    $redirect = '/Milogar/Views/menu.php';  // Redirigir a la vista del panel administrativo
+                    $redirect = '/Milogar/menu';  // Redirigir a la vista del panel administrativo
                 } elseif ($_SESSION['user_role'] === 'Colaborador') {
                     $redirect = '/Milogar/index.php';  // Redirigir a la tienda
                 } else {

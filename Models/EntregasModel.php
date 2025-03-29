@@ -42,8 +42,7 @@ class EntregasModel
                     pais, 
                     estado, 
                     direccion, 
-                    referencia, 
-                    telefono_contacto, 
+                    referencia,  
                     es_predeterminada 
                   FROM DireccionesEntrega 
                   WHERE usuario_id = :usuario_id";

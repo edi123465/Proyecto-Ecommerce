@@ -1,9 +1,11 @@
 <?php
 
-require_once "../Models/CategoriaModel.php";
-require_once "../Models/SubcategoriaModel.php";
-require_once "../Models/ProductoModel.php";
-require_once "../Models/TiendaModel.php";
+require_once __DIR__ . '/../Models/CategoriaModel.php';
+require_once __DIR__ . '/../Models/SubcategoriaModel.php';
+require_once __DIR__ . '/../Models/ProductoModel.php';
+require_once __DIR__ . '/../Models/TiendaModel.php';
+
+
 
 
 class TiendaController
@@ -52,24 +54,38 @@ class TiendaController
         }
     }
 
-    //metodo para obtener las categorias con subcategorias y traerlos a la lista
     public function getCategoriasConSubcategorias()
     {
-        // Obtener todas las categorías
         $categorias = $this->categoriaModel->getCategoryByName();
 
         foreach ($categorias as &$categoria) {
             $categoriaId = $categoria['id'];
             $subcategorias = $this->subcategoriaModel->getSubcategoriasByCategoriaId($categoriaId);
-
-            // Depurar para verificar si las subcategorías están siendo obtenidas
-            error_log("Subcategorías para la categoría $categoriaId: " . print_r($subcategorias, true));
-
-            $categoria['subcategorias'] = $subcategorias; // Asignar las subcategorías
+            $categoria['subcategorias'] = $subcategorias;
         }
 
-        return $categorias;
+        echo json_encode($categorias);
     }
+
+    public function obtenerProductos()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $categoriaId = isset($_GET['categoria_id']) ? $_GET['categoria_id'] : null;
+            $subcategoriaId = isset($_GET['subcategoria_id']) ? $_GET['subcategoria_id'] : null;
+    
+            require_once "../models/ProductoModel.php";
+            $tiendaModel = new TiendaModel($this->conn);
+            $productos = $tiendaModel->getProductosPorCategoriaOSubcategoria($categoriaId, $subcategoriaId);
+    
+            // Registrar en el log los datos recibidos y los productos obtenidos
+            error_log("Categoría ID: " . ($categoriaId ?? 'NULL') . " | Subcategoría ID: " . ($subcategoriaId ?? 'NULL'));
+            error_log("Productos obtenidos: " . json_encode($productos));
+    
+            echo json_encode($productos);
+        }
+    }
+    
+
 
     //metodo del controlador para mostrar los productos por la categoria seleccionada
     public function mostrarProductosPorSubcategoria()
@@ -140,6 +156,8 @@ class TiendaController
             echo json_encode(['error' => 'Ocurrió un error al realizar la búsqueda.']);
         }
     }
+
+    
 }
 
 
@@ -180,8 +198,15 @@ if (isset($_GET['action'])) {
             $SubCategoriaController = new SubcategoriaController($db);
             $SubCategoriaController->eliminarSubcategoria();
             break;
+        case 'getCategoriasConSubcategorias':
+            $TiendaController = new TiendaController($db);
+            $TiendaController->getCategoriasConSubcategorias();
+            break;
+        case 'obtenerProductos';
+            $TiendaController = new TiendaController($db);
+            $TiendaController->obtenerProductos();
+        break;
     }
 } else {
     //echo json_encode(['error' => 'Parámetro action faltante']);
 }
-

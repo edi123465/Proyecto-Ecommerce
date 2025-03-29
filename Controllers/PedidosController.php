@@ -5,6 +5,9 @@ session_start();
 require_once(__DIR__ . '/../Models/PedidosModel.php');
 require_once(__DIR__ . '/../Config/db.php');
 
+require_once __DIR__ . '/../vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class PedidosController
 {
@@ -43,6 +46,7 @@ class PedidosController
         $totalProductos = $data['totalProductos'];
         $productos = $data['productos'];
         $metodoPago = $data['metodoPago'];
+        
         // Log para revisar la fecha antes de la validación
         error_log("Fecha recibida: " . $fecha);
 
@@ -53,8 +57,9 @@ class PedidosController
             return;
         }
 
+        
         // Crear pedido
-        $pedido_id = $this->modeloPedidos->crearPedido($usuario_id, $fecha, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $metodoPago);
+        $pedido_id = $this->modeloPedidos->crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $metodoPago);
         error_log("Pedido creado con ID: " . $pedido_id);
 
         if ($pedido_id) {
@@ -91,6 +96,7 @@ class PedidosController
 
     public function obtenerTodo()
     {
+        
         try {
             error_log("Action: " . $_GET['action']);
             // Llama al método del modelo para obtener los pedidos
@@ -220,14 +226,16 @@ class PedidosController
 
         $numeroPedido = $data['numeroPedido'];  // Obtener el número de pedido
         $productos = $data['productos'];
-        $cliente = $data['cliente']; // Suponemos que se pasan los datos del cliente también
+        $cliente = ($data['usuario_id'] === 'invitado') ? 'Invitado' : $data['usuario_nombre'];
+        $emailCliente = $data['email'];  // Correo del cliente
+        $emailAdmin = 'ddonmilo100@gmail.com';  // Cambia esto por el correo del administrador
 
         // Crear el objeto TCPDF y configurar el documento
         $pdf = new TCPDF();
 
         // Configuración del PDF
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor('Tu Tienda');
+        $pdf->SetAuthor('Milogar');
         $pdf->SetTitle('Reporte del Pedido');
         $pdf->SetSubject('Detalle del Pedido');
         $pdf->setPrintHeader(false);  // Desactivar cabecera predeterminada
@@ -250,16 +258,15 @@ class PedidosController
         $pdf->Cell(0, 10, 'Nombre: MILOGAR', 0, 1, 'L'); // El nombre de la empresa
 
         $pdf->SetXY(60, 30); // Ajusta la posición Y para la siguiente línea (si deseas más separación entre líneas)
-        $pdf->Cell(0, 10, 'Dirección: Calle Ejemplo 123, Ciudad', 0, 1, 'L'); // Dirección
+        $pdf->Cell(0, 10, 'Dirección: El Quinche, Calle Quito y Tulcán', 0, 1, 'L'); // Dirección
 
         $pdf->SetXY(60, 40); // Ajusta la posición Y para la siguiente línea
-        $pdf->Cell(0, 10, 'Teléfono: (123) 456-7890', 0, 1, 'L'); // Teléfono
+        $pdf->Cell(0, 10, 'Teléfono: 0989082073', 0, 1, 'L'); // Teléfono
 
         $pdf->SetXY(60, 50); // Ajusta la posición Y para la siguiente línea
-        $pdf->Cell(0, 10, 'Correo: contacto@milogar.com', 0, 1, 'L'); // Correo
+        $pdf->Cell(0, 10, 'Correo: ddonmilo100@gmail.com', 0, 1, 'L'); // Correo
 
         $pdf->Ln(10); // Espaciado entre los datos de la empresa y los datos del cliente
-
 
         // Cuadro con los datos del cliente
         $pdf->SetXY(10, 60); // Ajusta la posición para el cuadro de datos del cliente
@@ -269,20 +276,39 @@ class PedidosController
         $pdf->SetFont('helvetica', '', 12);
 
         // Datos del cliente (nombre, dirección, email, etc.)
-        $pdf->Cell(0, 10, 'Nombre: ' . $cliente['nombre'], 0, 1, 'L');
-        $pdf->Cell(0, 10, 'Dirección: ' . $cliente['direccion'], 0, 1, 'L');
-        $pdf->Cell(0, 10, 'Correo: ' . $cliente['correo'], 0, 1, 'L');
-        $pdf->Ln(10); // Espaciado entre el cuadro del cliente y los detalles del pedido
+        $pdf->Cell(0, 10, 'Cliente: ' . $cliente, 0, 1, 'L');
+        $pdf->Cell(0, 10, 'Correo: ' . $data['email'], 0, 1, 'L');
 
+
+        $pdf->SetX(150); // Mantén la posición X para alinearlo a la derecha
+        $pdf->Cell(0, 10, 'Teléfono: ' . $data['telefono'], 0, 1, 'L');
+        $pdf->Cell(0, 10, 'Opción de Entrega: ' . $data['deliveryOption'], 0, 1, 'L'); // Mostrar la opción de entrega
+        // Verifica la opción seleccionada y muestra la dirección si es "agregarDireccionEnvio"
+        if ($data['deliveryOption'] === 'agregarDireccionEnvio') {
+            // Mostrar la dirección si se seleccionó "agregarDireccionEnvio"
+            $pdf->Cell(0, 10, 'Dirección de Envío: ' . $data['direccion'], 0, 1, 'L');
+            $pdf->Ln(); // Salto de línea
+        }
+        // Mover la fecha un poco hacia arriba
+        $pdf->SetY(70); // Ajusta la posición Y para mover la fecha hacia arriba
+        $pdf->SetX(150); // Mantén la posición X para alinearlo a la derecha
+        $pdf->SetFont('helvetica', '', 12);
+        $pdf->Cell(0, 10, 'Fecha: ' . date('d/m/Y'), 0, 1, 'L');
+
+        $pdf->Ln(5); // Ajusta el espaciado después de la fecha
+
+        // Mover el tipo de pago hacia arriba
+        $pdf->SetY(90); // Ajusta la posición Y para mover el tipo de pago hacia arriba
+        $pdf->SetX(10); // Mantén la posición X para el tipo de pago
+        $pdf->Cell(0, 10, 'Tipo de Pago: ' . (isset($data['metodoPago']) ? $data['metodoPago'] : 'No especificado'), 0, 1, 'L');
+
+        // Espaciado entre el tipo de pago y los detalles del pedido
+        $pdf->Ln(10); // Espaciado entre el tipo de pago y los detalles del pedido
+        $pdf->Ln(); // Salto de línea
         // Datos del pedido
         $pdf->SetFont('helvetica', 'B', 14);
         $pdf->Cell(0, 10, 'Reporte de Pedido #' . $numeroPedido, 0, 1, 'C');
         $pdf->Ln(5);
-
-        // Fecha del reporte
-        $pdf->SetFont('helvetica', '', 12);
-        $pdf->Cell(0, 10, 'Fecha: ' . date('d/m/Y'), 0, 1, 'L');
-        $pdf->Ln(10);
 
         // Encabezado de la tabla de productos
         $pdf->SetFont('helvetica', 'B', 12);
@@ -314,13 +340,92 @@ class PedidosController
         $pdf->SetFont('helvetica', 'B', 12);
         $pdf->Cell(150, 10, 'Total', 1, 0, 'R');
         $pdf->Cell(40, 10, '$' . number_format($total, 2), 1, 1, 'C');
-
+        // Agregar el texto de "Precios ya incluyen IVA" en letra pequeña
+        $pdf->SetFont('helvetica', '', 10); // Cambia el tamaño de la fuente para hacerlo más pequeño
+        $pdf->Cell(0, 10, 'Los precios ya incluyen IVA (15%)', 0, 1, 'C'); // Centrado y debajo del total
         // Salida del PDF
-        $pdfOutput = $pdf->Output('pedido_' . $numeroPedido . '.pdf', 'S'); // 'S' para salida como string
+        $pdfPath = __DIR__ . '/../assets/pedidos/pedido_' . $numeroPedido . '.pdf';
+        // Guardar el PDF temporalmente en el servidor
+        $pdf->Output($pdfPath, 'F'); // 'F' guarda el archivo en el servidor, pero no lo envía ni descarga
 
-        // Responder con el PDF
-        header('Content-Type: application/pdf');
-        echo $pdfOutput;
+        // Enviar el PDF por correo
+        $this->enviarCorreo($emailCliente, $emailAdmin, $pdfPath, $numeroPedido, $cliente);
+
+        // Eliminar el archivo después de enviarlo
+        unlink($pdfPath); // Elimina el archivo PDF temporal después de que se haya enviado
+
+        // Responder al cliente que el PDF se envió correctamente
+        echo json_encode(['success' => true]);
+    }
+    public function enviarCorreo($emailCliente, $emailAdmin, $pdfPath, $numeroPedido, $cliente)
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            // Configuración del servidor SMTP
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com'; // Cambia esto si usas otro proveedor
+            $mail->SMTPAuth = true;
+            $mail->Username = 'ddonmilo100@gmail.com'; // Cambia esto por tu correo
+            $mail->Password = 'fjju ugeu xrrq vrrd'; // Cambia esto por tu contraseña o usa una App Password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+
+            // Configurar remitente
+            $mail->setFrom('ddonmilo100@gmail.com', 'MILOGAR');
+
+            // Enviar al cliente
+            $mail->addAddress($emailCliente);
+            // Contenido del correo para el cliente
+            $mail->isHTML(true);
+            $mail->Subject = 'Confirmación de tu pedido #' . $numeroPedido . ' - MILOGAR';
+            $mail->Body = '
+        <h3>Hola, '.$cliente.'</h3>
+        <p>Gracias por tu compra en MILOGAR. Tu pedido #' . $numeroPedido . ' está en proceso.</p>
+        <p>Adjunto encontrarás el detalle de tu pedido.<br>
+        
+        Para la validación de tu pedido, por favor envia el comprobante de pago junto al pdf de tu pedido al número: 0989082073</p>
+        <b>Numero de cuenta: </b> 2100272933 Cuenta corriente<br>
+        <b>Titular de la cuenta: </b> Deisy Pamela Remache Yanchaguano
+
+    ';
+
+            // Adjuntar el archivo PDF
+            $mail->addAttachment($pdfPath, 'Pedido_' . $numeroPedido . '.pdf');
+            // Enviar correo al cliente
+            $mail->send();
+            // Limpiar las direcciones de destinatarios para el siguiente correo
+            $mail->clearAddresses();
+
+            // Verificar si $emailAdmin es correcto antes de enviarlo
+            if (empty($emailAdmin)) {
+                throw new Exception('La dirección de correo del administrador está vacía o incorrecta.');
+            }
+
+            // Enviar al administrador
+            $mail->addAddress($emailAdmin);
+            // Contenido del correo para el administrador
+            $mail->isHTML(true);
+            $mail->Subject = 'Nuevo pedido realizado #' . $numeroPedido . ' - MILOGAR';
+            $mail->Body = '
+        <h3>Hola Administrador,</h3>
+        <p>Un usuario ha realizado un nuevo pedido con número <strong>' . $numeroPedido . '</strong>.</p>
+        <p>Adjunto encontrarás el detalle completo del pedido.</p>
+        <p>Correo del cliente: ' . $emailCliente . '</p>
+    ';
+
+            // Adjuntar el archivo PDF
+            $mail->addAttachment($pdfPath, 'Pedido_' . $numeroPedido . '.pdf');
+            // Enviar correo al administrador
+            $mail->send();
+
+            // Si llegamos aquí, los correos se enviaron correctamente
+            // Puedes registrar en un log que los correos fueron enviados
+            error_log("Correos enviados con éxito para el pedido #$numeroPedido.");
+        } catch (Exception $e) {
+            // En caso de error, loguea el error sin usar echo
+            error_log("Error al enviar el correo: {$mail->ErrorInfo}");
+        }
     }
 }
 
@@ -334,6 +439,7 @@ if ($action === 'ordenPedido') {
 } elseif ($action === 'obtenerPedidosUsuario') {
     $controller->obtenerPedidosUsuario();
 }
+//if ($_SERVER['REQUEST_METHOD'] === 'POST') { para traer el action
 
 if (isset($_GET['action'])) {
     $action = $_GET['action'];  // Obtener la acción de la URL

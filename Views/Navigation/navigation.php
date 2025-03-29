@@ -4,20 +4,34 @@ require_once __DIR__ . "/../../Config/config.php";
 ?>
 
 <!-- navigation -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+</body>
+
+</html>
 <div class="border-bottom pb-5">
     <nav class="navbar navbar-light py-lg-5 pt-3 px-0 pb-0">
         <div class="container">
             <div class="row w-100 align-items-center g-3">
                 <div class="col-xxl-2 col-lg-3">
                     <a class="navbar-brand d-none d-lg-flex align-items-center" href="index.php" style="text-decoration: none;">
-                        <img src="<?php  echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 50px; height: 50px; margin-right: 10px;">
+                        <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 50px; height: 50px; margin-right: 10px;">
                         <span style="font-size: 1.5rem; font-weight: bold; color: #333;">MILOGAR</span>
                     </a>
 
                     <div class="d-flex justify-content-between w-100 d-lg-none">
-                        <a class="navbar-brand d-flex align-items-center" href="#" style="text-decoration: none;">
-                        <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 35px; height: 35px; margin-right: 8px;">
-                        <span style="font-size: 1.25rem; font-weight: bold; color: #333;">MILOGAR</span>
+                        <a class="navbar-brand d-flex align-items-center" href="<?php echo BASE_URL; ?>index.php" style="text-decoration: none;">
+                            <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 35px; height: 35px; margin-right: 8px;">
+                            <span style="font-size: 1.25rem; font-weight: bold; color: #333;">MILOGAR</span>
                         </a>
 
                         <div class="d-flex align-items-center lh-1">
@@ -62,7 +76,7 @@ require_once __DIR__ . "/../../Config/config.php";
 
                 </div>
                 <div class="col-xxl-6 col-lg-5 d-none d-lg-block">
-                    <form class="search-header" method="GET" id="searchForm">
+                    <form action="/Milogar/shop-grid.php" class="search-header" method="GET" id="searchForm">
                         <input type="hidden" name="action" value="search">
                         <div class="input-group">
                             <input type="text" class="form-control border-end-0" id="busqueda" name="q"
@@ -80,33 +94,69 @@ require_once __DIR__ . "/../../Config/config.php";
                     </form>
 
                 </div>
-                <!-- Modal de Inicio de Sesión -->
-                <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content p-4">
-                            <div class="modal-header border-0">
-                                <h5 class="modal-title fs-3" id="loginModalLabel">Iniciar sesión</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <!-- Modal -->
+                <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fs-3" id="userModalLabel">Inicia sesión con tu cuenta</h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <input type="hidden" name="form_type" value="login">
+
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Nombre de usuario</label>
+                        <input type="text" name="txt_nombreUsuario" class="form-control" placeholder="Nombre de usuario" required autocomplete="current-password">
+                    </div>
+                    <div class="mb-5">
+                        <label for="loginPassword" class="form-label">Contraseña</label>
+                        <input type="password" name="txt_password" class="form-control" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+                    </div>
+
+             
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar sesión</button>
+                </form>
+
+                <!-- Enlace para continuar como invitado -->
+                <div class="text-center mt-3">
+                    <a href="Continuar_invitado.php" class="btn btn-outline-secondary w-100">Continuar como invitado</a>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 justify-content-center">
+                ¿Ya tienes una cuenta? <a href="#">Iniciar sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Shop Cart -->
+                <div id="offcanvasRight" class="offcanvas offcanvas-end" tabindex="-1" aria-labelledby="offcanvasRightLabel">
+                    <div class="offcanvas-header border-bottom">
+                        <div class="text-start">
+                            <h5 id="offcanvasRightLabel" class="mb-0 fs-4">Carrito de compras</h5>
+                            <small>Número de pedido: 0000001</small>
+                        </div>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <div class="alert alert-danger" role="alert">
+                            Tienes envío GRATIS. ¡Empiece a pagar ahora!
+                        </div>
+                        <div>
+                            <div class="py-3">
+                                <ul id="cart-items" class="list-group list-group-flush">
+                                    <!--Aqui se llenaran los productos del catalogo-->
+                                </ul>
                             </div>
-                            <div class="modal-body">
-                                <form id="loginForm">
-                                    <input type="hidden" name="form_type" value="login">
+                            <div class="d-grid">
 
-                                    <div class="mb-3">
-                                        <label for="loginEmail" class="form-label">Nombre de usuario</label>
-                                        <input type="text" name="txt_nombreUsuario" class="form-control" placeholder="Nombre de usuario" required="">
-                                    </div>
-                                    <div class="mb-5">
-                                        <label for="loginPassword" class="form-label">Contraseña</label>
-                                        <input type="password" name="txt_password" class="form-control" placeholder="Ingrese su contraseña" required="">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar sesión</button>
-                                </form>
-
-                                <!-- Enlace para continuar como invitado -->
-                                <div class="text-center mt-3">
-                                    <a href="Continuar_invitado.php" class="btn btn-outline-secondary w-100">Continuar como invitado</a>
-                                </div>
+                                <button id="checkout-button" class="btn btn-primary btn-lg d-flex justify-content-between align-items-center" type="submit"> Go to
+                                    Checkout <span id="cart-total" class="fw-bold">$0.00</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -118,26 +168,11 @@ require_once __DIR__ . "/../../Config/config.php";
                 <div class="col-md-2 col-xxl-1 text-end d-none d-lg-block">
                     <!-- CONTENEDOR PARA LOS ICONOS DE CORAZON, USER Y SHOP -->
                     <div class="list-inline">
-                        <div class="list-inline-item">
-                            <a href="pages/shop-wishlist.html" class="text-muted position-relative">
 
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-heart">
-                                    <path
-                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                                    </path>
-                                </svg>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                                    5
-                                    <span class="visually-hidden">unread messages</span>
-                                </span>
-                            </a>
-                        </div>
                         <!-- icono de usuario -->
                         <div class="list-inline-item">
 
-                            <a href="#!" class="text-muted" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <a href="#!" class="text-muted" data-bs-toggle="modal" data-bs-target="#userModal">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                     class="feather feather-user">
@@ -149,7 +184,7 @@ require_once __DIR__ . "/../../Config/config.php";
                         <!-- icono del carrito de compras -->
                         <div class="list-inline-item">
                             <a class="text-muted position-relative " data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
-                                href="#offcanvasExample" role="button" aria-controls="offcanvasRight">
+                                role="button" aria-controls="offcanvasRight">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                     class="feather feather-shopping-bag">
@@ -161,6 +196,18 @@ require_once __DIR__ . "/../../Config/config.php";
                                     0
                                     <span class="visually-hidden">unread messages</span>
                                 </span>
+                            </a>
+                        </div>
+                        <div class="list-inline-item">
+                            <!-- Icono de Cerrar Sesión -->
+                            <a href="<?php echo BASE_URL; ?>Views/login/logout.php" class="text-muted">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-log-out">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
                             </a>
                         </div>
 
@@ -176,8 +223,8 @@ require_once __DIR__ . "/../../Config/config.php";
 
                 <div class="d-flex justify-content-between align-items-center mb-2 d-block d-lg-none">
                     <div class="d-flex align-items-center">
-                    <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 35px; height: 35px; margin-right: 8px;">
-                    <span style="font-size: 1.2rem; font-weight: bold; color: #333;">MILOGAR</span>
+                        <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 35px; height: 35px; margin-right: 8px;">
+                        <span style="font-size: 1.2rem; font-weight: bold; color: #333;">MILOGAR</span>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
@@ -195,136 +242,148 @@ require_once __DIR__ . "/../../Config/config.php";
                             </ul>
                         </li> -->
                         <li class="nav-item ">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>index.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>index">
                                 Inicio
                             </a>
 
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>Views/shop-grid.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>shop-grid">
                                 Tienda Virtual
                             </a>
 
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>Views/shop-checkout.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>shop-checkout">
                                 Verificar compra
                             </a>
 
+                        </li>
+                        <li class="nav-item ">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>sobreNosotros">
+                                Acerca de nosotros
+                            </a>
                         </li>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                                Account
+                                Cuenta
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="pages/signin.html">Sign in</a></li>
-                                <li><a class="dropdown-item" href="pages/signup.html">Signup</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>Views/forgot-password.php">Forgot Password</a></li>
+
                                 <li class="dropdown-submenu dropend">
                                     <a class="dropdown-item dropdown-list-group-item dropdown-toggle" href="#">
-                                        My Account
+                                        Mi Cuenta
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>Views/account-orders.php">Orders</a></li>
-                                        <li><a class="dropdown-item" href="pages/account-settings.html">Settings</a></li>
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>Views/account-address.php">Address</a></li>
-                                        <li><a class="dropdown-item" href="pages/account-payment-method.html">Payment Method</a>
-                                        </li>
-                                        <li><a class="dropdown-item" href="pages/account-notification.html">Notification</a></li>
-
-
-                                    </ul>
+                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">Pedidos</a></li>
+                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">Configuración</a></li>
                                 </li>
+
                             </ul>
                         </li>
-                        <li class="nav-item ">
-                            <a class="nav-link" href="docs/index.html">
-                                Docs
-                            </a>
-                        </li>
-                        <li class="nav-item ">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>Views/signup.php">
-                                Suscribete
-                            </a>
+                    </ul>
+                    </li>
 
-                        </li>
-                        <?php
-                        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
-                            echo "<li class='nav-item'>
-                            <a class='nav-link' href='" . BASE_URL . "Views/menu.php'>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>signup">
+                            Suscribete
+                        </a>
+
+                    </li>
+                    
+                    <li class="nav-item ">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>terminos_condiciones.php">
+                            Términos y condiciones
+                        </a>
+
+                    </li>
+                    <?php
+                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
+                        echo "<li class='nav-item'>
+                            <a class='nav-link' href='" . BASE_URL . "menu.php'>
                             Panel administrativo
                             </a>
                             </li>";
-                        }
+                    }
 
-                        ?>
+                    ?>
                     </ul>
                 </div>
                 <div class="d-block d-lg-none">
                     <ul class="navbar-nav ">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>index">
                                 Inicio
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="<?php BASE_URL; ?>index.php">Home 1</a></li>
-                                <li><a class="dropdown-item" href="pages/index-2.html">Home 2</a></li>
-                                <li><a class="dropdown-item" href="pages/index-3.html">Home 3</a></li>
-
-                            </ul>
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>Views/shop-grid.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>shop-grid">
                                 Tienda Virtual
                             </a>
 
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>Views/shop-checkout.php">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>shop-checkout">
                                 Verificar compra
                             </a>
 
                         </li>
+                        <li class="nav-item ">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>sobreNosotros">
+                                Acerca de nosotros
+                            </a>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                                Account
+                                Cuenta
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="pages/signin.html">Sign in</a></li>
-                                <li><a class="dropdown-item" href="pages/signup.html">Signup</a></li>
-                                <li><a class="dropdown-item" href="pages/forgot-password.html">Forgot Password</a></li>
                                 <li class="dropdown-submenu dropend">
                                     <a class="dropdown-item dropdown-list-group-item dropdown-toggle" href="#">
-                                        My Account
+                                        Mi Cuenta
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="pages/account-orders.html">Orders</a></li>
-                                        <li><a class="dropdown-item" href="pages/account-settings.html">Settings</a></li>
-                                        <li><a class="dropdown-item" href="pages/account-address.html">Address</a></li>
-                                        <li><a class="dropdown-item" href="pages/account-payment-method.html">Payment Method</a>
-                                        </li>
-                                        <li><a class="dropdown-item" href="pages/account-notification.html">Notification</a></li>
-
-
-                                    </ul>
+                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">Pedidos</a></li>
+                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">Configuración</a></li>
                                 </li>
+
+
                             </ul>
                         </li>
-                        <li class="nav-item ">
-                            <a class="nav-link" href="docs/index.html">
-                                Docs
+                    </ul>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>signup">
+                            Suscribete
+                        </a>
+
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>terminos_condiciones.php">
+                            Términos y condiciones
+                        </a>
+
+                    </li>
+                    <?php
+                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
+                        echo "<li class='nav-item'>
+                            <a class='nav-link' href='" . BASE_URL . "menu.php'>
+                            Panel administrativo
                             </a>
-                        </li>
+                            </li>";
+                    }
+
+                    ?>
                     </ul>
                 </div>
             </div>
         </div>
     </nav>
 </div>
+
 <?php
 // Verificar si el usuario está logueado y si es un usuario registrado o invitado
 if (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in'] === true) {

@@ -1,6 +1,9 @@
 <?php
 session_start();
-
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /Milogar/index.php");
+    exit();
+}
 
 // Crear una instancia de la conexión
 //$db = new Database1();
@@ -47,7 +50,7 @@ session_start();
                     <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#createCategoryModal">Crear Categoría</a>
 
                     <!-- Enlace para regresar a la consulta -->
-                    <a href="../menu.php" class="btn btn-secondary">Regresar al menú</a>
+                    <a href="../../menu" class="btn btn-secondary">Regresar al menú</a>
 
                     <!-- Modal para la creación de una categoría -->
                     <div class="modal fade" id="createCategoryModal" tabindex="-1" role="dialog" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
@@ -164,13 +167,11 @@ session_start();
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="index3.html" class="nav-link">Home</a>
+                    <a href="../../menu.php" class="nav-link">Home</a>
                 </li>
+                
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="login/logout.php" class="nav-link">Cerrar Sesión</a>
+                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>

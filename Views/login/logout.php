@@ -10,10 +10,10 @@ if (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in']) {
     session_destroy(); // Destruir la sesión
 
     // Redirigir al usuario a la página de inicio o inicio de sesión
-    header('Location: ../../index.php'); // Cambia 'login.php' por la ruta deseada
+    header('Location: ../../index'); // Cambia 'login.php' por la ruta deseada
     exit;
 } else {
     // Si no hay sesión activa, redirigir al usuario a la página de inicio de sesión
-    header('Location: ../../index.php'); // Cambia 'login.php' por la ruta deseada
+    header('Location: ../../index'); // Cambia 'login.php' por la ruta deseada
     exit;
 }

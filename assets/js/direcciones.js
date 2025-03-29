@@ -50,8 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <address>
                                 <strong>${direccion.nombre}</strong><br>
                                 ${direccion.direccion},<br>
-                                ${direccion.estado}, ${direccion.pais},<br>
-                                <abbr title="Phone">Teléfono:</abbr> ${direccion.telefono}
+                                ${direccion.estado}, ${direccion.pais}
                             </address>
                             ${direccion.predeterminada ? '<span class="text-danger">Dirección predeterminada</span>' : ''}
                         </div>

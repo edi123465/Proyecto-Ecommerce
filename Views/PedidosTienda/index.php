@@ -11,7 +11,10 @@ $connection = $db->getConnection();
 
 // Instanciar el controlador
 $controller = new RolController($connection);
-
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /Milogar/index.php");
+    exit();
+}
 ?>
 
 
@@ -68,6 +71,13 @@ $controller = new RolController($connection);
             color: white;
             /* Texto blanco para el botón activo */
         }
+
+        .table-responsive {
+            max-height: 650px;
+            /* Puedes ajustar este valor según tus necesidades */
+            overflow-y: auto;
+            /* Activa el scroll vertical cuando los datos exceden el alto */
+        }
     </style>
 </head>
 
@@ -75,25 +85,25 @@ $controller = new RolController($connection);
     <div class="wrapper">
 
 
-   <!-- Modal -->
-<div class="modal fade" id="modalDetalles" tabindex="-1" role="dialog" aria-labelledby="modalDetallesLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalDetallesLabel">Detalles del Pedido</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="modal-pedido-body">
-                <!-- Los detalles del pedido se agregarán dinámicamente aquí -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <!-- Modal -->
+        <div class="modal fade" id="modalDetalles" tabindex="-1" role="dialog" aria-labelledby="modalDetallesLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalDetallesLabel">Detalles del Pedido</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="modal-pedido-body">
+                        <!-- Los detalles del pedido se agregarán dinámicamente aquí -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
         <div class="content-wrapper">
             <div class="content-header">
@@ -106,10 +116,9 @@ $controller = new RolController($connection);
                 </div>
             </div>
 
-            <a href="#" onclick="window.location='create.php?action=create'; return false;">Crear un nuevo pedido</a>
-            <a href="#" onclick="window.open('../menu.php', '_self')">Regresar al menú</a>
-
-            <div class="content">
+            <a href="#" class="btn btn-secondary" onclick="window.open('../../menu', '_self')">Regresar al menú</a>
+            
+            <br><br><div class="content">
                 <div class="container-fluid">
                     <div class="table-responsive">
                         <table id="tabla_Pedidos" class="table table-bordered table-striped">
@@ -168,10 +177,7 @@ $controller = new RolController($connection);
                     <a href="../menu.php" class="nav-link">Home</a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="login/logout.php" class="nav-link">Cerrar Sesión</a>
+                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>
@@ -310,14 +316,7 @@ $controller = new RolController($connection);
         </aside>
         <!-- /.control-sidebar -->
 
-        <!-- Main Footer -->
-        <footer class="main-footer">
-            <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
-            All rights reserved.
-            <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 3.2.0
-            </div>
-        </footer>
+
     </div>
     <!-- ./wrapper -->
 

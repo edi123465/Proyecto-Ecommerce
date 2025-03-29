@@ -1,6 +1,6 @@
 document.getElementById("regresarBtn").addEventListener("click", function() {
     // Redirigir directamente a la página del menú sin confirmación
-    window.location.href = "../menu.php"; // Redirige en la misma pestaña
+    window.location.href = "../../menu"; // Redirige en la misma pestaña
 });
 
 
@@ -10,17 +10,8 @@ const closeModalBtn = document.getElementById('closeModalBtn');
 const createRoleModal = document.getElementById('createRoleModal');
 const createRoleForm = document.getElementById('createRoleForm');
 
-// Abrir el modal
-openModalBtn.addEventListener('click', () => {
-    console.log("Abriendo el modal para crear un nuevo rol.");
-    createRoleModal.style.display = 'flex';
-});
 
-// Cerrar el modal
-closeModalBtn.addEventListener('click', () => {
-    console.log("Cerrando el modal.");
-    createRoleModal.style.display = 'none';
-});
+
 
 // Enviar el formulario con HTTP Request
 createRoleForm.addEventListener('submit', async (e) => {

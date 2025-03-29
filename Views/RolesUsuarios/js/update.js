@@ -1,11 +1,9 @@
-document.getElementById('editRoleForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Evitar que se recargue la página al enviar el formulario
-
+function actualizarRol() {
     // Obtener los valores del formulario
     const roleId = document.getElementById('roleId').value;
     const roleName = document.getElementById('roleName').value;
     const roleDescription = document.getElementById('roleDescription').value;
-    const isActive = document.getElementById('roleIsActive').checked ? 1 : 0;
+    const isActive = document.getElementById('roleIsActive').value; // Cambié .checked por .value
 
     // Crear un objeto con los datos a enviar
     const data = {
@@ -54,4 +52,4 @@ document.getElementById('editRoleForm').addEventListener('submit', function(even
     .catch(error => {
         console.error('Error al actualizar el rol:', error);
     });
-});
+}

@@ -3,6 +3,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+
 require_once __DIR__ . '/../Config/db.php'; // Asegúrate de requerir el modelo
 require_once __DIR__ . '/../Models/UsuarioModel.php'; // Asegúrate de requerir el modelo
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -59,7 +60,6 @@ class UsuarioController
 
             // Registrar los datos recibidos para depuración
             error_log('Datos $_POST recibidos: ' . print_r($_POST, true));
-            error_log('Datos $_FILES recibidos: ' . print_r($_FILES, true));
 
             // Validar si los datos necesarios fueron enviados
             if (!isset($_POST['NombreUsuario'], $_POST['Email'], $_POST['RolID'])) {
@@ -76,17 +76,10 @@ class UsuarioController
             $rol_id = intval($_POST['RolID']);
             $isActiveChecked = isset($_POST['IsActive']) && $_POST['IsActive'] === 'on'; // Checkbox "activo"
 
-            // Manejo de la imagen: si no se sube, asignar null
-            $imagen = null;
-            if (!empty($_FILES['Imagen']['name'])) {
-                $imagen = $this->handleImageUpload();  // Llama al método para manejar la imagen
-            }
-
             // Registrar los valores procesados
             error_log('Nombre de usuario: ' . $nombreUsuario);
             error_log('Email: ' . $email);
             error_log('Rol ID: ' . $rol_id);
-            error_log('Imagen: ' . print_r($imagen, true));
 
             // Validar que los datos esenciales no estén vacíos
             if (empty($nombreUsuario) || empty($email) || $rol_id <= 0) {
@@ -106,7 +99,7 @@ class UsuarioController
             error_log(date('Y-m-d H:i:s') . " - Contraseña encriptada correctamente.");
 
             // Llamar al método del modelo para crear el usuario
-            $result = $this->model->crearUsuario($nombreUsuario, $email, $rol_id, $imagen, $isActiveChecked, $contraseñaEncriptada);
+            $result = $this->model->crearUsuario($nombreUsuario, $email, $rol_id, null, $isActiveChecked, $contraseñaEncriptada);
 
             if ($result) {
                 error_log(date('Y-m-d H:i:s') . " - Usuario creado correctamente: $nombreUsuario");
@@ -135,7 +128,6 @@ class UsuarioController
     }
 
 
-
     public function generarContraseñaTemporal($longitud = 8)
     {
         $caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
@@ -158,7 +150,7 @@ class UsuarioController
             $mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
             $mail->SMTPAuth = true;
             $mail->Username = 'ddonmilo100@gmail.com'; // Tu correo de Gmail
-            $mail->Password = 'nkwm cmzc ezlp dwvl'; // Tu contraseña de Gmail o contraseña de aplicación
+            $mail->Password = 'fjju ugeu xrrq vrrd'; // Tu contraseña de Gmail o contraseña de aplicación
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
@@ -198,147 +190,115 @@ class UsuarioController
     }
 
 
-    // Función para manejar la subida de la imagen
-    private function handleImageUpload()
-    {
-        // Verifica si se subió una imagen
-        if (!empty($_FILES['Imagen']['name'])) {
-            // Configuración del directorio y formatos permitidos
-            $directorio = $_SERVER['DOCUMENT_ROOT'] . "/assets/imagenesMilogar/Usuarios";
-            $nombreOriginal = basename($_FILES['Imagen']['name']);
-            $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
-            $rutaRelativa = $directorio . '/' . $nombreOriginal;
-
-            $extensionesPermitidas = ['jpg', 'jpeg', 'png'];
-
-            // Validar formato de imagen
-            if (!in_array($extension, $extensionesPermitidas)) {
-                throw new Exception('Extensión de imagen no permitida. Solo se aceptan PNG, JPG y JPEG.');
-            }
-
-            // Validar tamaño de imagen (máximo 5MB)
-            if ($_FILES['Imagen']['size'] > 5 * 1024 * 1024) {
-                throw new Exception('El tamaño de la imagen no debe superar los 5MB.');
-            }
-
-            // Crear el directorio solo si no existe
-            if (!file_exists($directorio)) {
-                if (!mkdir($directorio, 0777, true)) {
-                    throw new Exception('Error al crear el directorio para almacenar la imagen.');
-                }
-            }
-
-            // Mover la imagen al directorio especificado
-            if (!move_uploaded_file($_FILES['Imagen']['tmp_name'], $rutaRelativa)) {
-                throw new Exception('Error al subir la imagen.');
-            }
-
-            // Devolver el nombre original del archivo
-            return $nombreOriginal;
-        }
-
-        // Si no se subió una imagen, devuelve null
-        return null;
-    }
 
 
     // Método para actualizar un usuario
-    public function update($id, $data)
+    public function actualizarUsuario($id)
     {
-        // Llamar al método del modelo para actualizar
-        $result = $this->usuariomodel->update($id, $data);
+        // Verificar si la solicitud es un POST (usualmente será así con fetch)
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener los datos de la solicitud JSON
+            $data = json_decode(file_get_contents('php://input'), true);
 
-        // Verificar el resultado de la actualización
-        if ($result) {
-            echo "Usuario actualizado correctamente.";
+            // Validar que los datos estén presentes
+            if (!isset($data['NombreUsuario']) || !isset($data['Email']) || !isset($data['RolID']) || !isset($data['IsActive']) || !isset($data['FechaCreacion'])) {
+                echo json_encode(['error' => 'Faltan datos necesarios']);
+                return;
+            }
+
+            // Llamar al método del modelo para actualizar
+            $result = $this->model->update($id, $data);
+
+            // Verificar el resultado de la actualización y devolver una respuesta JSON
+            if ($result) {
+                echo json_encode(['success' => 'Usuario actualizado correctamente.']);
+            } else {
+                echo json_encode(['error' => 'Hubo un problema al actualizar el usuario.']);
+            }
         } else {
-            echo "Hubo un problema al actualizar el usuario.";
+            echo json_encode(['error' => 'Método de solicitud no permitido']);
         }
     }
-    public function delete($id)
-    {
-        // Verificar que el ID sea un número entero
-        if (!is_numeric($id)) {
-            echo "ID no válido.";
-            return false;
-        }
 
-        // Llamar al método delete del modelo
-        $usuarioModel = new UsuarioModel($this->conn);
-        if ($usuarioModel->delete($id)) {
-            // Redirigir a la lista de usuarios después de la eliminación exitosa
-            header("Location: index.php?success=1"); // Cambia la ruta si es necesario
-            exit; // Asegúrate de detener la ejecución después de redirigir
+    // Método para eliminar usuario en el controlador
+    public function eliminarUsuario($id)
+    {
+        // Llamar al modelo que tiene el método delete
+        if ($this->model->delete($id)) {
+            echo json_encode(["success" => true, "message" => "Usuario eliminado exitosamente."]);
         } else {
-            echo "Error al eliminar el usuario.";
+            echo json_encode(["success" => false, "message" => "Hubo un error al eliminar el usuario."]);
         }
     }
     public function suscribirse($input)
-{
-    session_start();  // Asegúrate de iniciar la sesión aquí
-    header('Content-Type: application/json');
+    {
+        session_start();  // Asegúrate de iniciar la sesión aquí
+        header('Content-Type: application/json');
 
-    try {
-        // Verificar si el usuario ya está logueado
-        if (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in'] === true) {
-            error_log("El usuario ya está logueado, no puede crear una nueva cuenta.");
+        try {
+            // Verificar si el usuario ya está logueado
+            if (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in'] === true) {
+                error_log("El usuario ya está logueado, no puede crear una nueva cuenta.");
 
-            // Enviar respuesta indicando que el usuario ya está logueado
-            echo json_encode([
-                'success' => false,
-                'message' => 'Ya has iniciado sesión, no puedes crear una nueva cuenta.',
-                'redirect' => 'index.php'  // Redirigir al index o página principal
-            ]);
-            return;
+                // Enviar respuesta indicando que el usuario ya está logueado
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Ya has iniciado sesión, no puedes crear una nueva cuenta.',
+                    'redirect' => 'index.php'  // Redirigir al index o página principal
+                ]);
+                return;
+            }
+
+            // Decodificar el cuerpo de la solicitud JSON
+            $input = json_decode(file_get_contents("php://input"), true); // Decodificar el JSON
+
+            error_log("Datos recibidos en suscribirse: " . print_r($input, true));
+
+            // Sanitizar y preparar los valores
+            $nombreUsuario = htmlspecialchars(trim($input['name']));
+            $email = filter_var(trim($input['email']), FILTER_VALIDATE_EMAIL);
+            $password = password_hash(trim($input['password']), PASSWORD_BCRYPT); // Cifrar contraseña
+            $rolId = 20; // Asumimos que '20' es el RolID para cliente
+            $status = 1; // Usuario activo
+            $imagen = "sin_imagen"; // Imagen por defecto
+
+            // Validar el email
+            if (!$email) {
+                throw new Exception("El correo electrónico no es válido.");
+            }
+
+            // Llamar al método del modelo para crear el usuario
+            $result = $this->model->createClient($nombreUsuario, $email, $rolId, $imagen, $status, $password);
+
+            if ($result) {
+
+                // Guardar el nombre del usuario en la sesión
+                $_SESSION['user_id'] = $result;
+
+                $_SESSION['user_name'] = $nombreUsuario;
+                $_SESSION['user_email'] = $email;
+                $_SESSION['is_logged_in'] = true;  // Marcar al usuario como logueado
+
+                // Redirigir con el mensaje de éxito
+                error_log("Usuario registrado exitosamente: $email");
+                error_log("Usuario registrado exitosamente con nombre de usuario: " . $_SESSION['user_name']);
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Suscripción realizada exitosamente.',
+                    'redirect' => 'nombre_vista_destino.php'  // Aquí debes poner la vista de destino
+                ]);
+            } else {
+                error_log("Error al registrar usuario. Posiblemente el correo ya está registrado: $email");
+                echo json_encode(['success' => false, 'message' => 'El correo electrónico ya está registrado.']);
+            }
+        } catch (Exception $e) {
+            error_log("Error en suscribirse: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
-
-        // Decodificar el cuerpo de la solicitud JSON
-        $input = json_decode(file_get_contents("php://input"), true); // Decodificar el JSON
-
-        error_log("Datos recibidos en suscribirse: " . print_r($input, true));
-
-        // Sanitizar y preparar los valores
-        $nombreUsuario = htmlspecialchars(trim($input['name']));
-        $email = filter_var(trim($input['email']), FILTER_VALIDATE_EMAIL);
-        $password = password_hash(trim($input['password']), PASSWORD_BCRYPT); // Cifrar contraseña
-        $rolId = 20; // Asumimos que '20' es el RolID para cliente
-        $status = 1; // Usuario activo
-        $imagen = "sin_imagen"; // Imagen por defecto
-
-        // Validar el email
-        if (!$email) {
-            throw new Exception("El correo electrónico no es válido.");
-        }
-
-        // Llamar al método del modelo para crear el usuario
-        $result = $this->model->createClient($nombreUsuario, $email, $rolId, $imagen, $status, $password);
-
-        if ($result) {
-            // Guardar el nombre del usuario en la sesión
-            $_SESSION['user_name'] = $nombreUsuario;
-            $_SESSION['is_logged_in'] = true;  // Marcar al usuario como logueado
-
-            // Redirigir con el mensaje de éxito
-            error_log("Usuario registrado exitosamente: $email");
-            error_log("Usuario registrado exitosamente con nombre de usuario: " . $_SESSION['user_name']);
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Suscripción realizada exitosamente.',
-                'redirect' => 'nombre_vista_destino.php'  // Aquí debes poner la vista de destino
-            ]);
-        } else {
-            error_log("Error al registrar usuario. Posiblemente el correo ya está registrado: $email");
-            echo json_encode(['success' => false, 'message' => 'El correo electrónico ya está registrado.']);
-        }
-    } catch (Exception $e) {
-        error_log("Error en suscribirse: " . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
-}
-
     // metodo que servira para detectar si hay duplicados tanto en el nombre del usuario como su email.
-    public function checkDuplicate($input)
+    public function checkDuplicates($input)
     {
         header('Content-Type: application/json');
 
@@ -356,13 +316,265 @@ class UsuarioController
             }
 
             // Verificar si el nombre de usuario o correo electrónico ya existen
-            if ($this->model->checkIfExists($nombreUsuario, $email)) {
+            if ($this->model->checkIfExist($nombreUsuario, $email)) {
                 echo json_encode(['success' => false, 'message' => 'El nombre de usuario o el correo electrónico ya están registrados.']);
             } else {
                 echo json_encode(['success' => true, 'message' => 'El nombre de usuario y el correo electrónico están disponibles.']);
             }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error al verificar la disponibilidad.']);
+        }
+    }
+    public function checkDuplicate($input)
+    {
+        header('Content-Type: application/json');
+
+        try {
+            // Decodificar el cuerpo de la solicitud JSON
+            $input = json_decode(file_get_contents("php://input"), true);
+
+            $nombreUsuario = htmlspecialchars(trim($input['name']));
+            $email = filter_var(trim($input['email']), FILTER_VALIDATE_EMAIL);
+            $userID = isset($input['userID']) ? $input['userID'] : null; // Obtener el ID del usuario a actualizar
+
+            // Validar email
+            if (!$email) {
+                echo json_encode(['success' => false, 'message' => 'El correo electrónico no es válido.']);
+                return;
+            }
+
+            // Verificar si el nombre de usuario o correo electrónico ya existen, ignorando al usuario que está actualizando
+            if ($this->model->checkIfExists($nombreUsuario, $email, $userID)) {
+                echo json_encode(['success' => false, 'message' => 'El nombre de usuario o el correo electrónico ya están registrados.']);
+            } else {
+                echo json_encode(['success' => true, 'message' => 'El nombre de usuario y el correo electrónico están disponibles.']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al verificar la disponibilidad.']);
+        }
+    }
+
+    public function actualizarDatosCliente()
+    {
+        header('Content-Type: application/json');
+
+        // Asegúrate de registrar cuando se llama al método
+        error_log("Método actualizarDatosCliente iniciado");
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            session_start();
+            // Obtener los datos enviados desde el frontend
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            // Registra los datos recibidos
+            error_log("Datos recibidos del frontend: " . print_r($data, true));
+
+            if (isset($data['userID'], $data['nombreUsuario'], $data['email'])) {
+                // Instancia de la base de datos
+                $database = new Database1();
+                $db = $database->getConnection();
+
+                // Instancia del modelo de usuario
+                $userModel = new UsuarioModel($db);
+
+                // Verificar si el nombre de usuario o el correo ya están en uso por otro usuario
+                $existe = $userModel->checkIfExists($data['nombreUsuario'], $data['email'], $data['userID']);
+
+                // Log para verificar la respuesta de la verificación de duplicados
+                error_log("Resultado de checkIfExists para usuarioID " . $data['userID'] . ": " . ($existe ? 'Duplicado encontrado' : 'No duplicado'));
+
+                if ($existe) {
+                    echo json_encode(['success' => false, 'message' => 'El nombre de usuario o el correo electrónico ya están en uso.']);
+                    return; // Detener la ejecución si hay duplicados
+                }
+
+                // Llamar al método updateDataClient del modelo
+                $resultado = $userModel->updateDataClient($data['userID'], $data['nombreUsuario'], $data['email']);
+
+                // Registra el resultado de la actualización
+                error_log("Resultado de la actualización de datos para el usuarioID " . $data['userID'] . ": " . ($resultado ? 'Actualización exitosa' : 'Error en la actualización'));
+
+                // Responder al frontend
+                if ($resultado) {
+                    // Actualizar el nombre de usuario en la sesión
+                    $_SESSION['user_name'] = $data['nombreUsuario']; // Reemplazar con el nuevo nombre de usuario
+
+                    // Responder al frontend indicando que la actualización fue exitosa
+                    echo json_encode(['success' => true, 'message' => 'Datos actualizados correctamente.']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al actualizar los datos.']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+        }
+    }
+
+    public function cambiarContrasenia()
+    {
+        $datos = json_decode(file_get_contents("php://input"), true);
+
+        if (!$datos) {
+            echo json_encode(["mensaje" => "No se recibieron datos."]);
+            return;
+        }
+
+        $id = $datos['id'];
+        $contrasenia_actual = $datos['contrasenia_actual'];
+        $nueva_contrasenia = $datos['nueva_contrasenia'];
+
+        // Obtener usuario por ID
+        $usuario = $this->model->getById($id);
+
+        if (!$usuario) {
+            echo json_encode(["mensaje" => "Usuario no encontrado."]);
+            return;
+        }
+
+        // Verificar si la contraseña actual es correcta
+        if (!password_verify($contrasenia_actual, $usuario['Contrasenia'])) {
+            echo json_encode(["mensaje" => "La contraseña actual es incorrecta."]);
+            return;
+        }
+
+        // Hashear la nueva contraseña antes de actualizarla
+        $nueva_contrasenia_hashed = password_hash($nueva_contrasenia, PASSWORD_DEFAULT);
+
+        // Actualizar contraseña
+        if ($this->model->updatePassword($id, $nueva_contrasenia_hashed)) {
+            echo json_encode(["mensaje" => "Contraseña actualizada correctamente."]);
+        } else {
+            echo json_encode(["mensaje" => "Error al actualizar la contraseña."]);
+        }
+    }
+    //metodo para eliminar una cuenta de usuario 
+    public function eliminarCuenta()
+    {
+        session_start();  // Iniciar sesión para poder destruirla
+        header('Content-Type: application/json');
+
+        try {
+            // Obtener el ID del usuario desde la sesión
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(["success" => false, "mensaje" => "No has iniciado sesión."]);
+                return;
+            }
+
+            $id = $_SESSION['user_id'];
+
+            // Eliminar el usuario de la base de datos
+            $resultado = $this->model->deleteUser($id);
+
+            if ($resultado) {
+                // Destruir la sesión para que el usuario quede como invitado
+                session_unset();
+                session_destroy();
+
+                echo json_encode(["success" => true, "mensaje" => "Tu cuenta ha sido eliminada correctamente."]);
+            } else {
+                echo json_encode(["success" => false, "mensaje" => "No se pudo eliminar la cuenta."]);
+            }
+        } catch (Exception $e) {
+            echo json_encode(["success" => false, "mensaje" => "Error: " . $e->getMessage()]);
+        }
+    }
+    // Método para solicitar enlace de recuperación de contraseña
+    public function solicitarEnlace()
+    {
+        error_log("Iniciando método solicitarEnlace");
+
+        $datos = json_decode(file_get_contents("php://input"), true);
+        error_log("Datos recibidos: " . json_encode($datos));
+
+        if (isset($datos["email"])) {
+            $email = trim($datos["email"]);
+            error_log("Email recibido: " . $email);
+
+            if ($this->model->existeCorreo($email)) {
+                error_log("El correo existe en la base de datos");
+
+                $token = bin2hex(random_bytes(50));
+                error_log("Token generado: " . $token);
+
+                if ($this->model->guardarTokenRecuperacion($email, $token)) {
+                    error_log("Token guardado en la base de datos");
+
+                    $enlace = "http://localhost:8088/Milogar/reset-password.php?token=" . $token;
+                    error_log("Enlace generado: " . $enlace);
+
+                    if ($this->enviarEnlacePorCorreo($email, $enlace)) {
+                        error_log("Correo enviado correctamente");
+                        echo json_encode(["success" => true, "mensaje" => "Revisa tu correo, te enviamos un enlace para restablecer tu contraseña."]);
+                    } else {
+                        error_log("Error al enviar el correo");
+                        echo json_encode(["success" => false, "mensaje" => "Error al enviar el correo."]);
+                    }
+                } else {
+                    error_log("Error al guardar el token en la base de datos");
+                    echo json_encode(["success" => false, "mensaje" => "Error al procesar la solicitud."]);
+                }
+            } else {
+                error_log("Correo no encontrado en la base de datos");
+                echo json_encode(["success" => false, "mensaje" => "Correo no encontrado."]);
+            }
+        } else {
+            error_log("No se recibió el parámetro 'email'");
+            echo json_encode(["success" => false, "mensaje" => "Correo no proporcionado."]);
+        }
+
+        error_log("Finalizando método solicitarEnlace");
+    }
+
+    private function enviarEnlacePorCorreo($email, $enlace)
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            // Configuración del servidor
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';  // Cambia esto si usas otro proveedor
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'ddonmilo100@gmail.com';
+            $mail->Password   = 'fjju ugeu xrrq vrrd';  // O mejor, usa una contraseña de aplicación
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            // Configuración del correo
+            $mail->setFrom('ddonmilo100@gmail.com', 'MILOGAR');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Restablecer contraseña';
+            $mail->Body    = "Haz clic en el siguiente enlace para restablecer tu contraseña: <a href='$enlace'>$enlace</a>";
+
+            // Enviar correo
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Error al enviar correo: {$mail->ErrorInfo}");
+            return false;
+        }
+    }
+
+    public function restablecerPassword()
+    {
+        $datos = json_decode(file_get_contents("php://input"), true);
+        if (isset($datos["token"]) && isset($datos["password"])) {
+            $token = trim($datos["token"]);
+            $password = trim($datos["password"]);
+
+            $usuario = $this->model->verificarToken($token);
+            if ($usuario) {
+                $email = $usuario["email"];
+                if ($this->model->actualizarPassword($email, $password)) {
+                    echo json_encode(["success" => true, "mensaje" => "Contraseña restablecida con éxito."]);
+                } else {
+                    echo json_encode(["success" => false, "mensaje" => "Error al actualizar la contraseña."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "mensaje" => "Token no válido o expirado."]);
+            }
         }
     }
 }
@@ -451,7 +663,7 @@ if (isset($_GET['action'])) {
                     $controller = new UsuarioController($db);
 
                     // Ejecutar el método 'checkDuplicate' en el controlador
-                    $controller->checkDuplicate($input);
+                    $controller->checkDuplicates($input);
                 } catch (Exception $e) {
                     // Capturar errores y devolver respuesta JSON
                     error_log("Error al ejecutar la validación de duplicados: " . $e->getMessage());
@@ -472,21 +684,57 @@ if (isset($_GET['action'])) {
                 $db = new Database1();
                 $controller = new UsuarioController($db); // Instancia del controlador
 
-                // Llamar al método para eliminar el usuario
-                $controller->delete($userId);
-
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Usuario eliminado con éxito.'
-                ]);
+                // Llamar al método para eliminar el usuario y devolver la respuesta JSON directamente
+                $controller->eliminarUsuario($userId);
             } else {
+                // Respuesta si el ID no es válido o no se proporciona
                 echo json_encode([
                     'success' => false,
                     'message' => 'ID del usuario no proporcionado o no válido.'
                 ]);
             }
             break;
-
+            case 'actualizarUsuario':
+                // Asegúrate de tener el ID del usuario en la URL
+                if (isset($_GET['id'])) {
+                    $id = $_GET['id']; // Obtener el ID de la URL
+        
+                    // Crear la instancia de la base de datos y el controlador
+                    $db = new Database1();
+                    $controller = new UsuarioController($db);
+        
+                    // Llamar al método en el controlador para actualizar el usuario
+                    $controller->actualizarUsuario($id); // Pasa el ID al método del controlador
+                } else {
+                    // Si el ID no está presente en la URL
+                    echo json_encode(['error' => 'ID de usuario no proporcionado.']);
+                }
+                break;
+        case 'updateClient': // Nueva acción para actualizar los datos del cliente
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->actualizarDatosCliente(); // Llama al método en el controlador
+            break;
+        case 'cambiarContrasenia':
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->cambiarContrasenia(); // Llama al método en el controlador
+            break;
+        case 'eliminarCuenta':
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->eliminarCuenta(); // Llama al método en el controlador
+            break;
+        case 'solicitarEnlace':
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->solicitarEnlace(); // Llama al método en el controlador
+            break;
+        case 'restablecerPassword':
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->restablecerPassword(); // Llama al método en el controlador
+            break;
         default:
             // Si la acción no es válida, retornar un error
             echo json_encode([

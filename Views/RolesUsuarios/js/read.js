@@ -19,29 +19,29 @@ async function cargarRoles() {
                 const row = document.createElement('tr');
 
                 row.innerHTML = `
-        <td>${rol.ID}</td>
-        <td>${rol.RolName}</td>
-        <td>${rol.RolDescription}</td>
-        <td>${rol.IsActive === "1" ? 'Sí' : 'No'}</td>
-        <td>${rol.CreatedAt}</td>
-    <td>
-            <a href="#" class="action-btn edit" onclick="openEditModal(${rol.ID}, '${encodeURIComponent(rol.RolName)}', '${encodeURIComponent(rol.RolDescription)}', ${rol.IsActive})">
-                <button class="btn btn-info btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-            </a>
-            <a href="#" class="action-btn delete" onclick="eliminarRol(${rol.ID})">
-                <button class="btn btn-danger btn-sm">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            </a>
-    </td>
-        `;
+                    <td>${rol.ID}</td>
+            
+                    <td>${rol.RolName}</td>
+                                        <td>${rol.RolDescription}</td>
+
+                    <td>${String(rol.IsActive) === "1" ? 'Activo' : 'Inactivo'}</td>
+                    <td>${rol.CreatedAt}</td>
+                    <td>
+                        <a href="#" class="action-btn edit" onclick="openEditModal(${rol.ID}, '${encodeURIComponent(rol.RolName)}', '${encodeURIComponent(rol.RolDescription)}', ${rol.IsActive})">
+                            <button class="btn btn-info btn-sm">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                        </a>
+                        <a href="#" class="action-btn delete" onclick="eliminarRol(${rol.ID})">
+                            <button class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </a>
+                    </td>
+                `;
 
                 rolesTableBody.appendChild(row); // Agregar la fila a la tabla
             });
-
-
         } else {
             console.error('Datos no válidos o vacíos:', data);
         }
@@ -50,6 +50,12 @@ async function cargarRoles() {
         console.error('Error al cargar los roles:', error);
     }
 }
+
+// Llamar a la función para cargar los roles al cargar la página
+window.onload = function () {
+    cargarRoles();
+};
+
 
 function openEditModal(roleId, roleName, roleDescription, isActive) {
     // Decodificar los valores para que los saltos de línea y caracteres especiales se muestren correctamente
@@ -61,25 +67,26 @@ function openEditModal(roleId, roleName, roleDescription, isActive) {
     document.getElementById('roleName').value = decodedRoleName;
     document.getElementById('roleDescription').value = decodedRoleDescription;
 
-    // Asegurarse de que isActive sea un valor booleano
-    document.getElementById('roleIsActive').checked = Boolean(parseInt(isActive)); // Aseguramos que sea true/false
+    // Establecer el valor de 'isActive' en el select
+    document.getElementById('roleIsActive').value = isActive;  // Asegúrate de que isActive sea 0 o 1
 
     // Mostrar el modal
     $('#editRoleModal').modal('show');
 }
 
-document.getElementById('editRoleForm').addEventListener('submit', function(event) {
+
+document.getElementById('editRoleForm').addEventListener('submit', function (event) {
     event.preventDefault(); // Evitar que se recargue la página al enviar el formulario
 
     // Obtener los valores del formulario
-    const roleId = document.getElementById('roleId').value;
+    const roleId = parseInt(document.getElementById('roleId').value, 10);
     const roleName = document.getElementById('roleName').value;
     const roleDescription = document.getElementById('roleDescription').value;
     const isActive = document.getElementById('roleIsActive').checked ? 1 : 0;
 
     // Crear un objeto con los datos a enviar
     const data = {
-        roleId: roleId,  
+        roleId: roleId,
         roleName: roleName,
         roleDescription: roleDescription,
         isActive: isActive
@@ -104,14 +111,14 @@ document.getElementById('editRoleForm').addEventListener('submit', function(even
             xhr.open('POST', 'http://localhost:8088/Milogar/Controllers/RolController.php?action=edit', true);
             xhr.setRequestHeader('Content-Type', 'application/json'); // Especificamos que los datos son JSON
 
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status === 200) {
                     console.log("Respuesta del servidor:", xhr.responseText); // Muestra toda la respuesta
-                
+
                     try {
                         const response = JSON.parse(xhr.responseText); // Intentamos parsear la respuesta JSON
                         console.log("Datos de respuesta del servidor:", response);
-                
+
                         if (response.success) {
                             Swal.fire({
                                 title: '¡Éxito!',

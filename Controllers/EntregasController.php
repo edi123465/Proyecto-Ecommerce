@@ -102,7 +102,6 @@ class EntregasController
                 foreach ($direcciones as $direccion) {
                     $direccionesFormateadas[] = [
                         'direccion' => $direccion['direccion'],
-                        'telefono' => $direccion['telefono_contacto'],
                         'nombre' => $direccion['referencia'] ?? 'Nombre no disponible',
                         'pais' => $direccion['pais'],
                         'estado' => $direccion['estado'],
@@ -126,7 +125,7 @@ if (isset($_GET['action'])) {
     $db = $database->getConnection();
     $controller = new EntregasController($db);
 
-    // Usamos un switch para manejar las diferentes acciones
+    // Usamos un switch para manejar las diferentes acciones    
     switch ($action) {
         case 'obtenerDirecciones':
             // Acción para obtener las direcciones

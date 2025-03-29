@@ -58,31 +58,39 @@ class RolController
         }
     }
 
-    // En el controlador
     public function getRoles()
     {
         header('Content-Type: application/json');
         try {
             // Obtener los roles
             $roles = $this->rolModel->obtenerRol(); // Método del modelo que obtiene los roles
-
+    
             // Verificar y registrar los datos obtenidos
             if (empty($roles)) {
                 error_log("No se encontraron roles en la base de datos.");
             } else {
                 error_log("Roles obtenidos: " . print_r($roles, true));
             }
-
+    
+            // Limpiar el búfer de salida antes de enviar JSON
+            ob_clean();
+            
             // Enviar la respuesta JSON con los roles
             echo json_encode(['roles' => $roles]);
+            exit;
         } catch (Exception $e) {
             // Registrar el error en el log
             error_log("Error al obtener roles: " . $e->getMessage());
-
+    
+            // Limpiar el búfer antes de enviar error
+            ob_clean();
+    
             // Devolver un mensaje de error en formato JSON
             echo json_encode(['error' => $e->getMessage()]);
+            exit;
         }
     }
+    
 
 
     public function create($data)
@@ -206,6 +214,7 @@ class RolController
 }
 
 if (isset($_GET['action'])) {
+    
     $action = $_GET['action'];  // Obtener la acción de la URL
     // Dependiendo de la acción, ejecutamos diferentes métodos para manejar los roles
     switch ($action) {
@@ -229,6 +238,8 @@ if (isset($_GET['action'])) {
             break;
 
         case 'create':
+            $db = new Database1();  // Instanciación de la base de datos
+
             // Si la acción es 'create', verificar si los datos están disponibles
             $data = json_decode(file_get_contents('php://input'), true);  // Obtener los datos recibidos en formato JSON
             if ($data) {

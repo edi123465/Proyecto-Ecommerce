@@ -24,7 +24,7 @@ class ProductoModel
         VALUES (
             :nombre, :descripcion, :precio, :precio_1, :precio_2, :precio_3, 
             :precio_4, :stock, :subcategoria_id, :codigo_barras, :imagen, 
-            :isActive, GETDATE(), :is_promocion, :descuento, :categoria_id
+            :isActive, now(), :is_promocion, :descuento, :categoria_id
         )";
 
             $stmt = $this->conn->prepare($query);
@@ -372,7 +372,6 @@ class ProductoModel
         return $stmt->fetchAll();
     }
 
-    //FILTROS DE INFORMACION
     public function searchProducts($query)
     {
         // Asegúrate de que $query no esté vacío o sea nulo
@@ -385,14 +384,14 @@ class ProductoModel
 
         // Consulta SQL para buscar productos, categorías y subcategorías
         $sql = "
-            SELECT p.*, c.nombreCategoria, s.nombrSubcategoria
-            FROM Productos p
-            JOIN Subcategorias s ON p.subcategoria_id = s.id
-            JOIN Categorias c ON s.categoria_id = c.id
-            WHERE p.nombreProducto COLLATE SQL_Latin1_General_CP1_CI_AS LIKE :queryProducto
-            OR c.nombreCategoria COLLATE SQL_Latin1_General_CP1_CI_AS LIKE :queryCategoria
-            OR s.nombrSubcategoria COLLATE SQL_Latin1_General_CP1_CI_AS LIKE :querySubcategoria
-            ";
+        SELECT p.*, c.nombreCategoria, s.nombrSubcategoria
+        FROM Productos p
+        JOIN Subcategorias s ON p.subcategoria_id = s.id
+        JOIN Categorias c ON s.categoria_id = c.id
+        WHERE p.nombreProducto COLLATE utf8mb4_general_ci LIKE :queryProducto
+        OR c.nombreCategoria COLLATE utf8mb4_general_ci LIKE :queryCategoria
+        OR s.nombrSubcategoria COLLATE utf8mb4_general_ci LIKE :querySubcategoria
+    ";
 
         try {
             // Preparamos la sentencia

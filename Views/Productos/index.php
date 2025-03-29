@@ -16,6 +16,10 @@ $connection = $db->getConnection();
 $controller = new ProductoController($connection);
 //$productos = $controller->getAllProductos();
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /Milogar/index.php");
+    exit();
+}
 ?>
 
 
@@ -38,7 +42,14 @@ $controller = new ProductoController($connection);
     <link rel="stylesheet" href="../../Recursos/dist/css/adminlte.min.css">
     <!-- SweetAlert CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
+    <style>
+        .table-responsive {
+            max-height: 650px;
+            /* Puedes ajustar este valor según tus necesidades */
+            overflow-y: auto;
+            /* Activa el scroll vertical cuando los datos exceden el alto */
+        }
+    </style>
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -55,7 +66,7 @@ $controller = new ProductoController($connection);
                             <!-- Botón para crear nuevo producto -->
                             <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#createProductModal">Crear Nuevo Producto</a>
                             <!-- Botón para regresar al menú -->
-                            <a href="../menu.php" class="btn btn-secondary">Regresar al Menú</a>
+                            <a href="../../menu" class="btn btn-secondary">Regresar al Menú</a>
                         </div>
                     </div>
                 </div>
@@ -190,8 +201,9 @@ $controller = new ProductoController($connection);
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="editarProductoModalLabel">Editar Producto</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                <span aria-hidden="true">&times;</span>
+                            </button>                        </div>
                         <div class="modal-body">
                             <form id="formEditarProducto" method="POST" enctype="multipart/form-data">
                                 <!-- Nombre del Producto -->
@@ -312,45 +324,38 @@ $controller = new ProductoController($connection);
             <div class="content">
                 <div class="container-fluid">
                     <div class="card">
-
-                        <div class="content">
-                            <div class="container-fluid">
-                                <div class="card">
-
-                                    <div class="card-body">
-                                        <div class="table-responsive"> <!-- Para evitar el desbordamiento -->
-                                            <table id="productosTable" class="table table-striped table-bordered">
-                                                <thead class="bg-primary text-white">
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>Nombre</th>
-                                                        <th>Descripción</th>
-                                                        <th>Precio de Compra</th>
-                                                        <th>Precio 1</th>
-                                                        <th>Precio 2</th>
-                                                        <th>Precio 3</th>
-                                                        <th>Precio 4</th>
-                                                        <th>Categoria</th>
-                                                        <th>Subcategoría</th>
-                                                        <th>Código de barras</th>
-                                                        <th>Imagen</th>
-                                                        <th>Estado</th>
-                                                        <th>Fecha de creación</th>
-                                                        <th>Promoción</th>
-                                                        <th>Descuento</th>
-                                                        <th>Stock</th>
-                                                        <th>Acciones</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Aquí se insertarán los datos dinámicamente -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="card-body">
+                            <div class="table-responsive"> <!-- Para evitar el desbordamiento -->
+                                <table id="productosTable" class="table table-striped table-bordered">
+                                    <thead class="bg-primary text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Precio de Compra</th>
+                                            <th>Precio 1</th>
+                                            <th>Precio 2</th>
+                                            <th>Precio 3</th>
+                                            <th>Precio 4</th>
+                                            <th>Categoria</th>
+                                            <th>Subcategoría</th>
+                                            <th>Código de barras</th>
+                                            <th>Imagen</th>
+                                            <th>Estado</th>
+                                            <th>Fecha de creación</th>
+                                            <th>Promoción</th>
+                                            <th>Descuento</th>
+                                            <th>Stock</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Aquí se insertarán los datos dinámicamente -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -367,13 +372,10 @@ $controller = new ProductoController($connection);
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="index3.html" class="nav-link">Home</a>
+                    <a href="../../menu.php" class="nav-link">Home</a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="login/logout.php" class="nav-link">Cerrar Sesión</a>
+                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>
@@ -501,8 +503,8 @@ $controller = new ProductoController($connection);
         </nav>
         <!-- /.navbar -->
 
-        <?php 
-            require_once "../Navigation/navigationAdmin.php";        
+        <?php
+        require_once "../Navigation/navigationAdmin.php";
         ?>
         <!-- Content Wrapper. Contains page content -->
 

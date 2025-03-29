@@ -63,7 +63,7 @@ class SubcategoriaModel {
     // Crear una nueva subcategoría
     public function insert($data) {
         $query = "INSERT INTO " . $this->table . " (nombrSubcategoria, descripcionSubcategoria, categoria_id, isActive, fechaCreacion) 
-              VALUES (:nombre, :descripcion, :categoria_id, :isActive, GETDATE())";
+              VALUES (:nombre, :descripcion, :categoria_id, :isActive, now())";
         $stmt = $this->conn->prepare($query);
 
         // Enlace de parámetros

@@ -36,3 +36,4 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     }
 });
 
+//const response = await fetch('https://milogar.wuaze.com/Controllers/LoginController.php?action=login', {

@@ -91,7 +91,7 @@ function actualizarCarrito() {
         const precioConDescuento = producto.precio;  // Precio con descuento
         const precioUnitario = producto.precioOriginal;  // Precio original sin descuento
         const descuento = producto.descuento || 0;  // El descuento en porcentaje
-        
+
         // Calcular el subtotal con el precio con descuento
         const subtotal = precioConDescuento * producto.cantidad;
 
@@ -213,9 +213,6 @@ function eliminarProducto(event) {
 document.getElementById('checkout-button').addEventListener('click', function (event) {
     event.preventDefault(); // Evita el comportamiento predeterminado del botón
 
-    // Muestra una alerta al usuario
-    alert('En hora buena, su pedido está siendo procesado.');
-
     // Captura los items del carrito antes de vaciarlo
     const cartItems = carrito.map(producto => ({
         nombre: producto.nombre,
@@ -234,36 +231,20 @@ document.getElementById('checkout-button').addEventListener('click', function (e
     actualizarCarrito();
 
     // Redirigir a la página de checkout en la misma ventana
-    window.location.href = 'http://localhost:8088/Milogar/Views/shop-checkout.php';
-
-    // DESDE AQUÍ VA LA PARTE DEL REPORTE PDF
-    /*
-        let form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'http://localhost:8088/Milogar/ReportesPDF/generar_reporte.php'; // Ruta completa para el reporte PDF
-        form.style.display = 'none'; // No mostrar el formulario
-
-        let input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'productos';
-        input.value = JSON.stringify(cartItems); // Convertir el array de productos en JSON
-        form.appendChild(input);
-
-        document.body.appendChild(form); // Añadir el formulario al body
-        form.submit(); // Enviar el formulario
-    */
+    window.location.href = '/Milogar/shop-checkout';
 });
-
-
-//funcion para el detalle de carrito
 
 // Función para actualizar el detalle del pedido
 function actualizarDetallePedido() {
     const orderDetails = document.getElementById('order-details');
     const subtotalElement = document.getElementById('subtotal');
-    const ivaElement = document.getElementById('iva');
     const descuentoElement = document.getElementById('descuento');
     const totalElement = document.getElementById('total');
+
+    if (!orderDetails || !subtotalElement || !descuentoElement || !totalElement) {
+        console.error("Uno o más elementos no existen en el DOM.");
+        return;
+    }
 
     // Limpiar los productos previos en el detalle
     orderDetails.innerHTML = '';
@@ -271,7 +252,7 @@ function actualizarDetallePedido() {
     let subtotal = 0;
 
     // Iterar sobre el carrito para agregar los productos al detalle
-    carrito.forEach((producto) => {
+    carrito.forEach((producto, index) => {
         const subtotalProducto = producto.precio * producto.cantidad;
         subtotal += subtotalProducto;
 
@@ -281,37 +262,72 @@ function actualizarDetallePedido() {
                     <div class="col-2 col-md-2">
                         <img src="${producto.imagen}" alt="${producto.nombre}" class="img-fluid">
                     </div>
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <h6 class="mb-0">${producto.nombre}</h6>
-                        <span><small class="text-muted">${producto.cantidad} items</small></span>
                     </div>
-                    <div class="col-2 col-md-2 text-center text-muted">
-                        <span>${producto.cantidad}</span>
+                    <div class="col-2 col-md-2 text-center">
+                        <button class="btn btn-sm btn-outline-danger" onclick="cambiarCantidad(${index}, -1)">-</button>
+                        <input type="number" id="cantidad-${index}" class="form-control d-inline text-center" value="${producto.cantidad}" min="1" style="width: 50px;" onchange="actualizarCantidad(${index})">
+                        <button class="btn btn-sm btn-outline-success" onclick="cambiarCantidad(${index}, 1)">+</button>
                     </div>
-                    <div class="col-3 text-lg-end text-start text-md-end col-md-3">
+                    <div class="col-2 text-lg-end text-start text-md-end col-md-2">
                         <span class="fw-bold">$${subtotalProducto.toFixed(2)}</span>
+                    </div>
+                    <div class="col-2 col-md-2 text-center">
+                  <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
+                    <i class="bi bi-trash-fill"></i>
+                    </button>
                     </div>
                 </div>
             </li>
         `;
     });
 
-    // Calcular el IVA (15%)
-    const iva = (subtotal * 0.15).toFixed(2);
-    // Calcular el descuento (10%)
-    const descuento = (subtotal * 0.10).toFixed(2);
-    // Calcular el total (subtotal + IVA - descuento)
-    const total = (subtotal + parseFloat(iva) - parseFloat(descuento)).toFixed(2);
+    // Inicialmente, el descuento es cero
+    let descuento = 0.00;
+
+    // Calcular el total (subtotal - descuento)
+    const total = (subtotal - descuento).toFixed(2);
 
     // Actualizar los valores en el HTML
     subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-    ivaElement.textContent = `$${iva}`;
-    descuentoElement.textContent = `-$${descuento}`;
-    totalElement.textContent = `$${total}`;
+    descuentoElement.textContent = `-$${descuento.toFixed(2)}`; // Muestra -$0.00 en la vista
+    totalElement.textContent = `$${total}`
+    // Guardar el estado actualizado del carrito en localStorage
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    actualizarContadorCarrito();
+    actualizarCarrito();
 }
+
+// Función para cambiar la cantidad con los botones + y -
+function cambiarCantidad(index, cambio) {
+    if (carrito[index].cantidad + cambio >= 1) {
+        carrito[index].cantidad += cambio;
+        actualizarDetallePedido(); // Volver a actualizar el detalle del pedido
+    }
+}
+
+// Función para actualizar la cantidad cuando se edita manualmente
+function actualizarCantidad(index) {
+    const inputCantidad = document.getElementById(`cantidad-${index}`);
+    const nuevaCantidad = parseInt(inputCantidad.value);
+
+    if (!isNaN(nuevaCantidad) && nuevaCantidad >= 1) {
+        carrito[index].cantidad = nuevaCantidad;
+        actualizarDetallePedido();
+    } else {
+        inputCantidad.value = carrito[index].cantidad; // Restaurar cantidad válida
+    }
+}
+
+// Función para eliminar un producto del carrito
+function eliminarProducto(index) {
+    carrito.splice(index, 1); // Elimina el producto del array
+    actualizarDetallePedido(); // Vuelve a actualizar la interfaz
+}
+
 // Llamar a la función para actualizar el detalle de pedido cuando se cargue el carrito
 document.addEventListener('DOMContentLoaded', actualizarDetallePedido);
-
 
 const radios = document.querySelectorAll('input[name="opcion"]');
 
@@ -325,10 +341,23 @@ radios.forEach(radio => {
 
 document.getElementById("proceder").addEventListener("click", function (event) {
     event.preventDefault();
-
+    // Verificar si el carrito tiene productos
+    if (carrito.length === 0) {
+        alert("Tu carrito está vacío. Agrega al menos un producto para realizar un pedido.");
+        return; // Detiene la ejecución si el carrito está vacío
+    }
     // Obtener la opción seleccionada en el radio button
     const opcionSeleccionada = document.querySelector("input[name='opcion']:checked");
     const metodoPago = opcionSeleccionada ? opcionSeleccionada.value : null; // El valor del método de pago seleccionado
+
+    // Obtener la opción de entrega seleccionada
+    const deliveryOption = document.querySelector("input[name='deliveryOption']:checked")?.value || "recogerEnTienda";
+
+    // Obtener correo y teléfono si el usuario es invitado
+    const email = document.getElementById("email-address")?.value.trim() || null;
+    const telefono = document.getElementById("celular")?.value.trim() || null;
+    const direccion = document.getElementById("direccion").value.trim() || null;
+    const nombreUsuario = document.getElementById('user_name').value;
 
     // Obtener los datos del botón y del HTML
     const userId = parseInt(event.target.dataset.userId, 10);
@@ -336,19 +365,11 @@ document.getElementById("proceder").addEventListener("click", function (event) {
     const fecha = event.target.dataset.fecha;
     const estado = "Pendiente";
     const productId = this.getAttribute('data-product-id');
-    console.log(userId);
 
     // Obtener valores numéricos (subtotal, iva, total) del HTML y convertirlos a float
     const subtotalneto = parseFloat(document.getElementById('subtotal').textContent.replace(/[^0-9.]/g, ''));
     const ivaNeto = parseFloat(document.getElementById('iva').textContent.replace(/[^0-9.]/g, ''));
     const totalNeto = parseFloat(document.getElementById('total').textContent.replace(/[^0-9.]/g, ''));
-
-    // Agregar logs para depuración
-    console.log("Subtotal:", subtotalneto);
-    console.log("IVA:", ivaNeto);
-    console.log("Total:", totalNeto);
-    console.log("numero pedido", numeroPedido);
-    console.log("Metodo de pago", metodoPago);
 
     // Obtener el total de productos en el carrito
     const totalProductos = carrito.reduce((total, producto) => total + producto.cantidad, 0);
@@ -358,21 +379,22 @@ document.getElementById("proceder").addEventListener("click", function (event) {
         console.log("Imagen del producto:", producto.imagen); // Log para la imagen de cada producto
         console.log("Id del producto:", producto.id); // Log para el ID de cada producto
         console.log("Nombre del producto:", producto.nombre); // Log para verificar el nombre
-    
 
         return {
             id: producto.id,                // Incluir el id del producto
-            nombre: producto.nombre, // Nombre del producto
-            cantidad: producto.cantidad,     // Cantidad de producto
-            precio: producto.precio,         // Precio unitario
+            nombre: producto.nombre,        // Nombre del producto
+            cantidad: producto.cantidad,    // Cantidad de producto
+            precio: producto.precio,        // Precio unitario
             subtotal: producto.precio * producto.cantidad, // Subtotal (precio * cantidad)
             imagen: producto.imagen.split('/').pop()         // Imagen del producto
         };
     });
+    let usuarioId = userId || "invitado";  // Si userId es null, asignar "invitado"
 
     // Construir el objeto con los datos necesarios para el pedido
     const data = {
-        usuario_id: userId,
+        usuario_id: usuarioId,
+        usuario_nombre: nombreUsuario || "invitado",  // Campo adicional para almacenar el nombre de usuario
         fecha: fecha,
         subtotal: subtotalneto,
         iva: ivaNeto,
@@ -380,82 +402,127 @@ document.getElementById("proceder").addEventListener("click", function (event) {
         estado: estado,
         numeroPedido: numeroPedido,
         totalProductos: totalProductos,
-        metodoPago: metodoPago,  // Aquí agregamos el método de pago
-        productos: productos // Aquí están los productos con el id incluido
+        metodoPago: metodoPago,
+        productos: productos,
+        deliveryOption: deliveryOption,  // Método de entrega (Recoger en tienda o Envío)
+        email: email,
+        telefono: telefono,
+        direccion: direccion
     };
 
     // Mostrar los datos antes de enviarlos para depuración
     console.log("Data en formato JSON:", JSON.stringify(data));
-    // Enviar la solicitud al servidor para crear el pedido
-    fetch("http://localhost:8088/Milogar/Controllers/PedidosController.php?action=ordenPedido", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    })
-        .then(response => {
-            if (!response.ok) throw new Error("Error en la respuesta del servidor");
-            return response.text();
+
+    // Verificar si el usuario está logeado (userId no es null)
+    if (!userId) {
+        // Si el usuario no está logeado, solicita el correo desde el formulario (asegúrate de tener un input con id "email")
+        if (!email) {
+            alert("Por favor, ingresa tu correo electrónico para recibir la información del pedido.");
+            return;
+        }
+
+        fetch("http://localhost:8088/Milogar/Controllers/PedidosController.php?action=generarPDF", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         })
-        .then(text => {
-            console.log("Respuesta del servidor:", text); // Agregar un log para ver la respuesta del servidor
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("El correo con el PDF ha sido enviado correctamente. Sigue las instrucciones enviadas al correo para la respectiva entrega de tu pedido");
 
-            if (!text) {
-                throw new Error("Respuesta vacía del servidor");
-            }
+                    // Vaciar el carrito
+                    carrito = [];
+                    localStorage.removeItem("carrito"); // Asegurar que también se elimine del almacenamiento local
 
-            // Verificar si la respuesta es JSON válido
-            let result;
-            try {
-                result = JSON.parse(text);
-            } catch (error) {
-                throw new Error("Error al parsear la respuesta JSON: " + error.message);
-            }
+                    // Actualizar la interfaz del carrito
+                    actualizarContadorCarrito();
+                    actualizarCarrito();
 
-            // Manejar la respuesta del servidor
-            if (result.success) {
-                alert("Pedido creado exitosamente con ID: " + result.pedido_id);
-                // Vaciar el carrito (asumiendo que usas una variable global o una estructura similar)
-                carrito = []; // Vaciar el carrito
-                fetch("http://localhost:8088/Milogar/Controllers/PedidosController.php?action=generarPDF", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        pedido_id: result.pedido_id,
-                        numeroPedido: result.numeroPedido,  // Asegúrate de incluir el número de pedido aquí
-                        productos: productos        // Productos del carrito
-                        
-                    })
-                })
-                
-                    .then(response => {
-                        if (!response.ok) throw new Error("Error al generar el reporte");
+                    // Redirigir a la página principal
+                    window.location.href = "/Milogar/index.php";
+                } else {
+                    alert("Hubo un problema al generar el reporte.");
+                }
+            })
+            .catch(error => {
+                console.error("Error al generar el reporte:", error);
+                alert("Error al generar el reporte.");
+            });
 
-                        // Obtener el PDF como un blob
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        // Crear un enlace temporal para descargar el PDF
-                        const link = document.createElement('a');
-                        const url = window.URL.createObjectURL(blob);
-                        link.href = url;
-                        link.download = `reporte_pedido_${result.pedido_id}.pdf`; // Nombre del archivo PDF
-                        link.click();
-                        window.URL.revokeObjectURL(url); // Limpiar el objeto URL
-                    })
-                    .catch(error => console.error("Error al generar el reporte:", error));
-
-
-                window.location.href = "/Milogar/index.php";  // Redirige al índice de la tienda
-            } else {
-                alert("Error al crear el pedido: " + result.message);
-            }
+    } else {
+        // Si el usuario está logeado, procede con el fetch normal para crear el pedido
+        fetch("http://localhost:8088/Milogar/Controllers/PedidosController.php?action=ordenPedido", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         })
-        .catch(error => console.error("Error en la solicitud:", error));
+            .then(response => {
+                if (!response.ok) throw new Error("Error en la respuesta del servidor");
+                return response.text();
+            })
+            .then(text => {
+                console.log("Respuesta del servidor:", text);
+
+                if (!text) {
+                    throw new Error("Respuesta vacía del servidor");
+                }
+
+                // Verificar si la respuesta es JSON válido
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (error) {
+                    throw new Error("Error al parsear la respuesta JSON: " + error.message);
+                }
+
+                // Manejar la respuesta del servidor
+                if (result.success) {
+                    alert("Pedido creado exitosamente con ID: " + result.pedido_id);
+                    // Vaciar el carrito
+                    carrito = [];
+                    // Enviar el pedido al backend para generar el PDF y enviarlo por email
+                    fetch("http://localhost:8088/Milogar/Controllers/PedidosController.php?action=generarPDF", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert("El correo con el PDF ha sido enviado correctamente. Sigue las instrucciones enviadas al correo.");
+                                // Vaciar el carrito
+                                carrito = [];
+                                localStorage.removeItem("carrito");
+
+                                // Actualizar la interfaz del carrito
+                                actualizarContadorCarrito();
+                                actualizarCarrito();
+
+                                // Redirigir a la página principal
+                                window.location.href = "/Milogar/index.php";
+                            } else {
+                                alert("Hubo un problema al generar el reporte.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error al generar el reporte:", error);
+                            alert("Error al generar el reporte.");
+                        });
+                } else {
+                    alert("Error al crear el pedido: " + result.message);
+                }
+            })
+            .catch(error => console.error("Error en la solicitud:", error));
+    }
 });
+
 
 //PRUEBAS
 document.getElementById("generarPDF").addEventListener("click", function (event) {

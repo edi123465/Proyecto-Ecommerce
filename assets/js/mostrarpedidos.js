@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Verificar si userId está definido en el frontend (si no está, muestra un error)
     if (typeof userId === "undefined") {
-        console.error("userId no está definido. Verifica que el archivo `account-orders.php` esté configurado correctamente.");
-        return;
+            console.error("userId no está definido. Verifica que el archivo `account-orders.php` esté configurado correctamente.");
+            return;
     }
 
     // Función para obtener los pedidos
@@ -52,7 +52,7 @@ function mostrarPedidosEnHTML(pedidos) {
 
     // Iterar sobre los pedidos y crear filas de tabla
     pedidos.forEach(pedido => {
-        const total = parseFloat(pedido.total); // Convertir 'total' a número
+        const total = parseFloat(pedido.TotalPedido);
 
         // Verificar si 'total' es un número válido
         if (isNaN(total)) {
@@ -63,14 +63,18 @@ function mostrarPedidosEnHTML(pedidos) {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>User ID: ${pedido.usuario_id}</td>
-            <td>${pedido.numeroPedido}</td>
-            <td>${pedido.fechaCreacion}</td>
-            <td>${pedido.items}</td>
-            <td>${pedido.estado}</td>
-            <td>${total}</td> <!-- Usar el valor convertido a número -->
+            <td>${pedido.NombreUsuario}</td>
+            <td>${pedido.NumeroPedido}</td>
+                <td>${new Date(pedido.FechaCreacion).toLocaleDateString()}</td>
+                <td>${pedido.ItemsPedido}</td>
+                <td>${pedido.EstadoPedido}</td>
+            <td>${pedido.SubtotalPedido}</td> <!-- Usar el valor convertido a número -->
+                            <td>${pedido.IVAPedido}</td>
+                                                        <td>${total}</td>
+
+
             <td>
-                <button class="btn btn-sm btn-primary ver-detalles" data-id="${pedido.id}">Ver detalles</button>
+                <button class="btn btn-sm btn-primary ver-detalles" data-id="${pedido.PedidoID}">Ver detalles</button>
             </td>
         `;
 

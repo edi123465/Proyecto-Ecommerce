@@ -40,16 +40,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <img src="${imagenUrl}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
                                     </a>
                                     <div class="card-product-action">
-                                        <a href="#!" class="btn-action" data-bs-toggle="modal" data-bs-target="#quickViewModal" data-id="${producto.id}">
-                                            <i class="bi bi-eye" data-bs-toggle="tooltip" data-bs-html="true" title="Quick View"></i>
-                                        </a>
-                                        <a href="#!" class="btn-action" data-bs-toggle="tooltip" data-bs-html="true" title="Wishlist">
-                                            <i class="bi bi-heart"></i>
-                                        </a>
-                                        <a href="#!" class="btn-action" data-bs-toggle="tooltip" data-bs-html="true" title="Compare">
-                                            <i class="bi bi-arrow-left-right"></i>
-                                        </a>
-                                    </div>
+                                    <a href="#!" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#quickViewModal" data-id="${producto.id}">
+                                        Ver Detalle
+                                    </a>
+                                </div>
                                 </div>
                                 <div class="text-small mb-1">
                                     <a href="#!" class="text-decoration-none text-muted">
@@ -104,9 +98,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     var modal = $(this);
                     const imagenProducto = "imagenesMilogar/productos/" + $(this).data('imagen');
 
-                    console.log("Ruta de imagen:", imagenProducto);
-                    console.log("ID del producto " + productoId);
-
                     // Hacer la solicitud fetch
                     fetch('http://localhost:8088/Milogar/Controllers/ProductoController.php?action=verDetalle&id=' + productoId, {
                         method: 'GET',
@@ -138,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 // Generar miniaturas
                                 var thumbnailsHTML = '';
                                 if (producto.imagen) {
-                                    var imagenRuta = 'http://localhost:8088/Milogar/assets/imagenesMilogar/Productos/' + producto.imagen;
+                                    const imagenRuta = 'http://localhost:8088/Milogar/assets/imagenesMilogar/Productos/' + producto.imagen;
                                     thumbnailsHTML += `
                 <div class="col-3">
                     <div class="thumbnails-img">
@@ -150,33 +141,34 @@ document.addEventListener("DOMContentLoaded", function () {
                                 modal.find('#productModalThumbnails').html(thumbnailsHTML);
 
                                 modal.find('#add-to-cart2').off('click').on('click', function () {
+                                    const cantidadSeleccionada = parseInt(modal.find('.quantity-field').val()) || 1;
                                     const productoId = producto.id; // Se obtiene del objeto 'producto'
                                     const nombreProducto = producto.nombreProducto;
                                     const precioProducto = parseFloat(producto.precio_1);
                                     const descuento = parseFloat(producto.descuento) || 0;
-                                    
+
                                     // Verificar el objeto producto completo
                                     console.log("Objeto producto:", producto);
-                                
+
                                     // Acceder a la ruta de la imagen
-                                    const imagenProducto = producto.imagenRuta; // Asegúrate de que esta propiedad existe
-                                
+                                    const imagenProducto = 'http://localhost:8088/Milogar/assets/imagenesMilogar/productos/' + producto.imagen;
+
                                     // Imprimir la ruta de la imagen
                                     console.log("Ruta de la imagen:", imagenProducto);
-                                
+
                                     // Calcular el precio con descuento
                                     const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
-                                
+
                                     // Imprimir en consola los datos antes de agregar al carrito
                                     console.log("ID del producto:", productoId);
                                     console.log("Nombre del producto:", nombreProducto);
                                     console.log("Precio del producto:", precioProducto);
                                     console.log("Descuento:", descuento);
                                     console.log("Precio con descuento:", precioConDescuento);
-                                
+
                                     // Verificar si el producto ya está en el carrito
                                     const productoExistente = carrito.find(producto => producto.id === productoId);
-                                
+
                                     if (productoExistente) {
                                         productoExistente.cantidad++;
                                     } else {
@@ -184,17 +176,17 @@ document.addEventListener("DOMContentLoaded", function () {
                                             id: productoId,
                                             nombre: nombreProducto,
                                             precio: precioConDescuento,
-                                            cantidad: 1,
+                                            cantidad: cantidadSeleccionada,
                                             precioOriginal: precioProducto,
                                             imagen: imagenProducto, // Usar la ruta completa
                                             descuento: descuento,
                                         });
                                     }
-                                
+
                                     // Guardar el carrito en localStorage
                                     guardarCarrito();
                                     actualizarCarrito();
-                                
+
                                     // Mostrar alerta con SweetAlert2
                                     Swal.fire({
                                         position: 'bottom-left',
@@ -205,42 +197,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                         toast: true,
                                         timerProgressBar: true,
                                     });
-                                
+
                                     // Actualizar el contador del carrito
                                     actualizarContadorCarrito();
                                 });
-                                                                // ✅ SOLO SE ASIGNAN EVENTOS UNA VEZ CUANDO SE ABRE EL MODAL
-                                modal.on('shown.bs.modal', function () {
-                                    const buttonsMinus = document.querySelectorAll(".button-minus");
-                                    const buttonsPlus = document.querySelectorAll(".button-plus");
-
-                                    buttonsMinus.forEach(button => {
-                                        button.removeEventListener("click", restarCantidad);
-                                        button.addEventListener("click", restarCantidad);
-                                    });
-
-                                    buttonsPlus.forEach(button => {
-                                        button.removeEventListener("click", sumarCantidad);
-                                        button.addEventListener("click", sumarCantidad);
-                                    });
-                                });
-
-                                function restarCantidad() {
-                                    let input = this.nextElementSibling;
-                                    let value = parseInt(input.value, 10);
-                                    if (value > 1) {
-                                        input.value = value - 1;
-                                    }
-                                }
-
-                                function sumarCantidad() {
-                                    let input = this.previousElementSibling;
-                                    let value = parseInt(input.value, 10);
-                                    let max = parseInt(input.getAttribute("max"), 10);
-                                    if (!max || value < max) {
-                                        input.value = value + 1;
-                                    }
-                                }
+                              
+                             
                             }
                         })
                         .catch(error => console.error("Error al obtener datos:", error));
@@ -519,3 +481,4 @@ document.getElementById('formEditarProducto').addEventListener('submit', functio
             alert('Hubo un error al actualizar el producto.');
         });
 });
+

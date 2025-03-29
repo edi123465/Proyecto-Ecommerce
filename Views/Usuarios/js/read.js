@@ -24,11 +24,12 @@ async function cargarUsuarios() {
                     <td>${usuario.NombreUsuario}</td>
                     <td>${usuario.Email}</td>
                     <td>${usuario.RolName}</td>
-                    <td>${usuario.IsActive ? 'Sí' : 'No'}</td>
-                    <td>${usuario.FechaCreacion}</td>
                     <td>
-                        <img src="/Milogar/assets/imagenesMilogar/usuarios/${usuario.Imagen}" alt="Imagen del usuario" width="75" height="75">
-                    </td>
+                        <span class="badge ${usuario.IsActive ? 'badge-success' : 'badge-danger'}">
+                            ${usuario.IsActive ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>                    <td>${usuario.FechaCreacion}</td>
+
                     <td>
                         <a href="#" class="action-btn edit" onclick="editarUsuario(${usuario.ID})">
                             <button class="btn btn-info btn-sm">
@@ -61,3 +62,32 @@ async function cargarUsuarios() {
 document.addEventListener('DOMContentLoaded', function () {
     cargarUsuarios();
 });
+
+// Función para eliminar usuario
+function eliminarUsuario(id) {
+    // Confirmación antes de eliminar
+    if (confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
+        // Realizar solicitud fetch al servidor para eliminar usuario
+        fetch(`http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=delete&id=${id}`, {
+            method: "POST", // Cambié GET por POST para un método adecuado
+        })
+        .then(response => response.json())
+        .then(data => {
+            
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                alert(data.message);
+                // Realizar alguna acción después de la eliminación (como recargar la página o actualizar la lista)
+                window.location.reload(); // Recargar la página, puedes adaptarlo según necesites
+            } else {
+                // Si hubo un error, mostrar el mensaje
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error al eliminar el usuario:", error);
+            alert("Hubo un problema al eliminar el usuario. Intenta nuevamente.");
+        });
+    }
+}
+  

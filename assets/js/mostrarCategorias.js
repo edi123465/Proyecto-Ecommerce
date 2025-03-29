@@ -24,28 +24,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     result.data.forEach(categoria => {
                         // Comprobamos si la imagen está vacía y asignamos una imagen predeterminada si es necesario
                         const imagen = categoria.imagen ? `assets/imagenesMilogar/Categorias/${categoria.imagen}` : 'assets/imagenesMilogar/Categorias/default-category.jpg';
-
-                        // Crear el HTML para cada tarjeta de categoría
                         let itemHTML = `
-                            <div class="product-card">
-                                <a class="text-decoration-none text-inherit">
-                                    <div class="card card-product mb-4">
-                                        <div class="card-body text-center py-8">
-                                            <img src="${imagen}" alt="${categoria.nombreCategoria}" class="mb-3" height="100px" width="100px">
-                                            <div>${categoria.nombreCategoria}</div>
-                                            
-                                            <!-- Botón de editar solo si es administrador -->
-                                            ${isAdmin ? `
-                                                
-                                            ` : `
-                                                <!-- Botón para visitar la tienda si no es administrador -->
-                                                <button class="btn btn-primary" onclick="window.location.href='./Views/shop-grid.php'">Visitar la tienda</button>
-                                            `}
-                                        </div>
-                                    </div>
-                                </a>
+                        <div class="swiper-slide">
+                            <div class="card card-product text-center">
+                                <div class="card-body py-4">
+                                    <img src="${imagen}" alt="${categoria.nombreCategoria}" class="mb-3" height="100px" width="100px">
+                                    <div>${categoria.nombreCategoria}</div>
+                                    ${isAdmin ? '' : `<button class="btn btn-primary" onclick="window.location.href='./shop-grid.php'">Visitar la tienda</button>`}
+                                </div>
                             </div>
-                        `;
+                        </div>
+                    `;
                         contenedor.innerHTML += itemHTML; // Insertamos el nuevo HTML en el contenedor
                     });
 

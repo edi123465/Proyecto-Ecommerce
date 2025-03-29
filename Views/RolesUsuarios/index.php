@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /Milogar/index.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,120 +24,133 @@ session_start();
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
+<body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
     <div class="wrapper">
 
         <div class="content-wrapper">
+
             <div class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">Gestión de Perfiles de usuarios</h1>
+                            <h1 class="m-0">Gestión de Perfiles de usuario</h1>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <!-- Botón para crear nuevo producto -->
+                            <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#createUserModal">Crear un nuevo perfil</a>
+                            <!-- Botón para regresar al menú -->
+                            <a href="../../menu" class="btn btn-secondary">Regresar al Menú</a>
                         </div>
                     </div>
                 </div>
             </div>
-            
-
-            <button id="openModalBtn">Crear un nuevo Rol</button>
-            <button id="regresarBtn">Regresar al menú</button>
-            
-            <!-- Modal -->
-            <div id="createRoleModal" style="display: none;">
-                <div class="modal-content">
-                    <span id="closeModalBtn" class="close">&times;</span>
-                    <h1>Crear Nuevo Rol</h1>
-                    <form id="createRoleForm">
-                        <label for="RolName">Nombre del Rol:</label>
-                        <input type="text" id="RolName" name="RolName" required>
-
-                        <label for="RolDescription">Descripción:</label>
-                        <textarea id="RolDescription" name="RolDescription" required></textarea>
-
-                        <label for="IsActive">Activo:</label>
-                        <input type="checkbox" id="IsActive" name="IsActive">
-
-                        <button type="submit">Guardar</button>
-                    </form>
-                </div>
-            </div>
-            <!-- Modal para editar un rol -->
-            <div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
+            <!-- Modal para crear un rol -->
+            <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserLabel" aria-hidden="true">
+                <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editRoleModalLabel">Editar Rol</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <h5 class="modal-title" id="createUserLabel">Crear Rol</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="createRoleForm">
+                                <input type="hidden" id="crearUsuarioID">
+                                <div class="mb-3">
+                                    <label for="RolName" class="form-label">Rol</label>
+                                    <input type="text" class="form-control" id="RolName" name="RolName"  required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="crearEmail" class="form-label">Descripción</label>
+                                    <input type="email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="roleIsActive" class="form-label">Estado</label>
+                                    <select class="form-select">
+                                        <option value="1">Activo</option>
+                                        <option value="0">Inactivo</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary">Crear Usuario</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para editar usuario -->
+            <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editarRolLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editarRolLabel">Editar Perfil</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
                             <form id="editRoleForm">
-                                <div class="form-group">
-                                    <label for="roleName">Nombre del Rol</label>
-                                    <input type="text" class="form-control" id="roleName" required>
+                                <input type="hidden" id="editarUsuarioID">
+                                <div class="mb-3">
+                                    <label for="editarNombreUsuario" class="form-label">Rol</label>
+                                    <input type="text" class="form-control" id="roleName" required readonly>
                                 </div>
-                                <div class="form-group">
-                                    <label for="roleDescription">Descripción del Rol</label>
-                                    <textarea class="form-control" id="roleDescription" rows="3" required></textarea>
+                                <div class="mb-3">
+                                    <label for="editarEmail" class="form-label">Descripción</label>
+                                    <input type="email" class="form-control" id="roleDescription" required readonly>
                                 </div>
-                                <div class="form-group">
-                                    <label for="roleIsActive">Activo</label>
-                                    <input type="checkbox" id="roleIsActive">
+                            
+                                <div class="mb-3">
+                                    <label for="editarIsActive" class="form-label">Estado</label>
+                                    <select class="form-select" id="roleIsActive">
+                                        <option value="1">Activo</option>
+                                        <option value="0">Inactivo</option>
+                                    </select>
                                 </div>
-                                <input type="hidden" id="roleId">
-                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                             </form>
+                        </div>
+                        <div class="modal-footer">
+                        <input type="hidden" id="roleId">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="actualizarRol()">Guardar Cambios</button>
                         </div>
                     </div>
                 </div>
             </div>
 
 
+
+
+
             <div class="content">
                 <div class="container-fluid">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped" id="rolesTable">
+                        <table class="table table-bordered">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Nombre</th>
+                                    <th>Rol</th>
                                     <th>Descripción</th>
-                                    <th>Activo</th>
-                                    <th>Fecha de creación</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Creación</th>
                                     <th>Acciones</th>
-
                                 </tr>
                             </thead>
                             <tbody id="rolesTableBody">
-                                <!-- Los datos se cargarán aquí mediante JavaScript -->
+                                <!-- Los usuarios serán cargados aquí dinámicamente -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <!<!-- PAGINACION -->
-                    <div class="d-flex justify-content-center">
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
-                                </li>
-                                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">&raquo;</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
+            </div>
+            <div class="card-body">
+                <div id="jsGrid1"></div>
             </div>
         </div>
-        <!-- Preloader -->
-        <div class="preloader flex-column justify-content-center align-items-center">
-            <img class="animation__wobble" src="../../Recursos/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
-        </div>
-
         <!-- Navbar -->
         <nav class="main-header navbar navbar-expand navbar-dark">
             <!-- Left navbar links -->
@@ -142,13 +159,10 @@ session_start();
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="../menu.php" class="nav-link">Home</a>
+                    <a href="../../menu" class="nav-link">Home</a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="login/logout.php" class="nav-link">Cerrar Sesión</a>
+                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>
@@ -276,7 +290,7 @@ session_start();
         </nav>
         <!-- /.navbar -->
         <?php require_once "../Navigation/navigationAdmin.php"; ?>
-        
+
         <!-- Content Wrapper. Contains page content -->
 
 
@@ -298,7 +312,7 @@ session_start();
     <!-- ./wrapper -->
 
     <!-- REQUIRED SCRIPTS -->
-         <!--Libreria para dar estilos a las alertas -->
+    <!--Libreria para dar estilos a las alertas -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- jQuery -->
     <script src="../../Recursos/plugins/jquery/jquery.min.js"></script>
