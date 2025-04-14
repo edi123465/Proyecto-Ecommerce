@@ -11,6 +11,9 @@ require_once __DIR__ . "/../../Config/config.php";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+
+    </style>
 </head>
 
 <body>
@@ -18,6 +21,77 @@ require_once __DIR__ . "/../../Config/config.php";
 </body>
 
 </html>
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fs-3" id="userModalLabel">Inicia sesión con tu cuenta</h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <input type="hidden" name="form_type" value="login">
+
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Nombre de usuario</label>
+                        <input type="text" name="txt_nombreUsuario" class="form-control" placeholder="Nombre de usuario" required autocomplete="current-password">
+                    </div>
+                    <div class="mb-5">
+                        <label for="loginPassword" class="form-label">Contraseña</label>
+                        <input type="password" name="txt_password" class="form-control" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+                    </div>
+
+
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar sesión</button>
+                </form>
+
+                <!-- Enlace para continuar como invitado -->
+                <div class="text-center mt-3">
+                    <a href="Continuar_invitado.php" class="btn btn-outline-secondary w-100">Continuar como invitado</a>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 justify-content-center">
+                ¿Ya tienes una cuenta? <a href="#">Iniciar sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Shop Cart -->
+<div id="offcanvasRight" class="offcanvas offcanvas-end" tabindex="-1" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header border-bottom">
+        <div class="text-start">
+            <h5 id="offcanvasRightLabel" class="mb-0 fs-4">Carrito de compras</h5>
+            <small>Número de pedido: 0000001</small><br>
+            
+        </div>
+        
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body">
+        <div class="alert alert-danger" role="alert">
+            Tienes envío GRATIS. ¡Empiece a pagar ahora!
+        </div>
+        <div>
+            <div class="py-3">
+                <ul id="cart-items" class="list-group list-group-flush">
+                    <!--Aqui se llenaran los productos del catalogo-->
+                </ul>
+            </div>
+            <div class="d-grid">
+
+                <button id="checkout-button" class="btn btn-primary btn-lg d-flex justify-content-between align-items-center" type="submit"> Go to
+                    Checkout <span id="cart-total" class="fw-bold">$0.00</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="border-bottom pb-5">
     <nav class="navbar navbar-light py-lg-5 pt-3 px-0 pb-0">
         <div class="container">
@@ -92,76 +166,7 @@ require_once __DIR__ . "/../../Config/config.php";
                             </button>
                         </div>
                     </form>
-
                 </div>
-                <!-- Modal -->
-                <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-4">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fs-3" id="userModalLabel">Inicia sesión con tu cuenta</h5>
-
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="loginForm">
-                    <input type="hidden" name="form_type" value="login">
-
-                    <div class="mb-3">
-                        <label for="loginEmail" class="form-label">Nombre de usuario</label>
-                        <input type="text" name="txt_nombreUsuario" class="form-control" placeholder="Nombre de usuario" required autocomplete="current-password">
-                    </div>
-                    <div class="mb-5">
-                        <label for="loginPassword" class="form-label">Contraseña</label>
-                        <input type="password" name="txt_password" class="form-control" placeholder="Ingrese su contraseña" required autocomplete="current-password">
-                    </div>
-
-             
-
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar sesión</button>
-                </form>
-
-                <!-- Enlace para continuar como invitado -->
-                <div class="text-center mt-3">
-                    <a href="Continuar_invitado.php" class="btn btn-outline-secondary w-100">Continuar como invitado</a>
-                </div>
-            </div>
-
-            <div class="modal-footer border-0 justify-content-center">
-                ¿Ya tienes una cuenta? <a href="#">Iniciar sesión</a>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Shop Cart -->
-                <div id="offcanvasRight" class="offcanvas offcanvas-end" tabindex="-1" aria-labelledby="offcanvasRightLabel">
-                    <div class="offcanvas-header border-bottom">
-                        <div class="text-start">
-                            <h5 id="offcanvasRightLabel" class="mb-0 fs-4">Carrito de compras</h5>
-                            <small>Número de pedido: 0000001</small>
-                        </div>
-                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                    <div class="offcanvas-body">
-                        <div class="alert alert-danger" role="alert">
-                            Tienes envío GRATIS. ¡Empiece a pagar ahora!
-                        </div>
-                        <div>
-                            <div class="py-3">
-                                <ul id="cart-items" class="list-group list-group-flush">
-                                    <!--Aqui se llenaran los productos del catalogo-->
-                                </ul>
-                            </div>
-                            <div class="d-grid">
-
-                                <button id="checkout-button" class="btn btn-primary btn-lg d-flex justify-content-between align-items-center" type="submit"> Go to
-                                    Checkout <span id="cart-total" class="fw-bold">$0.00</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Espacio entre el input de buscar y los iconos de user y shop -->
                 <div class="col-md-2 col-xxl-3 d-none d-lg-block">
                 </div>
@@ -217,7 +222,7 @@ require_once __DIR__ . "/../../Config/config.php";
             </div>
         </div>
     </nav>
-    <nav class="navbar navbar-expand-lg navbar-light navbar-default pt-0 pb-0">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-default pt-0 pb-0;">
         <div class="container px-0 px-md-3">
             <div class="offcanvas offcanvas-start p-4 p-lg-0" id="navbar-default">
 
@@ -259,6 +264,15 @@ require_once __DIR__ . "/../../Config/config.php";
                             </a>
 
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Oferta de puntos
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>oferta_puntos.php">Ganar puntos</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>canjear.php">Canjear puntos</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item ">
                             <a class="nav-link" href="<?php echo BASE_URL; ?>sobreNosotros">
                                 Acerca de nosotros
@@ -272,44 +286,30 @@ require_once __DIR__ . "/../../Config/config.php";
                             </a>
                             <ul class="dropdown-menu">
 
-                                <li class="dropdown-submenu dropend">
-                                    <a class="dropdown-item dropdown-list-group-item dropdown-toggle" href="#">
-                                        Mi Cuenta
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">Pedidos</a></li>
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">Configuración</a></li>
-                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">Pedidos</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">Configuración</a></li>
+
 
                             </ul>
                         </li>
-                    </ul>
-                    </li>
+                        <li class="nav-item ">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>terminos_condiciones.php">
+                                Términos y condiciones
+                            </a>
 
-                    <li class="nav-item ">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>signup">
-                            Suscribete
-                        </a>
-
-                    </li>
-                    
-                    <li class="nav-item ">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>terminos_condiciones.php">
-                            Términos y condiciones
-                        </a>
-
-                    </li>
-                    <?php
-                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
-                        echo "<li class='nav-item'>
+                        </li>
+                        <?php
+                        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
+                            echo "<li class='nav-item'>
                             <a class='nav-link' href='" . BASE_URL . "menu.php'>
                             Panel administrativo
                             </a>
                             </li>";
-                    }
+                        }
 
-                    ?>
+                        ?>
                     </ul>
+
                 </div>
                 <div class="d-block d-lg-none">
                     <ul class="navbar-nav ">
@@ -330,6 +330,16 @@ require_once __DIR__ . "/../../Config/config.php";
                             </a>
 
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Oferta de puntos
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>oferta_puntos.php">Ganar puntos</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>canejar.php">Canjear puntos</a></li>
+                            </ul>
+                        </li>
+
                         <li class="nav-item ">
                             <a class="nav-link" href="<?php echo BASE_URL; ?>sobreNosotros">
                                 Acerca de nosotros
@@ -341,21 +351,14 @@ require_once __DIR__ . "/../../Config/config.php";
                                 Cuenta
                             </a>
                             <ul class="dropdown-menu">
-                                <li class="dropdown-submenu dropend">
-                                    <a class="dropdown-item dropdown-list-group-item dropdown-toggle" href="#">
-                                        Mi Cuenta
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">Pedidos</a></li>
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">Configuración</a></li>
-                                </li>
+
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">Pedidos</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">Configuración</a></li>
 
 
                             </ul>
                         </li>
-                    </ul>
-                    </li>
-                    <li class="nav-item ">
+                        <li class="nav-item ">
                         <a class="nav-link" href="<?php echo BASE_URL; ?>signup">
                             Suscribete
                         </a>
@@ -378,6 +381,8 @@ require_once __DIR__ . "/../../Config/config.php";
 
                     ?>
                     </ul>
+
+             
                 </div>
             </div>
         </div>

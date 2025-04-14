@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Función para cargar productos según la categoría o subcategoría
     function cargarProductos(categoriaId = null, subcategoriaId = null) {
-        let url = "http://localhost:8088/Milogar/controllers/tiendaController.php?action=obtenerProductos";
+        let url = "http://localhost:8088/Milogar/Controllers/tiendaController.php?action=obtenerProductos";
         if (categoriaId) {
             url += `&categoria_id=${categoriaId}`;
         } else if (subcategoriaId) {
@@ -115,6 +115,15 @@ document.addEventListener("DOMContentLoaded", function () {
                                     </div>
                                     </div>
                                     <h2 class="fs-6"><a href="#" class="text-inherit text-decoration-none">${producto.nombreProducto}</a></h2>
+                                    
+                                            <!-- Mostrar texto de puntos solo si aplica -->
+                                                       ${(usuarioSesion && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0) ? `
+                                    <p class="text-success fw-bold">
+                                        Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
+                                    </p>
+                                ` : ''}
+
+            
                                     <div class="text-warning">
                                         <small><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></small>
                                         <span class="text-muted small">4.5 (67)</span>
@@ -124,16 +133,24 @@ document.addEventListener("DOMContentLoaded", function () {
                                             <span class="text-dark">$${parseFloat(producto.precio_1).toFixed(2)}</span>
                                             <span class="text-decoration-line-through text-muted">$5</span>
                                         </div>
-                                        <div>
-                                            <a href="#" class="btn btn-primary btn-sm add-to-cart" 
-                                               data-id="${producto.id}" 
-                                               data-nombre="${producto.nombreProducto}" 
-                                               data-precio="${parseFloat(producto.precio_1).toFixed(2)}" 
-                                               data-imagen="${rutaImagen}"
-                                               data-descuento="${producto.descuento || 0}">
-                                                <i class="feather feather-plus"></i> Add
-                                            </a>
-                                        </div>
+                                           <div>
+                                        <a href="#!" class="btn btn-primary btn-sm add-to-cart" 
+                                        data-id="${producto.id}" 
+                                        data-nombre="${producto.nombreProducto}"
+                                        data-precio="${producto.precio_1}"
+                                        data-descuento="${producto.descuento}"
+                                        data-imagen="${rutaImagen}"
+                                        data-puntos="${producto.puntos_otorgados}"
+                                        data-minimo="${producto.cantidad_minima_para_puntos}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-plus">
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            </svg>
+                                            Agregar al carrito
+                                        </a>
+                </div>
                                     </div>
                                 </div>
                             </div>
@@ -149,23 +166,15 @@ document.addEventListener("DOMContentLoaded", function () {
                         const precioProducto = parseFloat(event.target.dataset.precio);
                         const descuento = parseFloat(event.target.getAttribute('data-descuento')) || 0; // Aseguramos que el descuento sea un número
                         const imagenProducto = event.target.dataset.imagen;
-
+                        const puntosOtorgados = parseInt(event.target.dataset.puntos) || 0; // Obtener los puntos otorgados
+                        const cantidadMinimaParaPuntos = parseInt(event.target.dataset.minimo) || 0; // Obtener la cantidad mínima para puntos
+                
                         // Calcular el precio con descuento
                         const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
-
+                
                         // Verifica si el producto ya está en el carrito
                         const productoExistente = carrito.find(producto => producto.id === productoId);
-
-                        // Mostrar los datos antes de añadir al carrito
-                        console.log("Producto a agregar al carrito:", {
-                            productoId,
-                            nombreProducto,
-                            precioProducto,
-                            descuento,
-                            precioConDescuento,
-                            imagenProducto
-                        });
-
+                
                         // Si el producto ya está en el carrito, incrementa la cantidad
                         if (productoExistente) {
                             productoExistente.cantidad++;
@@ -179,15 +188,17 @@ document.addEventListener("DOMContentLoaded", function () {
                                 precioOriginal: precioProducto, // Añadir el precio original
                                 imagen: imagenProducto,
                                 descuento: descuento,
+                                puntos_otorgados: puntosOtorgados, // Añadir los puntos otorgados
+                                cantidad_minima_para_puntos: cantidadMinimaParaPuntos // Añadir la cantidad mínima para obtener puntos
                             });
                         }
-
+                
                         // Guarda el carrito en localStorage
                         guardarCarrito();
-
+                
                         // Actualiza el carrito en el modal (si es necesario)
                         actualizarCarrito();
-
+                
                         // Mostrar la alerta con SweetAlert2
                         Swal.fire({
                             position: 'bottom-left',  // Ubicación de la alerta (abajo a la izquierda)
@@ -195,15 +206,15 @@ document.addEventListener("DOMContentLoaded", function () {
                             title: '¡Agregado correctamente!',  // Mensaje de la alerta
                             showConfirmButton: false,  // No mostrar el botón de confirmación
                             timer: 4000,  // La alerta desaparecerá después de 4 segundos
-                            toast: true,  // Activar el "toast" para que sea una alerta pequeña
+                            toast: true,  // Activar la opción de "toast" para que sea una alerta pequeña
                             timerProgressBar: true,  // Mostrar barra de progreso en el timer
                         });
-
+                
                         // Actualiza el contador en el icono
                         actualizarContadorCarrito();
                     });
                 });
-
+                
             })
             .catch(error => console.error("Error al obtener los productos:", error));
     }

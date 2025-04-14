@@ -37,47 +37,32 @@ class ProductoController
                 $_POST['codigo_barras'],
                 $_POST['isActive'],
                 $_POST['is_promocion'],
-                $_POST['descuento']
+                $_POST['descuento'],
+                $_POST['total_puntos'],
+                $_POST['cantidad_minima']
             )
         ) {
             // Procesar la imagen si existe
-            // Procesar la imagen si existe
             if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == 0) {
-                // Configuración para el almacenamiento de la imagen
                 $imagen = $_FILES['imagen'];
-                $imagenNombre = time() . '_' . $imagen['name'];  // Nombre único para evitar sobrescribir archivos
-                // Ruta completa donde se guardará la imagen en el servidor
+                $imagenNombre = time() . '_' . $imagen['name'];
                 $imagenRutaCompleta = '../assets/imagenesMilogar/productos/' . $imagenNombre;
 
-                // Guardar la imagen en el servidor
                 move_uploaded_file($imagen['tmp_name'], $imagenRutaCompleta);
 
-                // Solo guardar el nombre del archivo (sin la ruta completa) en la base de datos
                 $imagenNombreEnBD = $imagenNombre;
             } else {
-                $imagenNombreEnBD = null; // Si no hay imagen, dejar en null
+                $imagenNombreEnBD = null;
             }
 
-
-            // Log de los datos que se intentan insertar
-            error_log("Datos a insertar: ");
-            error_log("nombreProducto: " . $_POST['nombreProducto']);
-            error_log("descripcionProducto: " . $_POST['descripcionProducto']);
-            error_log("categoria: " . $_POST['categoria']);
-            error_log("subcategoria: " . $_POST['subcategoria']);
-            error_log("precio: " . $_POST['precio']);
-            error_log("precio_1: " . $_POST['precio_1']);
-            error_log("precio_2: " . $_POST['precio_2']);
-            error_log("precio_3: " . $_POST['precio_3']);
-            error_log("precio_4: " . $_POST['precio_4']);
-            error_log("stock: " . $_POST['stock']);
-            error_log("codigo_barras: " . $_POST['codigo_barras']);
-            error_log("isActive: " . $_POST['isActive']);
-            error_log("is_promocion: " . $_POST['is_promocion']);
-            error_log("descuento: " . $_POST['descuento']);
+            // Log de los datos
+            error_log("Datos a insertar:");
+            foreach ($_POST as $key => $value) {
+                error_log("$key: $value");
+            }
             error_log("imagenRuta: " . $imagenNombreEnBD);
 
-            // Crear una instancia del modelo y usar la conexión que ya está pasada
+            // Crear instancia del modelo
             $productoModel = new ProductoModel($this->conn);
             $resultado = $productoModel->insertarProducto(
                 $_POST['nombreProducto'],
@@ -95,12 +80,13 @@ class ProductoController
                 $_POST['is_promocion'],
                 $_POST['descuento'],
                 $_POST['categoria'],
-
+                $_POST['total_puntos'],
+                $_POST['cantidad_minima']
             );
 
-            // Responder al cliente
+            // Respuesta
             if ($resultado) {
-                echo json_encode(['success' => true, 'message' => 'Producto agregado correctamente. XDXD']);
+                echo json_encode(['success' => true, 'message' => 'Producto agregado correctamente.']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Error al agregar el producto.']);
             }
@@ -111,17 +97,23 @@ class ProductoController
 
 
 
-    // Método para obtener un producto por su ID
     public function obtenerProductoPorId()
     {
+        // Verificamos si el parámetro 'id' está presente en la URL
         if (isset($_GET['id'])) {
             $idProducto = $_GET['id'];
+
+            // Log para ver qué ID se ha recibido
+            error_log("ID del producto recibido: " . $idProducto);
 
             // Llamamos al método getById del modelo para obtener el producto
             $producto = $this->model->getById($idProducto);
 
             // Verificamos si el producto fue encontrado
             if ($producto) {
+                // Log para ver el producto obtenido
+                error_log("Producto encontrado: " . print_r($producto, true));
+
                 // Si el producto existe, respondemos con los datos en formato JSON
                 header('Content-Type: application/json');
                 echo json_encode([
@@ -130,6 +122,7 @@ class ProductoController
                 ]);
             } else {
                 // Si no se encuentra el producto, respondemos con un mensaje de error
+                error_log("Producto no encontrado para el ID: " . $idProducto);
                 header('Content-Type: application/json');
                 echo json_encode([
                     'status' => 'error',
@@ -138,6 +131,7 @@ class ProductoController
             }
         } else {
             // Si no se proporciona un ID, respondemos con un error
+            error_log("ID del producto no proporcionado en la solicitud.");
             header('Content-Type: application/json');
             echo json_encode([
                 'status' => 'error',
@@ -145,6 +139,7 @@ class ProductoController
             ]);
         }
     }
+
 
     public function productoporid()
     {
@@ -154,9 +149,7 @@ class ProductoController
 
     public function updateProducto($id)
     {
-        // Verifica si se ha enviado una solicitud POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Captura los datos enviados desde el formulario
             $data = [
                 'nombreProducto' => $_POST['nombreProducto'] ?? '',
                 'descripcionProducto' => $_POST['descripcionProducto'] ?? '',
@@ -167,57 +160,71 @@ class ProductoController
                 'precio_4' => floatval($_POST['precio4'] ?? 0),
                 'stock' => intval($_POST['stock'] ?? 0),
                 'codBarras' => $_POST['codBarras'] ?? '',
-                'categoria_id' => intval($_POST['categoria_id'] ?? 0),  // Captura el ID de la categoría
-                'subcategoria_id' => intval($_POST['subcategoria_id'] ?? 0), // Captura el ID de la subcategoría
-                'isActive' => ($_POST['isActive'] ?? '0') == '1' ? 1 : 0, // Asegura que es 1 o 0
-                'isPromocion' => ($_POST['isPromocion'] ?? '0') == '1' ? 1 : 0, // Asegura que es 1 o 0
-
+                'categoria_id' => intval($_POST['categoria_id'] ?? 0),
+                'subcategoria_id' => intval($_POST['subcategoria_id'] ?? 0),
+                'isActive' => ($_POST['isActive'] ?? '0') == '1' ? 1 : 0,
+                'isPromocion' => ($_POST['isPromocion'] ?? '0') == '1' ? 1 : 0,
                 'descuento' => floatval($_POST['descuento'] ?? 0),
+                'cantidad_minima_para_puntos' => intval($_POST['cantidad_minima_para_puntos'] ?? 0),
+                'puntos_otorgados' => intval($_POST['puntos_otorgados'] ?? 0),
+
             ];
-            error_log("Valor de isPromocion: " . $_POST['isPromocion']);
 
-            // Registro de depuración para verificar los datos recibidos
-            error_log("Datos recibidos para actualizar el producto: " . print_r($data, true));
-
-            // Recuperar la imagen actual desde la base de datos
+            // Obtener el producto actual
             $productoActual = $this->model->getById($id);
-            $imagenActual = $productoActual['imagen'] ?? null; // Si no hay imagen, será null
+            $imagenActual = $productoActual['imagen'] ?? null;
 
-            // Manejo de la nueva imagen
+            // Verificar si hay una nueva imagen
             if (isset($_FILES['nueva_imagen']) && $_FILES['nueva_imagen']['error'] === UPLOAD_ERR_OK) {
                 $extension = strtolower(pathinfo($_FILES['nueva_imagen']['name'], PATHINFO_EXTENSION));
-                if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                    // Renombrar la imagen para evitar conflictos
-                    $nombreImagen = uniqid() . '-' . basename($_FILES['nueva_imagen']['name']);
-                    $rutaDestino = $_SERVER['DOCUMENT_ROOT'] . "/Milogar/assets/imagenesMilogar/productos/" . $nombreImagen;
+                $nombreImagen = uniqid() . '.webp';
+                $rutaDestino = $_SERVER['DOCUMENT_ROOT'] . "/Milogar/assets/imagenesMilogar/productos/" . $nombreImagen;
 
-                    if (move_uploaded_file($_FILES['nueva_imagen']['tmp_name'], $rutaDestino)) {
-                        $data['imagen'] = $nombreImagen; // Asignar la nueva imagen
-                    } else {
-                        // Log de error si no se pudo mover la imagen
-                        error_log("Error al mover la imagen: " . print_r($_FILES['nueva_imagen'], true));
-                        echo json_encode(['success' => false, 'message' => 'Error al subir la imagen.']);
-                        exit;
+                if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    // Eliminar imagen anterior solo si hay una nueva
+                    if ($imagenActual) {
+                        $rutaImagenAnterior = $_SERVER['DOCUMENT_ROOT'] . "/Milogar/assets/imagenesMilogar/productos/" . $imagenActual;
+                        if (file_exists($rutaImagenAnterior)) {
+                            unlink($rutaImagenAnterior);
+                        }
                     }
+
+                    $imagenTemporal = $_FILES['nueva_imagen']['tmp_name'];
+
+                    if ($extension === 'webp') {
+                        move_uploaded_file($imagenTemporal, $rutaDestino);
+                    } else {
+                        $img = null;
+                        if ($extension === 'jpg' || $extension === 'jpeg') {
+                            $img = imagecreatefromjpeg($imagenTemporal);
+                        } elseif ($extension === 'png') {
+                            $img = imagecreatefrompng($imagenTemporal);
+                            imagepalettetotruecolor($img);
+                            imagealphablending($img, true);
+                            imagesavealpha($img, true);
+                        }
+                        if ($img) {
+                            imagewebp($img, $rutaDestino, 80);
+                            imagedestroy($img);
+                        } else {
+                            echo json_encode(['success' => false, 'message' => 'Error al convertir la imagen a WebP.']);
+                            exit;
+                        }
+                    }
+                    $data['imagen'] = $nombreImagen;
                 } else {
-                    // Log de error si la imagen no es del tipo permitido
-                    error_log("Tipo de imagen no permitido: " . $_FILES['nueva_imagen']['name']);
-                    echo json_encode(['success' => false, 'message' => 'Solo se permiten imágenes JPG o PNG.']);
+                    echo json_encode(['success' => false, 'message' => 'Solo se permiten imágenes JPG, PNG y WebP.']);
                     exit;
                 }
             } else {
-                // Si no hay nueva imagen, mantener la imagen anterior
-                if ($imagenActual) {
-                    $data['imagen'] = $imagenActual;
-                }
+                // Si no se subió una nueva imagen, conservar la imagen actual
+                $data['imagen'] = $imagenActual;
             }
 
             // Intentar actualizar el producto
             if ($this->model->update($id, $data)) {
                 echo json_encode(['success' => true, 'message' => 'Producto actualizado correctamente.']);
             } else {
-                // Log de error si la actualización falla
-                error_log("Error al actualizar el producto con ID: " . $id);
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar el producto.']);
             }
         }
@@ -239,37 +246,41 @@ class ProductoController
 
     public function obtenerTodosLosProductos()
     {
-        // Establece el encabezado para indicar que la respuesta es JSON
         header('Content-Type: application/json');
 
         try {
-            // Llama al modelo para obtener los productos en promoción
-            $productos = $this->model->getAll();
+            // Captura los parámetros de búsqueda y paginación
+            $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+            $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 10;
+            $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+            $offset = ($page - 1) * $limit;
 
-            // Agregar un log para ver los datos que se están trayendo
-            error_log("Todos los productos: " . print_r($productos, true)); // Imprime los datos en el log
+            // Obtener productos paginados
+            $productos = $this->model->getAll($search, $limit, $offset);
+            // Obtener el total de productos que coinciden con la búsqueda
+            $total = $this->model->getTotalProductos($search);
 
-            // Verifica si los productos fueron encontrados
             if (!empty($productos)) {
-                // Envía los productos como JSON
                 echo json_encode([
                     'status' => 'success',
-                    'data' => $productos
+                    'data' => $productos,
+                    'total' => $total,
+                    'page' => $page,
+                    'limit' => $limit
                 ]);
             } else {
-                // Si no hay productos en promoción, envía un mensaje de error
                 echo json_encode([
                     'status' => 'error',
-                    'mensaje' => 'No se encontraron productos en promoción'
+                    'mensaje' => 'No se encontraron productos',
+                    'total' => 0
                 ]);
             }
         } catch (Exception $e) {
-            // Si ocurre un error, captura la excepción y muestra el mensaje de error
-            error_log("Error al obtener productos en promoción: " . $e->getMessage()); // Loguea el error de la excepción
+            error_log("Error al obtener productos: " . $e->getMessage());
             echo json_encode([
                 'status' => 'error',
-                'mensaje' => 'Error al obtener los productos en promoción',
-                'detalle' => $e->getMessage() // Muestra el mensaje de error de la excepción
+                'mensaje' => 'Error al obtener los productos',
+                'detalle' => $e->getMessage()
             ]);
         }
     }
@@ -320,50 +331,31 @@ class ProductoController
     }
 
 
-    //obtener los productos populares
-    public function ProductosPopulares()
-    {
-        return $this->model->obtenerProductosPopulares();
-    }
 
-    //metodo para obtener los productos populares(Tienda virtual)
+
     public function obtenerProductosPopulares()
     {
-        // Establece el encabezado para indicar que la respuesta es JSON
-        header('Content-Type: application/json');
+        // Obtener los parámetros de paginación desde la URL (GET)
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 12;
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
-        try {
-            // Llama al modelo para obtener los productos en promoción
-            $productosPromocion = $this->model->obtenerProductosPopulares();
+        // Llamada al modelo para obtener productos
+        $productosPopulares = $this->model->obtenerProductosPopulares($limit, $offset);
 
-            // Agregar un log para ver los datos que se están trayendo
-            error_log("Productos Populares: " . print_r($productosPromocion, true)); // Imprime los datos en el log
+        // Contar el total de productos
+        $totalProductos = $this->model->getTotalProductos(); // Este método debe contar el total de productos
 
-            // Verifica si los productos fueron encontrados
-            if (!empty($productosPromocion)) {
-                // Envía los productos como JSON
-                echo json_encode([
-                    'status' => 'success',
-                    'data' => $productosPromocion
-                ]);
-            } else {
-                // Si no hay productos en promoción, envía un mensaje de error
-                echo json_encode([
-                    'status' => 'error',
-                    'mensaje' => 'No se encontraron productos en promoción'
-                ]);
-            }
-        } catch (Exception $e) {
-            // Si ocurre un error, captura la excepción y muestra el mensaje de error
-            error_log("Error al obtener productos en promoción: " . $e->getMessage()); // Loguea el error de la excepción
-            echo json_encode([
-                'status' => 'error',
-                'mensaje' => 'Error al obtener los productos en promoción',
-                'detalle' => $e->getMessage() // Muestra el mensaje de error de la excepción
-            ]);
-        }
+        // Calcular el número total de páginas
+        $totalPaginas = ceil($totalProductos / $limit);
+
+        // Enviar la respuesta
+        echo json_encode([
+            'status' => 'success',
+            'data' => $productosPopulares,
+            'totalPaginas' => $totalPaginas,
+            'paginaActual' => ($offset / $limit) + 1
+        ]);
     }
-
 
     // Método para obtener todas las categorías
     public function obtenerCategorias()
@@ -420,12 +412,12 @@ class ProductoController
         return $numeroPedido;
     }
 
-    
+
     public function obtenerFechaActual()
     {
         date_default_timezone_set('America/Bogota'); // Quito y Bogotá tienen la misma zona horaria
         return date('Y-m-d H:i:s');
-    }   
+    }
     public function busquedaDinamica()
     {
         header('Content-Type: application/json'); // Asegurar respuesta JSON
@@ -459,6 +451,35 @@ class ProductoController
             echo json_encode(['error' => 'Ocurrió un error al realizar la búsqueda.']);
         }
     }
+
+    public function searchProducts()
+    {
+        header('Content-Type: application/json');
+
+        // Recibir el valor de búsqueda enviado por el cliente (AJAX/fetch)
+        $query = isset($_GET['query']) ? $_GET['query'] : '';  // Puedes usar $_POST si prefieres otro método
+
+        // Agregar un log para verificar el valor de la consulta
+        error_log("Valor de búsqueda recibido: " . $query);
+
+        // Llamar al método de búsqueda
+        $productos = $this->model->searchAdminProducts($query);
+
+        // Agregar un log para verificar el resultado de la búsqueda
+        error_log("Productos encontrados: " . print_r($productos, true));  // print_r convierte el array a una cadena legible
+
+        // Devolver los productos encontrados como JSON
+        echo json_encode($productos);
+    }
+
+    public function productosConPuntos()
+    {
+        $db = new Database1();
+        $productoModel = new ProductoModel($db->getConnection());
+        $productos = $productoModel->obtenerProductosConPuntos();
+
+        echo json_encode($productos); // Devuelve en formato JSON
+    }
 }
 
 
@@ -474,7 +495,7 @@ if (isset($_GET['action'])) {
     $productoModel = new ProductoModel($db);
 
     switch ($action) {
-            //casos para obtener informacion
+        //casos para obtener informacion
         case 'obtenerCategorias':
             $productoController = new ProductoController($db);
             $productoController->obtenerCategorias();
@@ -498,7 +519,7 @@ if (isset($_GET['action'])) {
             //llamamos al metodo que obtiene todos los productos
             $productoController->obtenerTodosLosProductos();
             break;
-            // Caso para insertar un nuevo producto
+        // Caso para insertar un nuevo producto
         case 'insertarProducto':
             $productoController = new ProductoController($db);
             // Llamamos al método insertarProducto para manejar la inserción
@@ -543,7 +564,7 @@ if (isset($_GET['action'])) {
             $productoController->obtenerProductoPorId();
             break;
         case 'search':
-            
+
             $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 
             if (empty($query)) {
@@ -559,6 +580,30 @@ if (isset($_GET['action'])) {
             } else {
                 echo json_encode(['error' => 'No se encontraron productos.']);
             }
+            exit;
+            $productoController = new ProductoController($db);
+            $productoController->searchProducts();
+        case 'searchProducts':
+            // Lógica para 'searchProducts'
+            $query = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+            if (empty($query)) {
+                echo json_encode(['error' => 'No se proporcionó un término de búsqueda.']);
+                exit;
+            }
+
+            // Llamar al modelo para obtener los productos que coincidan con la búsqueda
+            $productos = $productoModel->searchAdminProducts($query);
+
+            if (!empty($productos)) {
+                echo json_encode($productos); // Devuelve los productos como un array JSON
+            } else {
+                echo json_encode(['error' => 'No se encontraron productos.']);
+            }
+            exit;
+        case 'productosConPuntos':
+            $controller = new ProductoController($db);
+            $controller->productosConPuntos();
             exit;
     }
 } else {

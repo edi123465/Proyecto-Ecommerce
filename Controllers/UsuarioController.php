@@ -25,14 +25,16 @@ class UsuarioController
 
     public function read()
     {
-        // Establecer el encabezado para que la respuesta sea en formato JSON
         header('Content-Type: application/json');
 
-        // Obtener los usuarios desde el modelo
-        $usuarios = $this->model->obtenerUsuario();
+        $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 5;
+        $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+        $offset = ($page - 1) * $limit;
+
+        $usuarios = $this->model->obtenerUsuario($limit, $offset);
+        $totalUsuarios = $this->model->contarUsuarios();
 
         if ($usuarios === null) {
-            // Si no se obtienen usuarios, devolver un mensaje de error en formato JSON
             echo json_encode([
                 'success' => false,
                 'message' => 'Error al obtener usuarios.'
@@ -40,15 +42,15 @@ class UsuarioController
             return;
         }
 
-        // Si la consulta tiene resultados, mostrar cuántos usuarios se obtuvieron
-        error_log("Usuarios obtenidos: " . count($usuarios));
-
-        // Devolver los usuarios en formato JSON
         echo json_encode([
             'success' => true,
-            'usuarios' => $usuarios
+            'usuarios' => $usuarios,
+            'total' => $totalUsuarios,
+            'page' => $page,
+            'limit' => $limit
         ]);
     }
+
 
 
     public function create()
@@ -577,7 +579,65 @@ class UsuarioController
             }
         }
     }
+
+    public function obtenerPuntos()
+    {
+        $db = new Database1(); // O como sea que estés instanciando tu conexión
+        $usuario_id = $_GET['usuario_id'] ?? 0;
+        $usuarioModel = new UsuarioModel($db);
+        $puntos = $usuarioModel->getPuntos((int)$usuario_id);
+
+        echo json_encode(['puntos' => $puntos]);
+    }
+
+
+    public function descontarPuntos()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $usuarioId = $data['usuario_id'];
+        $puntosDescontar = $data['puntosDescontar'];
+
+        // Obtener puntos actuales
+        $puntosActuales = $this->model->getPuntos($usuarioId);
+
+        if ($puntosActuales !== null) {
+            // Restar puntos usando el método del modelo
+            $this->model->descontarPuntos($usuarioId, $puntosDescontar);
+
+            // Calcular el nuevo total
+            $nuevoTotal = $puntosActuales - $puntosDescontar;
+
+            echo json_encode([
+                'success' => true,
+                'nuevoTotal' => $nuevoTotal
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Usuario no encontrado']);
+        }
+    }
+
+    // UsuarioController.php
+    public function actualizarPuntosModal()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            $usuarioId = $data['usuarioId'];
+            $puntosUnitarios = $data['puntosUnitarios'];
+            $cantidad = $data['cantidad'];
+
+            require_once '../Models/UsuarioModel.php';
+            $modelo = new UsuarioModel($db);
+
+            $respuesta = $modelo->actualizarPuntosPorCantidad($usuarioId, $puntosUnitarios, $cantidad);
+            echo json_encode($respuesta);
+        }
+    }
 }
+
+
+
+
 if (isset($_GET['action'])) {
     $action = $_GET['action'];  // Obtener la acción de la URL
 
@@ -694,22 +754,22 @@ if (isset($_GET['action'])) {
                 ]);
             }
             break;
-            case 'actualizarUsuario':
-                // Asegúrate de tener el ID del usuario en la URL
-                if (isset($_GET['id'])) {
-                    $id = $_GET['id']; // Obtener el ID de la URL
-        
-                    // Crear la instancia de la base de datos y el controlador
-                    $db = new Database1();
-                    $controller = new UsuarioController($db);
-        
-                    // Llamar al método en el controlador para actualizar el usuario
-                    $controller->actualizarUsuario($id); // Pasa el ID al método del controlador
-                } else {
-                    // Si el ID no está presente en la URL
-                    echo json_encode(['error' => 'ID de usuario no proporcionado.']);
-                }
-                break;
+        case 'actualizarUsuario':
+            // Asegúrate de tener el ID del usuario en la URL
+            if (isset($_GET['id'])) {
+                $id = $_GET['id']; // Obtener el ID de la URL
+
+                // Crear la instancia de la base de datos y el controlador
+                $db = new Database1();
+                $controller = new UsuarioController($db);
+
+                // Llamar al método en el controlador para actualizar el usuario
+                $controller->actualizarUsuario($id); // Pasa el ID al método del controlador
+            } else {
+                // Si el ID no está presente en la URL
+                echo json_encode(['error' => 'ID de usuario no proporcionado.']);
+            }
+            break;
         case 'updateClient': // Nueva acción para actualizar los datos del cliente
             $db = new Database1();
             $controller = new UsuarioController($db);
@@ -735,6 +795,30 @@ if (isset($_GET['action'])) {
             $controller = new UsuarioController($db);
             $controller->restablecerPassword(); // Llama al método en el controlador
             break;
+        case 'obtenerPuntos':
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->obtenerPuntos();
+            break;
+        case 'descontarPuntos':
+            $db = new Database1();
+            $controller = new UsuarioController($db);
+            $controller->descontarPuntos();
+            break;
+        case 'actualizarPuntosModal':
+                $data = json_decode(file_get_contents("php://input"), true);
+            
+                $usuarioId = $data['usuarioId'];
+                $puntosUnitarios = $data['puntosUnitarios'];
+                $cantidad = $data['cantidad'];
+            
+                $usuarioModel = new UsuarioModel($db);
+            
+                $resultado = $usuarioModel->actualizarPuntosDinamico($usuarioId, $puntosUnitarios, $cantidad);
+            
+                echo json_encode($resultado);
+            break;
+            
         default:
             // Si la acción no es válida, retornar un error
             echo json_encode([

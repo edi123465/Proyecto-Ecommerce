@@ -43,11 +43,26 @@ if (!isset($_SESSION['user_id'])) {
     <!-- SweetAlert CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
-        .table-responsive {
-            max-height: 650px;
-            /* Puedes ajustar este valor según tus necesidades */
-            overflow-y: auto;
-            /* Activa el scroll vertical cuando los datos exceden el alto */
+        /* Aseguramos que el contenedor de la paginación ocupe el 100% del ancho */
+        .pagination-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Aseguramos que los botones de la paginación no se desborden */
+        .pagination {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Aseguramos que se ajuste bien en pantallas pequeñas */
+        @media (max-width: 576px) {
+            .pagination-container {
+                justify-content: center;
+                /* Asegura que se centre en pantallas pequeñas */
+            }
         }
     </style>
 </head>
@@ -77,7 +92,7 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="createProductModalLabel">Agregar Nuevo Producto</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
@@ -185,6 +200,18 @@ if (!isset($_SESSION['user_id'])) {
                                     <input type="number" class="form-control" id="descuento" name="descuento" step="0.01" min="0" max="100">
                                 </div>
 
+                                <!-- Total Puntos Otorgados -->
+                                <div class="form-group">
+                                    <label for="total_puntos">Total Puntos Otorgados</label>
+                                    <input type="number" class="form-control" id="total_puntos" name="total_puntos" required>
+                                </div>
+
+                                <!-- Cantidad Mínima -->
+                                <div class="form-group">
+                                    <label for="cantidad_minima">Cantidad Mínima</label>
+                                    <input type="number" class="form-control" id="cantidad_minima" name="cantidad_minima" required>
+                                </div>
+
                                 <!-- Botón para enviar el formulario -->
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary">Agregar Producto</button>
@@ -203,7 +230,8 @@ if (!isset($_SESSION['user_id'])) {
                             <h5 class="modal-title" id="editarProductoModalLabel">Editar Producto</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                                 <span aria-hidden="true">&times;</span>
-                            </button>                        </div>
+                            </button>
+                        </div>
                         <div class="modal-body">
                             <form id="formEditarProducto" method="POST" enctype="multipart/form-data">
                                 <!-- Nombre del Producto -->
@@ -298,18 +326,29 @@ if (!isset($_SESSION['user_id'])) {
                                 <!-- Estado -->
                                 <div class="form-group">
                                     <label for="isActive">Estado</label>
-                                    <select id="estado" name="isActive" class="form-control" required>
+                                    <select id="estado" class="form-control" required>
                                         <option value="1">Activo</option>
                                         <option value="0">Inactivo</option>
                                     </select>
                                 </div>
-
-
                                 <!-- Descuento -->
                                 <div class="form-group">
                                     <label for="desc">Descuento (%)</label>
                                     <input type="number" class="form-control" id="desc" step="0.01" min="0" max="100">
                                 </div>
+                                
+                                <!-- Cantidad Mínima para otorgar puntos -->
+                                <div class="form-group">
+                                    <label for="cantidadMinimaPuntos">Cantidad Mínima</label>
+                                    <input type="number" class="form-control" id="cantidadMinimaPuntos" name="cantidad_minima_para_puntos" required>
+                                </div>
+                                
+                                <!-- Total Puntos Otorgados -->
+                                <div class="form-group">
+                                    <label for="puntosOtorgados">Total Puntos Otorgados</label>
+                                    <input type="number" class="form-control" id="puntosOtorgados" name="puntos_otorgados" required>
+                                </div>
+
                                 <!-- Otros campos que quieras editar -->
                                 <input type="hidden" id="productoId"> <!-- Este es el ID del producto que se va a editar -->
                                 <button type="submit" class="btn btn-primary">Guardar cambios</button>
@@ -318,8 +357,30 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
             </div>
+            <!-- Filtro de búsqueda y Paginación alineados -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <!-- Filtro de búsqueda -->
+                <div class="form-group mb-0 mr-3" style="flex-grow: 1; margin-left: 30px; max-width: 100%; min-width: 200px;">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar productos..." style="max-width: 300px;">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" id="searchButton" type="button">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Paginación -->
+                <nav aria-label="Paginación de productos" class="pagination-container">
+                    <ul class="pagination align-items-center" id="paginationProductos" style="margin-bottom: 0;">
+                        <!-- Botones de paginación se insertan aquí con JS -->
+                    </ul>
+                </nav>
+            </div>
 
+            <br>
+            <div id="productResults"></div>
             <!-- Contenedor para la tabla -->
             <div class="content">
                 <div class="container-fluid">
@@ -346,6 +407,9 @@ if (!isset($_SESSION['user_id'])) {
                                             <th>Promoción</th>
                                             <th>Descuento</th>
                                             <th>Stock</th>
+                                            <th>Cantidad minima para puntos</th>
+                                            <th>Puntos otorgados al comprar</th>
+                                            <th>Puntos requeridos para canje</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
@@ -359,6 +423,7 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
             </div>
+
         </div>
 
 

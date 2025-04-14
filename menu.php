@@ -288,10 +288,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
                                 </p>
                             </a>
                         </li>
-
-
-
-
+                        <li class="nav-item">
+                            <a href="Views/Canjeables/index" class="nav-link">
+                                <i class="nav-icon fas fa-receipt"></i>
+                                <p>
+                                    Productos Canjeables
+                                </p>
+                            </a>
+                        </li>
 
                     </ul>
                 </nav>

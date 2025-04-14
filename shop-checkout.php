@@ -223,34 +223,6 @@ echo $userId . "" . $userId;
 
 
 
-    <!-- Shop Cart -->
-    <div id="offcanvasRight" class="offcanvas offcanvas-end" tabindex="-1" aria-labelledby="offcanvasRightLabel">
-        <div class="offcanvas-header border-bottom">
-            <div class="text-start">
-                <h5 id="offcanvasRightLabel" class="mb-0 fs-4">Carrito de compras</h5>
-                <small>Número de pedido: 0000001</small>
-            </div>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <div class="alert alert-danger" role="alert">
-                Tienes envío GRATIS. ¡Empiece a pagar ahora!
-            </div>
-            <div>
-                <div class="py-3">
-                    <ul id="cart-items" class="list-group list-group-flush">
-                        <!--Aqui se llenaran los productos del catalogo-->
-                    </ul>
-                </div>
-                <div class="d-grid">
-
-                    <button id="checkout-button" class="btn btn-primary btn-lg d-flex justify-content-between align-items-center" type="submit"> Go to
-                        Checkout <span id="cart-total" class="fw-bold">$0.00</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
@@ -360,14 +332,20 @@ echo $userId . "" . $userId;
             <div class="row">
                 <div class="col-12">
                     <!-- card -->
+
                     <div class="card py-1 border-0 mb-8">
                         <div>
                             <h1 class="fw-bold">Tu carrito de compras</h1>
                             <p class="mb-0">Número de pedido: <?php echo $numPedido; ?></p>
+
                         </div>
+
                     </div>
                 </div>
+                <div id="puntosUsuario">
+                </div>
             </div>
+
             <!-- row -->
             <div class="row">
                 <div class="col-lg-8 col-md-7">
@@ -381,7 +359,10 @@ echo $userId . "" . $userId;
                         </div>
 
                         <div class="total">
-                            <span>Total: $<span id="total-carrito">0.00</span></span>
+                            <span>Total de puntos acumulados en este pedido: <span id="total-puntos">0.00</span></span>
+                        </div>
+                        <div class="total mt-2">
+                            <span>Puntos a restar del total por este pedido: <span id="puntos-descontar">0</span></span>
                         </div>
                         <!-- btn -->
                         <div class="d-flex justify-content-between mt-4">
@@ -433,19 +414,31 @@ echo $userId . "" . $userId;
                             <h5 class="text-inherit">
                                 <i class="feather-icon icon-credit-card me-2 text-muted"></i>Métodos de pago
                             </h5>
-                            <div class="d-flex">
-                                <div class="form-check">
-                                    <!-- Radio Button -->
+
+                            <!-- Opción: Transferencia directa -->
+                            <div class="d-flex mb-3">
+                                <div class="form-check me-3">
                                     <input class="form-check-input" type="radio" name="opcion" id="transferencia" value="transferencia_directa">
-                                    <label class="form-check-label ms-2" for="transferencia">
-                                    </label>
+                                    <label class="form-check-label ms-2" for="transferencia"></label>
                                 </div>
                                 <div>
-                                    <!-- Descripción -->
                                     <h5 class="mb-1 h6">Transferencia directa</h5>
                                     <p class="mb-0 small">Aceptamos pagos por transferencia bancaria. Los detalles de la cuenta se enviarán después de finalizar tu pedido.</p>
                                 </div>
                             </div>
+
+                            <!-- Opción: Pago con Payphone -->
+                            <div class="d-flex">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input" type="radio" name="opcion" id="payphone" value="payphone">
+                                    <label class="form-check-label ms-2" for="payphone"></label>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 h6">Pago con Payphone</h5>
+                                    <p class="mb-0 small">Realiza tu pago de forma segura usando Payphone desde tu celular o tarjeta.</p>
+                                </div>
+                            </div>
+
                             <div class="card mb-2">
                                 <!-- list group -->
                                 <ul class="list-group list-group-flush">
@@ -557,12 +550,15 @@ echo $userId . "" . $userId;
     <script src="assets/libs/tiny-slider/dist/min/tiny-slider.js"></script>
     <script src="assets/libs/dropzone/dist/min/dropzone.min.js"></script>
     <script src="assets/libs/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Theme JS -->
     <!-- choose one -->
     <script src="assets/js/login.js"></script>
     <script src="assets/js/BusquedaDinamica.js"></script>
     <script>
+        const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
+
         document.getElementById('pagoPayPhone').addEventListener('click', function(e) {
             e.preventDefault(); // Evitar el comportamiento por defecto del enlace
 

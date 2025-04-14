@@ -16,7 +16,7 @@ $connection = getDatabaseConnection();
 // Instanciar el controlador de categorías
 $tiendaController = new TiendaController($connection);
 $productoController = new ProductoController($connection);
-$productosPopulares = $productoController->ProductosPopulares();
+//$productosPopulares = $productoController->ProductosPopulares();
 // Obtener categorías con subcategorías
 $productoModel = new ProductoModel($connection);
 // Comprobar si hay un ID de categoría o subcategoría en la URL

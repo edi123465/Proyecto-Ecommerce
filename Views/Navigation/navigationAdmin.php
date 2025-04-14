@@ -91,6 +91,14 @@ require_once __DIR__ . "/../../Config/config.php";
                         </p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="<?php echo BASE_URL; ?>Views/Canjeables/index" class="nav-link">
+                        <i class="nav-icon fas fa-receipt"></i>
+                        <p>
+                            Productos Canjeables
+                        </p>
+                    </a>
+                </li>
 
 
             </ul>

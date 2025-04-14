@@ -9,36 +9,36 @@ class PedidoModel
         $this->conn = $db;
     }
 
-    public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $tipoPago)
-    {
-        try {
-            // Insertar en la tabla 'pedidos'
-            $sql = "INSERT INTO Pedidos (usuario_id, fechaCreacion, subtotal, iva, total, estado, numeroPedido, items,tipoPago) 
-                    VALUES (:usuario_id, now(), :subtotal, :iva, :total, :estado, :numeroPedido, :items, :tipoPago)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
-            $stmt->bindParam(':subtotal', $subtotal, PDO::PARAM_STR);
-            $stmt->bindParam(':iva', $iva, PDO::PARAM_STR);
-            $stmt->bindParam(':total', $total, PDO::PARAM_STR);
-            $stmt->bindParam(':estado', $estado, PDO::PARAM_STR);
-            $stmt->bindParam(':numeroPedido', $numeroPedido, PDO::PARAM_STR);
-            $stmt->bindParam(':items', $totalProductos, PDO::PARAM_INT);  // Insertar el campo 'items'
-            $stmt->bindParam(':tipoPago', $tipoPago, PDO::PARAM_STR);
+    public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $tipoPago, $direccion)
+{
+    try {
+        // Insertar en la tabla 'pedidos' incluyendo la dirección
+        $sql = "INSERT INTO Pedidos (usuario_id, fechaCreacion, subtotal, iva, total, estado, numeroPedido, items, tipoPago, direccion) 
+                VALUES (:usuario_id, now(), :subtotal, :iva, :total, :estado, :numeroPedido, :items, :tipoPago, :direccion)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->bindParam(':subtotal', $subtotal, PDO::PARAM_STR);
+        $stmt->bindParam(':iva', $iva, PDO::PARAM_STR);
+        $stmt->bindParam(':total', $total, PDO::PARAM_STR);
+        $stmt->bindParam(':estado', $estado, PDO::PARAM_STR);
+        $stmt->bindParam(':numeroPedido', $numeroPedido, PDO::PARAM_STR);
+        $stmt->bindParam(':items', $totalProductos, PDO::PARAM_INT);
+        $stmt->bindParam(':tipoPago', $tipoPago, PDO::PARAM_STR);
+        $stmt->bindParam(':direccion', $direccion, PDO::PARAM_STR); // Nuevo bind
 
-            if ($stmt->execute()) {
-                $pedido_id = $this->conn->lastInsertId();
-
-                return $pedido_id;
-            } else {
-                error_log("Error al ejecutar la consulta: " . implode(", ", $stmt->errorInfo()));
-                var_dump($stmt->errorInfo()); // 🔹 Muestra errores en la consulta
-            }
-            return false;
-        } catch (PDOException $e) {
-            error_log("Error al crear el pedido: " . $e->getMessage());
-            return false;
+        if ($stmt->execute()) {
+            $pedido_id = $this->conn->lastInsertId();
+            return $pedido_id;
+        } else {
+            error_log("Error al ejecutar la consulta: " . implode(", ", $stmt->errorInfo()));
+            var_dump($stmt->errorInfo());
         }
+        return false;
+    } catch (PDOException $e) {
+        error_log("Error al crear el pedido: " . $e->getMessage());
+        return false;
     }
+}
 
     public function obtenerTodosLosPedidos()
     {
@@ -49,6 +49,7 @@ class PedidoModel
     p.usuario_id AS UsuarioID, -- ID del usuario
     u.NombreUsuario AS NombreUsuario, -- Nombre del usuario
     p.fechaCreacion AS FechaCreacion, -- Fecha de creación del pedido
+    p.direccion AS DireccionPedido, -- 
     SUM(dp.subtotal) AS SubtotalPedido, -- Subtotal del pedido, agrupado por pedido
     0 AS IVAPedido, -- IVA del pedido (0%)
     SUM(dp.subtotal) AS TotalPedido, -- Total del pedido sin IVA
@@ -211,6 +212,18 @@ ORDER BY
             return $stmt->execute();  // Devuelve true si se ejecutó correctamente
         } catch (PDOException $e) {
             error_log("Error al insertar detalle de pedido: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    // Método para actualizar los puntos del usuario
+    public function sumarPuntosUsuario($usuario_id, $puntos)
+    {
+        try {
+            $stmt = $this->conn->prepare("UPDATE usuarios SET total_puntos = IFNULL(total_puntos, 0) + ? WHERE id = ?");
+            return $stmt->execute([$puntos, $usuario_id]);
+        } catch (PDOException $e) {
+            error_log("Error al sumar puntos al usuario: " . $e->getMessage());
             return false;
         }
     }

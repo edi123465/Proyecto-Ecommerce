@@ -172,6 +172,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
         .whatsapp-icon:hover .whatsapp-text {
             opacity: 1;
         }
+
         .swiper-slide img {
             width: 100%;
             height: 200px;
@@ -188,8 +189,22 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             color: #333;
             /* Color de las flechas */
         }
-    </style>
 
+        /* Tamanio predeterminado de la imagen*/
+        .card-product img {
+            width: 100%;
+            /* Ajusta el ancho al contenedor */
+            height: 200px;
+            /* Define una altura fija */
+            object-fit: cover;
+            /* Recorta la imagen sin deformarla */
+            border-radius: 5px;
+            /* Opcional: bordes redondeados */
+        }
+    </style>
+    <script>
+    const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
+    </script>
 <body>
     <?php
     require_once "Views/Navigation/navigation.php";
@@ -282,7 +297,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </form>
         </div>
     </div>
-    
+
     <section class="mt-8">
         <!-- contianer -->
         <div class="container">
@@ -530,11 +545,13 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </div>
         </div>
     </section>
-    <br><h2 style="text-align: center;">Todas nuestras categorias</h2><br>
+    <br>
+    <h2 style="text-align: center;">Todas nuestras categorias</h2><br>
     <div class="product-carousel">
         <!-- Las categorías se agregarán dinámicamente aquí -->
     </div>
- 
+    <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
+
     <!-- Modal de Edición de Producto -->
     <div class="modal fade" id="editarProductoModal" tabindex="-1" aria-labelledby="editarProductoModalLabel">
         <div class="modal-dialog">
@@ -705,7 +722,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                     <span><small class="fs-6 ms-2 text-danger" id="discount-percent"></small></span> <!-- Descuento en porcentaje -->
                                 </div>
                                 <hr class="my-6">
-                             
+
                                 <div class="mt-5 d-flex justify-content-start">
                                     <div class="col-2">
                                         <div class="input-group flex-nowrap justify-content-center">
@@ -717,7 +734,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                     <div class="ms-2 col-4 d-grid">
                                         <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Add to cart</button>
                                     </div>
-                                   
+
                                 </div>
                                 <hr class="my-6">
                                 <div>
@@ -743,7 +760,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                                 <td>Subcategoría</td>
                                                 <td id="Subcategory">Fruits</td>
                                             </tr>
-                                        
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -796,7 +813,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                         <p class="mb-0">Recibe tu pedido en la puerta de tu casa o recógelo en tu tienda Milogar ¡Rápido, fácil y seguro! 🚀🏡</p>
                     </div>
                 </div>
-                
+
                 <!-- col -->
                 <div class="col-md-6  col-lg-3">
                     <div class="mb-8 mb-lg-0">
@@ -872,6 +889,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <script src="assets/js/mostrarCategorias.js"></script>
     <!-- choose one -->
     <script>
+
         var swiper = new Swiper(".mySwiper", {
             slidesPerView: 4,
             spaceBetween: 20,

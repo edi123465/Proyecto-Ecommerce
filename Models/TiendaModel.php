@@ -30,14 +30,28 @@ class TiendaModel
     public function getProductosPorCategoriaOSubcategoria($categoriaId = null, $subcategoriaId = null)
     {
         $query = "
-        SELECT p.id, p.nombreProducto, p.descripcionProducto, p.precio, p.precio_1, 
-               p.precio_2, p.precio_3, p.precio_4, p.stock, p.imagen, 
-               s.id AS subcategoria_id, s.nombrSubcategoria AS subcategoria_nombre, 
-               c.id AS categoria_id, c.nombreCategoria AS categoria_nombre, 
-               p.codigo_barras, p.descuento  -- Agregar descuento aquí
-        FROM Productos p
-        JOIN Subcategorias s ON p.subcategoria_id = s.id
-        JOIN Categorias c ON s.categoria_id = c.id
+    SELECT 
+        p.id, 
+        p.nombreProducto, 
+        p.descripcionProducto, 
+        p.precio, 
+        p.precio_1, 
+        p.precio_2, 
+        p.precio_3, 
+        p.precio_4, 
+        p.stock, 
+        p.imagen, 
+        p.codigo_barras, 
+        p.descuento,
+        p.cantidad_minima_para_puntos,     
+        p.puntos_otorgados,                
+        s.id AS subcategoria_id, 
+        s.nombrSubcategoria AS subcategoria_nombre, 
+        c.id AS categoria_id, 
+        c.nombreCategoria AS categoria_nombre
+    FROM Productos p
+    JOIN Subcategorias s ON p.subcategoria_id = s.id
+    JOIN Categorias c ON s.categoria_id = c.id
     ";
 
         $conditions = [];

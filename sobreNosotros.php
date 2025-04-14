@@ -77,6 +77,7 @@
     <section class="about-us py-5">
         <div class="container">
             <h1 class="text-center fw-bold mb-5">Acerca de Nosotros</h1>
+            <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
 
             <!-- Introducción -->
             <div class="row align-items-center bg-light p-5 shadow rounded" data-aos="fade-up">
@@ -207,6 +208,8 @@
         });
     </script>
     <script>
+        const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
+
         var swiper = new Swiper(".mySwiper", {
             slidesPerView: 4,
             spaceBetween: 20,

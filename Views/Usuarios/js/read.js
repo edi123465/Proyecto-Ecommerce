@@ -1,24 +1,23 @@
 // Función para cargar los usuarios desde el servidor
-async function cargarUsuarios() {
+let paginaActual = 1;
+const usuariosPorPagina = 5;
+
+async function cargarUsuarios(pagina = 1) {
     try {
-        // Cambiar la ruta para apuntar al controlador con la acción 'read' para obtener los usuarios
-        const response = await fetch('http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=read');
+        const response = await fetch(`http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=read&page=${pagina}&limit=${usuariosPorPagina}`);
 
         if (!response.ok) {
             throw new Error('Error al obtener los usuarios');
         }
 
-        const data = await response.json(); // Convertir la respuesta en JSON
-        console.log(data.usuarios)
-        // Verificar si los datos son válidos
+        const data = await response.json();
+
         if (data.success && Array.isArray(data.usuarios)) {
             const usuariosTableBody = document.getElementById('usuarioTableBody');
-            usuariosTableBody.innerHTML = ''; // Limpiar la tabla antes de agregar los datos
+            usuariosTableBody.innerHTML = '';
 
-            // Recorrer los usuarios y agregar filas a la tabla
             data.usuarios.forEach(usuario => {
                 const row = document.createElement('tr');
-
                 row.innerHTML = `
                     <td>${usuario.ID}</td>
                     <td>${usuario.NombreUsuario}</td>
@@ -28,25 +27,21 @@ async function cargarUsuarios() {
                         <span class="badge ${usuario.IsActive ? 'badge-success' : 'badge-danger'}">
                             ${usuario.IsActive ? 'Activo' : 'Inactivo'}
                         </span>
-                    </td>                    <td>${usuario.FechaCreacion}</td>
-
+                    </td>
+                    <td>${usuario.FechaCreacion}</td>
                     <td>
-                        <a href="#" class="action-btn edit" onclick="editarUsuario(${usuario.ID})">
-                            <button class="btn btn-info btn-sm">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                        </a>
-                        <a href="#" class="action-btn delete" onclick="eliminarUsuario(${usuario.ID})">
-                            <button class="btn btn-danger btn-sm">
-                                <i class="fas fa-trash-alt"></i> Eliminar
-                            </button>
-                        </a>
+                        <button class="btn btn-info btn-sm" onclick="editarUsuario(${usuario.ID})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${usuario.ID})">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
                     </td>
                 `;
-
-                usuariosTableBody.appendChild(row); // Agregar la fila a la tabla
+                usuariosTableBody.appendChild(row);
             });
 
+            actualizarPaginacion(data.total, pagina);
         } else {
             console.error('Datos no válidos o vacíos:', data);
         }
@@ -54,6 +49,54 @@ async function cargarUsuarios() {
         console.error('Error al cargar los usuarios:', error);
     }
 }
+
+function actualizarPaginacion(totalUsuarios, pagina) {
+    const totalPaginas = Math.ceil(totalUsuarios / usuariosPorPagina);
+    const paginacionDiv = document.getElementById('paginacion');
+
+    paginacionDiv.innerHTML = ''; // Limpiar antes de generar los botones
+
+    const contenedor = document.createElement('div');
+    contenedor.classList.add('d-flex', 'justify-content-center', 'align-items-center', 'mt-3');
+
+    // Botón Anterior
+    if (pagina > 1) {
+        const btnAnterior = document.createElement('button');
+        btnAnterior.textContent = '← Anterior';
+        btnAnterior.classList.add('btn', 'btn-lg', 'btn-secondary', 'm-2');
+        btnAnterior.onclick = () => cargarUsuarios(pagina - 1);
+        contenedor.appendChild(btnAnterior);
+    }
+
+    // Botones de páginas numeradas
+    for (let i = 1; i <= totalPaginas; i++) {
+        const boton = document.createElement('button');
+        boton.textContent = i;
+        boton.classList.add('btn', 'btn-lg', 'btn-primary', 'm-2');
+        if (i === pagina) {
+            boton.classList.add('active');
+        }
+        boton.onclick = () => cargarUsuarios(i);
+        contenedor.appendChild(boton);
+    }
+
+    // Botón Siguiente
+    if (pagina < totalPaginas) {
+        const btnSiguiente = document.createElement('button');
+        btnSiguiente.textContent = 'Siguiente →';
+        btnSiguiente.classList.add('btn', 'btn-lg', 'btn-secondary', 'm-2');
+        btnSiguiente.onclick = () => cargarUsuarios(pagina + 1);
+        contenedor.appendChild(btnSiguiente);
+    }
+
+    paginacionDiv.appendChild(contenedor);
+}
+
+
+// Llamar a la función para cargar los usuarios en la página 1
+document.addEventListener('DOMContentLoaded', () => {
+    cargarUsuarios();
+});
 
 
 

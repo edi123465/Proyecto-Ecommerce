@@ -85,6 +85,7 @@ session_start();
 
 
   <script>
+            const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
     const userId = <?php echo json_encode($_SESSION['user_id']); ?>;
   </script>
 
@@ -246,10 +247,13 @@ session_start();
             </ul>
           </div>
         </div>
+        
         <div class="col-lg-9 col-md-8 col-12">
           <div class="p-6 p-lg-10">
             <!-- heading -->
+             
             <h2 class="mb-6">Tus pedidos</h2>
+            <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
 
             <div class="table-responsive border-0">
               <!-- Table -->

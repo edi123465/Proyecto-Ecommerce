@@ -30,8 +30,6 @@ if (!isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="../../Recursos/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="../../Recursos/dist/css/adminlte.min.css">
 
-    <link rel="stylesheet" href="css/styles.css">
-
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -285,6 +283,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
 
 
+            <div id="paginacion" class="mt-3"></div>
 
 
 

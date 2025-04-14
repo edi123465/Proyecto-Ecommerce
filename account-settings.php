@@ -225,6 +225,15 @@ echo $userId . "   " . $userId;
               <div id="mensaje"></div> <!-- Aquí mostraremos la respuesta -->
             </div>
             <hr class="my-10">
+            <div class="mb-6">
+              <!-- heading -->
+              <h1 class="mb-0">Puntos de canje</h1><br>
+              <h3>Tienes <span id="puntosUsuario"">0</span> puntos acumulados 🎁</h3>
+
+              <a href=" canje.html">Ir a Canjear Puntos</a><br>
+                  <a href="historial.html">Ver Historial de Canjes</a>
+            </div>
+            <br><br>
             <div>
               <!-- heading -->
               <h5 class="mb-4">Eliminar Cuenta</h5>
@@ -323,6 +332,22 @@ echo $userId . "   " . $userId;
   <script src="assets/js/login.js"></script>
   <script src="assets/js/BusquedaDinamica.js"></script>
   <script src="assets/js/actualizarInformacion.js"></script>
+  <script>
+                    const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const usuarioId = document.getElementById("user_id").value;
+      fetch(`http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=obtenerPuntos&usuario_id=${usuarioId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById("puntosUsuario").textContent = data.puntos;
+        })
+        .catch((error) => {
+          console.error("Error al obtener puntos:", error);
+          document.getElementById("puntosUsuario").textContent = "Error";
+        });
+    });
+  </script>
 </body>
 
 

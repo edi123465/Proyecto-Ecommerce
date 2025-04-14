@@ -13,32 +13,36 @@ class UsuarioModel
     private $table = 'usuarios';
     public function __construct($db)
     {
-        $this->conn = $db;
-    }
+        $db = new Database1();
+        $this->conn = $db->getConnection(); // AQUÍ debe devolverse el objeto PDO
 
-    public function obtenerUsuario()
+    }
+    public function obtenerUsuario($limit, $offset)
     {
-        // Consulta SQL que une la tabla 'usuarios' con la tabla 'roles'
         $query = "SELECT u.ID, u.NombreUsuario, u.Email, u.RolID, u.IsActive, u.FechaCreacion, u.Imagen, r.RolName  
                   FROM " . $this->table . " u 
-                  JOIN Roles r ON u.RolID = r.ID";  // Relación entre usuarios y roles
+                  JOIN Roles r ON u.RolID = r.ID 
+                  LIMIT :limit OFFSET :offset";
 
-        // Preparar la consulta
         $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
-        // Ejecutar la consulta
         if ($stmt->execute()) {
-            // Si la consulta es exitosa, devolver los resultados como un array asociativo
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } else {
-            // Si hay un error, obtener la información del error
-            $errorInfo = $stmt->errorInfo();
-            // Es importante registrar los errores para depuración
-            error_log("Error al ejecutar la consulta: " . $errorInfo[2]);
-
-            // Retornar null en caso de error
+            error_log("Error al ejecutar la consulta: " . implode(" | ", $stmt->errorInfo()));
             return null;
         }
+    }
+
+    // Método para obtener el total de usuarios
+    public function contarUsuarios()
+    {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table;
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
 
     public function crearUsuario($nombreUsuario, $email, $rol_id, $imagen, $isActiveChecked, $contraseñaEncriptada)
@@ -343,4 +347,102 @@ class UsuarioModel
         $stmt->bindParam(":email", $email, PDO::PARAM_STR);
         return $stmt->execute();
     }
+    public function getPuntos($usuario_id)
+    {
+        $query = "SELECT total_puntos FROM usuarios WHERE ID = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ? $result['total_puntos'] : 0;
+    }
+
+    // Método para actualizar los puntos del usuario
+    public function sumarPuntosUsuario($usuario_id, $puntos)
+    {
+        try {
+            $stmt = $this->conn->prepare("UPDATE usuarios SET total_puntos = ISNULL(total_puntos, 0) + ? WHERE id = ?");
+            return $stmt->execute([$puntos, $usuario_id]);
+        } catch (PDOException $e) {
+            error_log("Error al sumar puntos al usuario: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function descontarPuntos($usuarioId, $puntosUsar) {
+        $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
+        $stmt->execute([$usuarioId]);
+        $puntosActuales = $stmt->fetchColumn();
+    
+        if ($puntosActuales >= $puntosUsar) {
+            $nuevoTotal = $puntosActuales - $puntosUsar;
+            $stmtUpdate = $this->conn->prepare("UPDATE usuarios SET total_puntos = ? WHERE id = ?");
+            $stmtUpdate->execute([$nuevoTotal, $usuarioId]);
+    
+            return [
+                'status' => 'ok',
+                'puntos' => $nuevoTotal
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'mensaje' => 'No tienes suficientes puntos para canjear este producto.'
+            ];
+        }
+    }
+
+    
+ // UsuarioModel.php
+public function actualizarPuntosPorCantidad($usuarioId, $puntosUnitarios, $cantidad) {
+    $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
+    $stmt->execute([$usuarioId]);
+    $puntosActuales = $stmt->fetchColumn();
+
+    $totalPuntosUsar = $puntosUnitarios * $cantidad;
+
+    if ($puntosActuales >= $totalPuntosUsar) {
+        $nuevoTotal = $puntosActuales - $totalPuntosUsar;
+        return [
+            'status' => 'ok',
+            'nuevoTotal' => $nuevoTotal,
+            'puedeCanjear' => true,
+            'mensaje' => 'Puntos suficientes'
+        ];
+    } else {
+        return [
+            'status' => 'error',
+            'nuevoTotal' => $puntosActuales,
+            'puedeCanjear' => false,
+            'mensaje' => 'No tienes suficientes puntos para esta cantidad'
+        ];
+    }
+}
+
+public function actualizarPuntosDinamico($usuarioId, $puntosUnitarios, $cantidad)
+{
+    $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
+    $stmt->execute([$usuarioId]);
+    $puntosActuales = $stmt->fetchColumn();
+
+    $puntosPorUsar = $puntosUnitarios * $cantidad;
+
+    if ($puntosActuales >= $puntosPorUsar) {
+        $nuevoTotal = $puntosActuales - $puntosPorUsar;
+
+        $stmtUpdate = $this->conn->prepare("UPDATE usuarios SET total_puntos = ? WHERE id = ?");
+        $stmtUpdate->execute([$nuevoTotal, $usuarioId]);
+
+        return [
+            'status' => 'ok',
+            'nuevoTotal' => $nuevoTotal
+        ];
+    } else {
+        return [
+            'status' => 'error',
+            'mensaje' => 'No tienes suficientes puntos disponibles.'
+        ];
+    }
+}
+
 }

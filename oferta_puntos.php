@@ -135,25 +135,20 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         .whatsapp-icon:hover .whatsapp-text {
             opacity: 1;
         }
-            /* Añadir un margen superior para que el contenido no se solape con el navbar fijo */
-    body {
-      margin-top: 0px; /* Ajusta según la altura del navbar fijo */
-    }
-    /* También puedes aplicar el z-index si es necesario */
-    .navbar {
-      z-index: 1050;
-    }
+
+        /* Añadir un margen superior para que el contenido no se solape con el navbar fijo */
+        body {
+            margin-top: 0px;
+            /* Ajusta según la altura del navbar fijo */
+        }
+
+        /* También puedes aplicar el z-index si es necesario */
+        .navbar {
+            z-index: 1050;
+        }
+
         /* Tamanio predeterminado de la imagen*/
-    .card-product img {
-        width: 100%; /* Ajusta el ancho al contenedor */
-        height: 200px; /* Define una altura fija */
-        object-fit: cover; /* Recorta la imagen sin deformarla */
-        border-radius: 5px; /* Opcional: bordes redondeados */
-}
     </style>
-        <script>
-    const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
-    </script>
 </head>
 
 <body>
@@ -180,6 +175,31 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
     echo '<div id="role" data-role="' . $userRole . '"></div>';
     ?>
 
+    <!-- Shop Cart -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header border-bottom">
+            <div class="text-start">
+                <h5 id="offcanvasRightLabel" class="mb-0 fs-4">Carrito de compras</h5>
+                <small>Número de pedido: 0000001</small>
+            </div>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="alert alert-danger" role="alert">
+                Tienes envío GRATIS. ¡Empiece a pagar ahora!
+            </div>
+            <div>
+                <div class="d-grid">
+
+
+                    <button id="checkout-button" class="btn btn-primary btn-lg d-flex justify-content-between align-items-center" type="submit">
+                        Continuar Compra <span id="cart-total" class="fw-bold">$0.00</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal -->
     <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
@@ -199,7 +219,43 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                         <h6 class="mb-0">Select Location</h6>
                         <a href="#" class="btn btn-outline-gray-400 text-muted btn-sm">Clear All</a>
                     </div>
-                    
+                    <div>
+                        <div data-simplebar style="height:300px;">
+                            <div class="list-group list-group-flush">
+
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action active">
+                                    <span>Alabama</span><span>Min:$20</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Alaska</span><span>Min:$30</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Arizona</span><span>Min:$50</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>California</span><span>Min:$29</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Colorado</span><span>Min:$80</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Florida</span><span>Min:$90</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Arizona</span><span>Min:$50</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>California</span><span>Min:$29</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Colorado</span><span>Min:$80</span></a>
+                                <a href="#"
+                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
+                                    <span>Florida</span><span>Min:$90</span></a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -212,34 +268,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         <div class="container">
             <!-- row -->
             <div class="row gx-10">
-                <!-- col -->
-                <div class="col-lg-3 col-md-4 mb-6 mb-md-0">
-                    <div class="py-4">
-                        <!-- title -->
-                        <h5 class="mb-3">Todas las categorías</h5>
-                        <ul class="nav nav-category" id="categoryCollapseMenu">
-                            <!-- Aquí se insertarán dinámicamente las categorías -->
-                        </ul>
 
-                        <div id="puntosUsuario">
-</div>
-
-
-
-                        <!-- Modal para mostrar los productos -->
-                        <div id="productosModal" class="modal" style="display: none;">
-                            <div class="modal-content">
-                                <span id="closeModal" style="cursor:pointer;">&times;</span>
-                                <h5 id="subcategoriaTitulo"></h5>
-                                <div id="listaProductos"></div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Banner Design -->
-                </div>
-                <div class="col-lg-9 col-md-8">
+                <div class="col-lg-12 col-md-2">
                     <!-- card -->
                     <div class="card mb-4 bg-light border-0">
                         <!-- card body -->
@@ -281,7 +311,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                             </div>
                         </div>
                     </div>
-                    
+                    <h1>Compra mas y gana puntos!</h1>
+                    <!-- Contenedor de productos populares -->
+                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-con-puntos">
+                    </div>
                     <!-- Contenedor de productos populares -->
                     <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-populares-container">
                     </div>
@@ -383,7 +416,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                     <div class="ms-2 col-4 d-grid">
                                         <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Add to cart</button>
                                     </div>
-                                
+
                                 </div>
                                 <hr class="my-6">
                                 <div>
@@ -409,7 +442,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                                 <td>Subcategoría</td>
                                                 <td id="Subcategory">Fruits</td>
                                             </tr>
-                                        
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -420,6 +453,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             </div>
         </div>
     </div>
+    <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
+
     <div class="whatsapp-container">
         <a href="https://wa.me/593989082073" target="_blank" class="whatsapp-icon">
             <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
@@ -452,13 +487,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         esta toda la logica -->
 
     <script src="assets/js/cart.js"></script>
-    <script src="assets/js/producto.js"></script><!--Este script abre el modal de los detalles del producto en esta vista-->
     <script src="assets/js/login.js"></script>
-    <script src="assets/js/mostrarProductosLista.js"></script>
     <script src="assets/js/BusquedaDinamica.js"></script>
-
     <script src="assets/js/theme.min.js"></script>
+
     <script>
+                const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
+
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             const query = urlParams.get("q");
@@ -466,11 +501,11 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             if (query) {
                 document.getElementById("busqueda").value = query; // Mostrar el término en el input
                 realizarBusqueda(query); // Llamar la función de búsqueda automáticamente
-            }   
+            }
         });
-
-        
     </script>
+    <script src="assets/js/ofertasPuntos.js"></Script>
+
 
 </body>
 <!-- Mirrored from freshcart.codescandy.com/pages/shop-grid.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 12 Aug 2022 17:46:10 GMT -->

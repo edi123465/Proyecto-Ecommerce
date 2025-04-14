@@ -1,17 +1,90 @@
+document.addEventListener("DOMContentLoaded", function () {
+    fetch(`http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=obtenerPuntos&usuario_id=${usuarioSesion}`)
+        .then((response) => response.json())
+        .then((data) => {
+            // Actualiza el contenido en el navegador
+            document.getElementById("puntosUsuario").textContent = data.puntos;
+
+            // Guarda los puntos en localStorage para persistir entre recargas
+            localStorage.setItem('puntosUsuario', data.puntos);
+        })
+        .catch((error) => {
+            console.error("Error al obtener puntos:", error);
+            // Si hay un error, muestra un mensaje de error y establece el valor a 0
+            document.getElementById("puntosUsuario").textContent = "Error";
+            // En caso de error, puedes guardar un valor predeterminado (opcional)
+            localStorage.setItem('puntosUsuario', '0');
+        });
+
+    // Verificar si ya existen puntos en localStorage al cargar la página
+    const puntosGuardados = localStorage.getItem('puntosUsuario');
+    if (puntosGuardados !== null) {
+        document.getElementById("puntosUsuario").textContent = puntosGuardados;
+    }
+});
+
+
 // Selecciona todos los botones "Add to Cart"
 const addToCartButtons = document.querySelectorAll('.add-to-cart');
 // Selecciona el elemento del contador
 const cartCounter = document.querySelector('#cart_counter');
 // Array para almacenar los productos en el carrito
-let carrito = [];
-// Variable para mantener el conteo actual de productos (solo declarada una vez)
+let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
 // Función para guardar el carrito en localStorage
 function guardarCarrito() {
     localStorage.setItem('carrito', JSON.stringify(carrito));
     actualizarContadorCarrito();
-
+    actualizarTiempoUltimaActividad();
 }
+
+// Función para actualizar el tiempo de la última actividad
+function actualizarTiempoUltimaActividad() {
+    const ahora = new Date().getTime();
+    localStorage.setItem('ultimaActividad', ahora);
+}
+
+
+// Función para verificar la inactividad al abrir la tienda
+function verificarInactividad() {
+    const tiempoUltimaActividad = parseInt(localStorage.getItem('ultimaActividad'), 10);
+    const ahora = new Date().getTime();
+
+    if (tiempoUltimaActividad) {
+        const inactividad = ahora - tiempoUltimaActividad;
+        // Si ha pasado más de 1 minuto (60,000 ms) desde la última actividad
+        if (inactividad > 3600000) {
+            vaciarCarrito(); // Vaciar el carrito si ha pasado más de 1 minuto
+        }
+    }
+}
+
+// Función para vaciar el carrito
+function vaciarCarrito() {
+    carrito = [];
+    localStorage.removeItem('carrito');
+    localStorage.removeItem('ultimaActividad');
+    actualizarCarrito();  // Actualiza el carrito en el modal
+    Swal.fire({
+        position: 'bottom-left',
+        icon: 'info',
+        title: 'Tu carrito se ha vaciado por inactividad.',
+        showConfirmButton: false,
+        timer: 3000,
+        toast: true,
+        timerProgressBar: true,
+    });
+}
+
+// Llamar a la función verificarInactividad cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    verificarInactividad();
+    cargarCarrito();
+    // También se actualiza la última actividad cuando se carga la página
+    actualizarTiempoUltimaActividad();
+});
+
+
 
 // Función para cargar el carrito desde localStorage
 function cargarCarrito() {
@@ -23,81 +96,59 @@ function cargarCarrito() {
     actualizarContadorCarrito(); // Asegúrate de que el contador se cargue correctamente
 
 }
-document.querySelectorAll('.add-to-cart').forEach(btn => {
-    btn.addEventListener('click', (event) => {
-        // Obtén los datos del producto desde los atributos data-* del botón
-        const productoId = event.target.dataset.id;
-        const nombreProducto = event.target.dataset.nombre;
-        const precioProducto = parseFloat(event.target.dataset.precio);
-        const descuento = parseFloat(event.target.getAttribute('data-descuento')) || 0; // Aseguramos que el descuento sea un número
-        const imagenProducto = event.target.dataset.imagen;
-
-        // Calcular el precio con descuento
-        const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
-
-        // Verifica si el producto ya está en el carrito
-        const productoExistente = carrito.find(producto => producto.id === productoId);
-
-        // Si el producto ya está en el carrito, incrementa la cantidad
-        if (productoExistente) {
-            productoExistente.cantidad++;
-        } else {
-            // Si no está, lo añade al carrito con cantidad 1
-            carrito.push({
-                id: productoId,
-                nombre: nombreProducto,
-                precio: precioConDescuento, // Guardamos el precio con descuento
-                cantidad: 1,
-                precioOriginal: precioProducto, // Añadir el precio original
-                imagen: imagenProducto,
-                descuento: descuento,
-
-            });
-        }
-
-        // Guarda el carrito en localStorage
-        guardarCarrito();
-
-        // Actualiza el carrito en el modal (si es necesario)
-        actualizarCarrito();
-
-        // Mostrar la alerta con SweetAlert2
-        Swal.fire({
-            position: 'bottom-left',  // Ubicación de la alerta (abajo a la izquierda)
-            icon: 'success',  // Tipo de alerta (puede ser 'success', 'error', etc.)
-            title: '¡Agregado correctamente!',  // Mensaje de la alerta
-            showConfirmButton: false,  // No mostrar el botón de confirmación
-            timer: 4000,  // La alerta desaparecerá después de 4 segundos
-            toast: true,  // Activar la opción de "toast" para que sea una alerta pequeña
-            timerProgressBar: true,  // Mostrar barra de progreso en el timer
-        });
-
-        // Actualiza el contador en el icono
-        actualizarContadorCarrito();
-    });
-});
-
 // Llamar a cargarCarrito al cargar la página
 document.addEventListener('DOMContentLoaded', cargarCarrito);
 
 function actualizarCarrito() {
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+
     const carritoModal = document.querySelector('.list-group');
     const totalElement = document.querySelector('.fw-bold');
-    const checkoutTotal = document.querySelector('#cart-total'); // Elemento para el total en el botón de checkout
-    carritoModal.innerHTML = ''; // Limpiar contenido previo
+    const checkoutTotal = document.querySelector('#cart-total');
+    const puntosRestantesElement = document.getElementById('puntos-restantes');
+
+    carritoModal.innerHTML = '';
     let total = 0;
 
+    const puntosDisponiblesTotales = parseInt(document.getElementById('puntosUsuario').textContent);
+    let puntosUsadosTotales = 0;
+
+    // Primero, calculamos los puntos actualmente usados
+    carrito.forEach((producto) => {
+        const esCanjeable = producto.precio === 0;
+        if (esCanjeable) {
+            puntosUsadosTotales += producto.cantidad * producto.puntos_necesarios;
+        }
+    });
+
+    const puntosRestantesTotales = puntosDisponiblesTotales - puntosUsadosTotales;
+
     carrito.forEach((producto, index) => {
-        const precioConDescuento = producto.precio;  // Precio con descuento
-        const precioUnitario = producto.precioOriginal;  // Precio original sin descuento
-        const descuento = producto.descuento || 0;  // El descuento en porcentaje
+        const precioConDescuento = producto.precio;
+        const precioUnitario = producto.precioOriginal;
+        const descuento = producto.descuento || 0;
+        const esCanjeable = precioConDescuento === 0;
 
-        // Calcular el subtotal con el precio con descuento
         const subtotal = precioConDescuento * producto.cantidad;
+        total += subtotal;
 
-        total += subtotal;  // Sumar el subtotal al total
+        let mensajePuntos = '';
 
-        // Crear el elemento HTML para cada producto en el carrito
+        if (producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
+            mensajePuntos = `¡Ganas ${producto.puntos_otorgados} puntos de canje!`;
+        }
+
+        const puntosUsadosActuales = producto.cantidad * producto.puntos_necesarios;
+        const puntosUsadosProximos = (producto.cantidad + 1) * producto.puntos_necesarios;
+
+        // Recalculamos cuántos puntos quedarían si este producto aumenta
+        let puntosSimulados = puntosUsadosTotales;
+        if (esCanjeable) {
+            puntosSimulados = puntosUsadosTotales - puntosUsadosActuales + puntosUsadosProximos;
+        }
+
+        const deshabilitarMas = esCanjeable && (puntosSimulados > puntosDisponiblesTotales);
+
         carritoModal.innerHTML += `
             <li class="list-group-item py-3 px-0 border-bottom">
                 <div class="row align-items-center">
@@ -111,8 +162,10 @@ function actualizarCarrito() {
                             <span class="text-muted">Descuento: ${descuento}%</span>
                         </div>
                         <div class="mt-2 small">
-                            <span class="text-muted">Valor Unitario: $${precioUnitario.toFixed(2)}</span>
+                            ${esCanjeable ? `<span class="text-muted">Canjeado por ${producto.puntos_necesarios * producto.cantidad} puntos (${producto.cantidad} item${producto.cantidad > 1 ? 's' : ''})</span>` :
+                `<span class="text-muted">Valor Unitario: $${precioUnitario.toFixed(2)}</span>`}
                         </div>
+                        ${mensajePuntos ? `<div class="mt-2 small text-success">${mensajePuntos}</div>` : ''}
                         <div class="mt-2 small">
                             <a href="#!" class="text-decoration-none remove-item" data-index="${index}">
                                 <span class="me-1">
@@ -122,7 +175,7 @@ function actualizarCarrito() {
                                     <polyline points="3 6 5 6 21 6"></polyline>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                     <line x1="10" y1="11" x2="10" y2="17"></line>
-                                    <line x1="14" y1="11" x2="14" y1="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
                                     </svg>
                                 </span>Remove
                             </a>
@@ -132,7 +185,7 @@ function actualizarCarrito() {
                         <div class="input-group flex-nowrap justify-content-center">
                             <input type="button" value="-" class="button-minus form-control text-center" data-index="${index}">
                             <input type="number" value="${producto.cantidad}" style="width: 60px;" min="1" class="quantity-field form-control text-center" data-index="${index}">
-                            <input type="button" value="+" class="button-plus form-control text-center" data-index="${index}">
+                            <input type="button" value="+" class="button-plus form-control text-center" data-index="${index}" ${deshabilitarMas ? 'disabled' : ''}>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -143,33 +196,22 @@ function actualizarCarrito() {
         `;
     });
 
-    // Actualizar el total en el modal (redondeado solo para mostrar)
+    // Mostrar total
     totalElement.textContent = `$${total.toFixed(2)}`;
     checkoutTotal.textContent = `$${total.toFixed(2)}`;
 
-    // Asignar los eventos a los botones después de cargar el carrito
+    // Mostrar puntos restantes
+    const puntosRestantes = puntosDisponiblesTotales - puntosUsadosTotales;
+    if (puntosRestantesElement) {
+        puntosRestantesElement.innerHTML = `
+            <div class="alert alert-info mt-3">
+                Tienes <strong>${puntosRestantes}</strong> puntos disponibles para canjear productos.
+            </div>
+        `;
+    }
+
     asignarEventosCarrito();
 }
-
-// Función para asignar eventos de clic a los botones de cantidad y eliminar
-function asignarEventosCarrito() {
-    const botonesMinus = document.querySelectorAll('.button-minus');
-    const botonesPlus = document.querySelectorAll('.button-plus');
-    const botonesRemove = document.querySelectorAll('.remove-item');
-
-    botonesMinus.forEach(boton => {
-        boton.addEventListener('click', disminuirCantidad);
-    });
-
-    botonesPlus.forEach(boton => {
-        boton.addEventListener('click', aumentarCantidad);
-    });
-
-    botonesRemove.forEach(boton => {
-        boton.addEventListener('click', eliminarProducto);
-    });
-}
-
 
 
 // Función para actualizar el contador del carrito
@@ -181,25 +223,180 @@ function actualizarContadorCarrito() {
     cartCounter.textContent = totalProductos;
 }
 
+function asignarEventosCarrito() {
+    document.querySelectorAll('.button-minus').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const index = parseInt(this.getAttribute('data-index'));
+            if (carrito[index].cantidad > 1) {
+                carrito[index].cantidad--;
+                actualizarCarrito(); // 🔁 Vuelve a renderizar el carrito completo
+                actualizarContadorCarrito(); // ✅ Agregado
 
-// Funciones para cambiar cantidad
+            }
+        });
+    });
+
+    document.querySelectorAll('.button-plus').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const index = parseInt(this.getAttribute('data-index'));
+            const producto = carrito[index];
+
+            const puntosDisponibles = parseInt(document.getElementById('puntosUsuario').textContent);
+            const puntosNecesariosProximos = (producto.cantidad + 1) * producto.puntos_necesarios;
+
+            // Si es canjeable y hay puntos suficientes
+            if (producto.precio === 0 && puntosNecesariosProximos > puntosDisponibles) {
+                return; // No agregar más
+            }
+
+            carrito[index].cantidad++;
+            actualizarCarrito(); // 🔁 Vuelve a renderizar el carrito completo
+            actualizarContadorCarrito(); // ✅ Agregado
+
+        });
+    });
+
+    // Elimina productos
+    document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const index = parseInt(this.getAttribute('data-index'));
+            carrito.splice(index, 1);
+            actualizarCarrito();
+            actualizarContadorCarrito();
+        });
+    });
+}
+
+
+async function actualizarPuntos(usuarioId, puntos, accion) {
+    try {
+        const response = await fetch('http://Milogar/Controllers/UsuarioController.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                usuarioId: usuarioId,
+                puntos: puntos,
+                accion: accion
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'ok') {
+            document.getElementById('puntosUsuario').textContent = data.puntos;
+        } else {
+            alert(data.mensaje);
+        }
+    } catch (error) {
+        console.error('Error al actualizar puntos:', error);
+    }
+}
+
 function aumentarCantidad(event) {
     const index = event.target.dataset.index;
-    carrito[index].cantidad++;
-    guardarCarrito(); // Guarda el carrito actualizado
-    actualizarCarrito();
+    const producto = carrito[index];
+
+    const puntosNecesarios = producto.puntos_necesarios;
+    const usuarioId = document.getElementById('puntosUsuario').dataset.userId;
+
+    // Verificar si es canjeable
+    if (producto.precio === 0) {
+        const puntosAUsar = puntosNecesarios;
+
+        fetch('http://localhost:8088/Milogar/Controllers/UsuarioController.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `action=descontar&usuarioId=${usuarioId}&puntos=${puntosAUsar}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    carrito[index].cantidad++;
+                    document.getElementById('puntosUsuario').textContent = data.puntos;
+                    guardarCarrito();
+                    actualizarCarrito();
+                    actualizarContadorCarrito();
+                } else {
+                    alert(data.mensaje || 'No tienes suficientes puntos para este canje.');
+                }
+            });
+    } else {
+        // Producto normal
+        carrito[index].cantidad++;
+        guardarCarrito();
+        actualizarCarrito();
+    }
 }
+
+
 
 function disminuirCantidad(event) {
     const index = event.target.dataset.index;
-    if (carrito[index].cantidad > 1) {
-        carrito[index].cantidad--;
+    const producto = carrito[index];
+    const usuarioId = document.getElementById('puntosUsuario').dataset.userId;
+
+    if (producto.cantidad > 1) {
+        if (producto.precio === 0) {
+            const puntosADevolver = producto.puntos_necesarios;
+
+            fetch('http://localhost:8088/Milogar/Controllers/UsuarioController.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `action=devolver&usuarioId=${usuarioId}&puntos=${puntosADevolver}`
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        carrito[index].cantidad--;
+                        document.getElementById('puntosUsuario').textContent = data.puntos;
+                        guardarCarrito();
+                        actualizarCarrito();
+                        actualizarContadorCarrito();
+
+                    }
+                });
+        } else {
+            carrito[index].cantidad--;
+            guardarCarrito();
+            actualizarCarrito();
+        }
     } else {
-        carrito.splice(index, 1); // Eliminar producto si la cantidad es 1
+        // Si es canjeable, devolver puntos al eliminarlo
+        if (producto.precio === 0) {
+            const puntosADevolver = producto.puntos_necesarios * producto.cantidad;
+
+            fetch('http://localhost:8088/Milogar/Controllers/UsuarioController.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `action=devolver&usuarioId=${usuarioId}&puntos=${puntosADevolver}`
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        carrito.splice(index, 1);
+                        document.getElementById('puntosUsuario').textContent = data.puntos;
+                        guardarCarrito();
+                        actualizarCarrito();
+                        actualizarContadorCarrito();
+
+                    }
+                });
+        } else {
+            carrito.splice(index, 1);
+            guardarCarrito();
+            actualizarCarrito();
+        }
     }
-    guardarCarrito(); // Guarda el carrito actualizado
-    actualizarCarrito();
 }
+
 
 // Función para eliminar un producto del carrito
 function eliminarProducto(event) {
@@ -234,12 +431,12 @@ document.getElementById('checkout-button').addEventListener('click', function (e
     window.location.href = '/Milogar/shop-checkout';
 });
 
-// Función para actualizar el detalle del pedido
 function actualizarDetallePedido() {
     const orderDetails = document.getElementById('order-details');
     const subtotalElement = document.getElementById('subtotal');
     const descuentoElement = document.getElementById('descuento');
     const totalElement = document.getElementById('total');
+    const totalPuntosElement = document.getElementById('total-puntos');
 
     if (!orderDetails || !subtotalElement || !descuentoElement || !totalElement) {
         console.error("Uno o más elementos no existen en el DOM.");
@@ -250,11 +447,33 @@ function actualizarDetallePedido() {
     orderDetails.innerHTML = '';
 
     let subtotal = 0;
+    let totalPuntos = 0;
 
-    // Iterar sobre el carrito para agregar los productos al detalle
+    console.log("=== Detalles del carrito ===");
+
     carrito.forEach((producto, index) => {
         const subtotalProducto = producto.precio * producto.cantidad;
         subtotal += subtotalProducto;
+
+        console.log(`Producto ${index + 1}:`);
+        console.log(`- Nombre: ${producto.nombre}`);
+        console.log(`- Precio: ${producto.precio}`);
+        console.log(`- Cantidad: ${producto.cantidad}`);
+        console.log(`- Subtotal Producto: ${subtotalProducto}`);
+        console.log(`- Puntos necesarios: ${producto.puntos_necesarios}`);
+        console.log(`- Puntos otorgados: ${producto.puntos_otorgados}`);
+        console.log(`- Cantidad mínima para puntos: ${producto.cantidad_minima_para_puntos}`);
+
+        // Verificar si gana puntos
+   // Verificar si gana puntos
+let mensajePuntos = '';
+if (producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
+    mensajePuntos = `<small class="text-success d-block mt-1">¡Ganas ${producto.puntos_otorgados} puntos de canje!</small>`;
+    totalPuntos += producto.puntos_otorgados; // Solo se suma UNA VEZ si cumple
+} else {
+    console.log(`-> Este producto NO otorga puntos.`);
+}
+
 
         orderDetails.innerHTML += `
             <li class="list-group-item px-4 py-3">
@@ -264,6 +483,7 @@ function actualizarDetallePedido() {
                     </div>
                     <div class="col-4 col-md-4">
                         <h6 class="mb-0">${producto.nombre}</h6>
+                        ${mensajePuntos}
                     </div>
                     <div class="col-2 col-md-2 text-center">
                         <button class="btn btn-sm btn-outline-danger" onclick="cambiarCantidad(${index}, -1)">-</button>
@@ -274,50 +494,103 @@ function actualizarDetallePedido() {
                         <span class="fw-bold">$${subtotalProducto.toFixed(2)}</span>
                     </div>
                     <div class="col-2 col-md-2 text-center">
-                  <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
-                    <i class="bi bi-trash-fill"></i>
-                    </button>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
                     </div>
                 </div>
             </li>
         `;
     });
 
-    // Inicialmente, el descuento es cero
-    let descuento = 0.00;
+    console.log("Subtotal general: ", subtotal.toFixed(2));
+    console.log("Total puntos otorgados: ", totalPuntos);
 
-    // Calcular el total (subtotal - descuento)
+    totalPuntosElement.textContent = totalPuntos;
+
+    let descuento = 0.00;
     const total = (subtotal - descuento).toFixed(2);
 
-    // Actualizar los valores en el HTML
     subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-    descuentoElement.textContent = `-$${descuento.toFixed(2)}`; // Muestra -$0.00 en la vista
-    totalElement.textContent = `$${total}`
-    // Guardar el estado actualizado del carrito en localStorage
+    descuentoElement.textContent = `-$${descuento.toFixed(2)}`;
+    totalElement.textContent = `$${total}`;
+
     localStorage.setItem('carrito', JSON.stringify(carrito));
+
     actualizarContadorCarrito();
     actualizarCarrito();
 }
 
-// Función para cambiar la cantidad con los botones + y -
-function cambiarCantidad(index, cambio) {
-    if (carrito[index].cantidad + cambio >= 1) {
-        carrito[index].cantidad += cambio;
-        actualizarDetallePedido(); // Volver a actualizar el detalle del pedido
+function cambiarCantidad(index, delta) {
+    const puntosUsuario = parseInt(document.getElementById('puntosUsuario').textContent);
+    const producto = carrito[index];
+    const nuevaCantidad = producto.cantidad + delta;
+
+    if (nuevaCantidad < 1) return;
+
+    const totalPuntosRestantes = carrito.reduce((acc, item, i) => {
+        if (item.puntos_necesarios > 0) {
+            return acc + ((i === index ? nuevaCantidad : item.cantidad) * item.puntos_necesarios);
+        }
+        return acc;
+    }, 0);
+
+    if (totalPuntosRestantes > puntosUsuario) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Límite de puntos alcanzado',
+            text: `No puedes aumentar más la cantidad de "${producto.nombre}" porque superas tus puntos disponibles.`,
+            confirmButtonColor: '#d33',
+        });
+        return;
     }
+
+    producto.cantidad = nuevaCantidad;
+    // Solo actualizar si es producto de canje
+    if (producto.puntos_necesarios > 0) {
+        producto.total_puntos_necesarios = producto.puntos_necesarios * producto.cantidad;
+    }
+
+    actualizarDetallePedido();
 }
 
-// Función para actualizar la cantidad cuando se edita manualmente
-function actualizarCantidad(index) {
-    const inputCantidad = document.getElementById(`cantidad-${index}`);
-    const nuevaCantidad = parseInt(inputCantidad.value);
 
-    if (!isNaN(nuevaCantidad) && nuevaCantidad >= 1) {
-        carrito[index].cantidad = nuevaCantidad;
-        actualizarDetallePedido();
-    } else {
-        inputCantidad.value = carrito[index].cantidad; // Restaurar cantidad válida
+function actualizarCantidad(index) {
+    const puntosUsuario = parseInt(document.getElementById('puntosUsuario').textContent);
+    const inputCantidad = document.getElementById(`cantidad-${index}`);
+    let nuevaCantidad = parseInt(inputCantidad.value);
+
+    if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+        nuevaCantidad = 1;
+        inputCantidad.value = nuevaCantidad;
     }
+
+    const producto = carrito[index];
+    const totalPuntosRestantes = carrito.reduce((acc, item, i) => {
+        if (item.puntos_necesarios > 0) {
+            if (i === index) {
+                return acc + (nuevaCantidad * item.puntos_necesarios);
+            }
+            return acc + (item.cantidad * item.puntos_necesarios);
+        }
+        return acc;
+    }, 0);
+
+    if (totalPuntosRestantes > puntosUsuario) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Límite de puntos alcanzado',
+            text: `No puedes establecer esta cantidad para "${producto.nombre}" porque superas tus puntos disponibles.`,
+            confirmButtonColor: '#d33',
+        });
+        inputCantidad.value = producto.cantidad; // Restaurar la cantidad anterior
+        return;
+    }
+
+    producto.cantidad = nuevaCantidad;
+    producto.puntos_otorgados = producto.puntos_necesarios * producto.cantidad;
+
+    actualizarDetallePedido();
 }
 
 // Función para eliminar un producto del carrito
@@ -373,6 +646,7 @@ document.getElementById("proceder").addEventListener("click", function (event) {
 
     // Obtener el total de productos en el carrito
     const totalProductos = carrito.reduce((total, producto) => total + producto.cantidad, 0);
+    const puntosAcumulados = parseFloat(document.getElementById("total-puntos").textContent) || 0;
 
     // Crear un array de productos con los datos que vamos a enviar
     const productos = carrito.map(producto => {
@@ -407,7 +681,9 @@ document.getElementById("proceder").addEventListener("click", function (event) {
         deliveryOption: deliveryOption,  // Método de entrega (Recoger en tienda o Envío)
         email: email,
         telefono: telefono,
-        direccion: direccion
+        direccion: direccion,
+        puntos: puntosAcumulados // <-- Aquí se envían los puntos acumulados
+
     };
 
     // Mostrar los datos antes de enviarlos para depuración

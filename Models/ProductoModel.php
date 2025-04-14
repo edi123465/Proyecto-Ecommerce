@@ -4,14 +4,14 @@ class ProductoModel
 {
 
     private $conn;
-    private $table = 'Productos';
+    private $table = 'productos';
 
     public function __construct($db)
     {
         $this->conn = $db;
     }
 
-    public function insertarProducto($nombre, $descripcion, $precio, $precio1, $precio2, $precio3, $precio4, $stock, $subcategoria_id, $codigo_barras, $imagen, $isActive, $is_promocion, $descuento, $categoria_id)
+    public function insertarProducto($nombre, $descripcion, $precio, $precio1, $precio2, $precio3, $precio4, $stock, $subcategoria_id, $codigo_barras, $imagen, $isActive, $is_promocion, $descuento, $categoria_id, $puntos_otorgados, $cantidad_minima_para_puntos)
     {
         try {
             // Consulta SQL para insertar el producto
@@ -19,20 +19,22 @@ class ProductoModel
         INSERT INTO Productos (
             nombreProducto, descripcionProducto, precio, precio_1, precio_2, 
             precio_3, precio_4, stock, subcategoria_id, codigo_barras, imagen, 
-            isActive, fechaCreacion, is_promocion, descuento, categoria_id
+            isActive, fechaCreacion, is_promocion, descuento, categoria_id,
+            puntos_otorgados, cantidad_minima_para_puntos
         ) 
         VALUES (
             :nombre, :descripcion, :precio, :precio_1, :precio_2, :precio_3, 
             :precio_4, :stock, :subcategoria_id, :codigo_barras, :imagen, 
-            :isActive, now(), :is_promocion, :descuento, :categoria_id
+            :isActive, now(), :is_promocion, :descuento, :categoria_id,
+            :puntos_otorgados, :cantidad_minima_para_puntos
         )";
 
             $stmt = $this->conn->prepare($query);
 
-            // Vincular parámetros a la consulta con tipo de dato STR (cadena de texto)
+            // Vincular parámetros
             $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
             $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
-            $stmt->bindParam(':precio', $precio, PDO::PARAM_STR);  // Aunque es un número decimal, puedes usar STR si es necesario
+            $stmt->bindParam(':precio', $precio, PDO::PARAM_STR);
             $stmt->bindParam(':precio_1', $precio1, PDO::PARAM_STR);
             $stmt->bindParam(':precio_2', $precio2, PDO::PARAM_STR);
             $stmt->bindParam(':precio_3', $precio3, PDO::PARAM_STR);
@@ -45,6 +47,8 @@ class ProductoModel
             $stmt->bindParam(':is_promocion', $is_promocion, PDO::PARAM_BOOL);
             $stmt->bindParam(':descuento', $descuento, PDO::PARAM_STR);
             $stmt->bindParam(':categoria_id', $categoria_id, PDO::PARAM_INT);
+            $stmt->bindParam(':puntos_otorgados', $puntos_otorgados, PDO::PARAM_INT);
+            $stmt->bindParam(':cantidad_minima_para_puntos', $cantidad_minima_para_puntos, PDO::PARAM_INT);
 
             // Ejecutar la consulta
             if ($stmt->execute()) {
@@ -79,47 +83,75 @@ class ProductoModel
     }
 
 
-    //metodo para obtener todos los productos (parte administrativa y tienda virtual)
-    public function getAll()
+    public function getAll($search = '', $limit = 10, $offset = 0)
     {
         try {
             $sql = "
-                    SELECT p.id, 
-                        p.nombreProducto, 
-                        p.descripcionProducto, 
-                        p.precio, 
-                        p.precio_1, 
-                        p.precio_2, 
-                        p.precio_3, 
-                        p.precio_4, 
-                        p.stock, 
-                        p.codigo_barras, 
-                        p.imagen, 
-                        p.isActive, 
-                        p.fechaCreacion, 
-                        p.is_promocion, 
-                        p.descuento, 
-                        c.nombreCategoria AS nombreCategoria, 
-                        s.nombrSubcategoria AS nombreSubcategoria
-                    FROM Productos p
-                    INNER JOIN subcategorias s ON p.subcategoria_id = s.id
-                    INNER JOIN categorias c ON s.categoria_id = c.id
-                    ORDER BY p.nombreProducto ASC;
-                 ";
+        SELECT p.id, 
+            p.nombreProducto, 
+            p.descripcionProducto, 
+            p.precio, 
+            p.precio_1, 
+            p.precio_2, 
+            p.precio_3, 
+            p.precio_4, 
+            p.stock, 
+            p.codigo_barras, 
+            p.imagen, 
+            p.isActive, 
+            p.fechaCreacion, 
+            p.is_promocion, 
+            p.descuento,
+            p.puntos_otorgados,
+            p.cantidad_minima_para_puntos,
+            c.nombreCategoria AS nombreCategoria, 
+            s.nombrSubcategoria AS nombreSubcategoria
+        FROM productos p
+        INNER JOIN subcategorias s ON p.subcategoria_id = s.id
+        INNER JOIN categorias c ON s.categoria_id = c.id
+        WHERE p.nombreProducto LIKE :search OR p.descripcionProducto LIKE :search
+        ORDER BY p.nombreProducto ASC
+        LIMIT :limit OFFSET :offset
+        ";
 
             $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
             $stmt->execute();
-            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            return $productos;
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            // Retorna false si hay error
+            error_log("Error en getAll(): " . $e->getMessage());
             return false;
         }
     }
 
+    public function getTotalProductos($search = '')
+    {
+        try {
+            $sql = "
+            SELECT COUNT(*) as total
+            FROM productos p
+            INNER JOIN subcategorias s ON p.subcategoria_id = s.id
+            INNER JOIN categorias c ON s.categoria_id = c.id
+            WHERE p.nombreProducto LIKE :search OR p.descripcionProducto LIKE :search
+        ";
 
-    //METODO PARA OBTENER LOS PRODUCTOS CON PROMOCION
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            $stmt->execute();
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? (int)$result['total'] : 0;
+        } catch (Exception $e) {
+            error_log("Error en getTotalProductos(): " . $e->getMessage());
+            return 0;
+        }
+    }
+
+
+    // METODO PARA OBTENER LOS PRODUCTOS CON PROMOCION
     public function read()
     {
         try {
@@ -138,12 +170,14 @@ class ProductoModel
                      p.fechaCreacion, 
                      p.is_promocion, 
                      p.descuento, 
+                     p.cantidad_minima_para_puntos,
+                     p.puntos_otorgados,
                      c.nombreCategoria AS nombreCategoria, 
                      s.nombrSubcategoria AS nombreSubcategoria
-                 FROM Productos p
-                 INNER JOIN subcategorias s ON p.subcategoria_id = s.id
-                 INNER JOIN categorias c ON s.categoria_id = c.id
-                 WHERE p.is_promocion = 1";
+              FROM Productos p
+              INNER JOIN subcategorias s ON p.subcategoria_id = s.id
+              INNER JOIN categorias c ON s.categoria_id = c.id
+              WHERE p.is_promocion = 1";
 
             $stmt = $this->conn->prepare($sql);
             $stmt->execute();
@@ -193,9 +227,10 @@ class ProductoModel
     public function getById($id)
     {
         $query = "SELECT 
-        p.id, p.nombreProducto, p.descripcionProducto, p.codigo_barras,p.precio,
+        p.id, p.nombreProducto, p.descripcionProducto, p.codigo_barras, p.precio,
         p.precio_1, p.precio_2, p.precio_3, p.precio_4, p.imagen, 
         p.descuento, p.stock, p.categoria_id, p.subcategoria_id, 
+        p.isActive, p.is_promocion, p.puntos_otorgados, p.cantidad_minima_para_puntos,
         c.nombreCategoria AS categoria_nombre, s.nombrSubcategoria AS subcategoria_nombre
     FROM productos p
     LEFT JOIN categorias c ON p.categoria_id = c.id
@@ -220,31 +255,30 @@ class ProductoModel
         }
     }
 
-
     public function update($id, $data)
     {
-        // La consulta SQL para actualizar los datos de un producto, sin modificar la fecha de creación
-        $query = "UPDATE Productos SET 
-            nombreProducto = :nombreProducto, 
-            descripcionProducto = :descripcionProducto, 
-            precio = :precio, 
-            precio_1 = :precio_1, 
-            precio_2 = :precio_2, 
-            precio_3 = :precio_3, 
-            precio_4 = :precio_4, 
-            stock = :stock, 
-            subcategoria_id = :subcategoria_id, 
-            codigo_barras = :codigo_barras, 
-            imagen = :imagen, 
-            isActive = :isActive, 
-            is_promocion = :is_promocion, 
-            descuento = :descuento, 
-            categoria_id = :categoria_id 
-            WHERE id = :id";
+        $query = "UPDATE productos SET 
+        nombreProducto = :nombreProducto, 
+        descripcionProducto = :descripcionProducto, 
+        precio = :precio, 
+        precio_1 = :precio_1, 
+        precio_2 = :precio_2, 
+        precio_3 = :precio_3, 
+        precio_4 = :precio_4, 
+        stock = :stock, 
+        subcategoria_id = :subcategoria_id, 
+        codigo_barras = :codigo_barras, 
+        imagen = :imagen, 
+        isActive = :isActive, 
+        is_promocion = :isPromocion, 
+        descuento = :descuento, 
+        categoria_id = :categoria_id,
+        puntos_otorgados = :puntos_otorgados,
+        cantidad_minima_para_puntos = :cantidad_minima_para_puntos
+        WHERE id = :id";
 
         $stmt = $this->conn->prepare($query);
 
-        // Vincular los parámetros con los datos
         $stmt->bindParam(':nombreProducto', $data['nombreProducto']);
         $stmt->bindParam(':descripcionProducto', $data['descripcionProducto']);
         $stmt->bindParam(':precio', $data['precio']);
@@ -255,18 +289,18 @@ class ProductoModel
         $stmt->bindParam(':stock', $data['stock']);
         $stmt->bindParam(':subcategoria_id', $data['subcategoria_id']);
         $stmt->bindParam(':codigo_barras', $data['codBarras']);
-        $stmt->bindParam(':imagen', $data['imagen']); // Asegúrate de que la imagen esté aquí
-        $stmt->bindParam(':isActive', $data['isActive']); // Esto debe ser correcto
-        $stmt->bindParam(':is_promocion', $data['isPromocion']); // Nueva bandera de promoción
-        $stmt->bindParam(':descuento', $data['descuento']); // Nuevo campo de descuento
-        $stmt->bindParam(':categoria_id', $data['categoria_id']); // Nueva categoría asociada
-        $stmt->bindParam(':id', $id); // Aquí pasas el ID directamente
+        $stmt->bindParam(':imagen', $data['imagen']);
+        $stmt->bindParam(':isActive', $data['isActive']);
+        $stmt->bindParam(':isPromocion', $data['isPromocion']);
+        $stmt->bindParam(':descuento', $data['descuento']);
+        $stmt->bindParam(':categoria_id', $data['categoria_id']);
+        $stmt->bindParam(':puntos_otorgados', $data['puntos_otorgados']);
+        $stmt->bindParam(':cantidad_minima_para_puntos', $data['cantidad_minima_para_puntos']);
+        $stmt->bindParam(':id', $id);
 
-        // Ejecutar la consulta
         if ($stmt->execute()) {
             return true;
         } else {
-            // Si hay un error, obtener información sobre el mismo
             $errorInfo = $stmt->errorInfo();
             echo "Error: " . $errorInfo[2];
             return false;
@@ -302,35 +336,49 @@ class ProductoModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos un array con los resultados
     }
 
-    public function ObtenerProductosPopulares()
+    public function ObtenerProductosPopulares($limit = 12, $offset = 0)
     {
-        $sql = "SELECT p.id, 
-                     p.nombreProducto, 
-                     p.descripcionProducto, 
-                     p.precio, 
-                     p.precio_1, 
-                     p.precio_2, 
-                     p.precio_3, 
-                     p.precio_4, 
-                     p.stock, 
-                     p.codigo_barras, 
-                     p.imagen, 
-                     p.isActive, 
-                     p.fechaCreacion, 
-                     p.is_promocion, 
-                     p.descuento, 
-                     c.nombreCategoria AS nombreCategoria, 
-                     s.nombrSubcategoria AS nombreSubcategoria
-                 FROM Productos p
-                 INNER JOIN subcategorias s ON p.subcategoria_id = s.id
-                 INNER JOIN categorias c ON s.categoria_id = c.id
-                 ;
-";
+        $sql = "
+   SELECT p.id, 
+           p.nombreProducto, 
+           p.descripcionProducto, 
+           p.precio, 
+           p.precio_1, 
+           p.precio_2, 
+           p.precio_3, 
+           p.precio_4, 
+           p.stock, 
+           p.codigo_barras, 
+           p.imagen, 
+           p.isActive, 
+           p.fechaCreacion, 
+           p.is_promocion, 
+           p.descuento,
+           p.cantidad_minima_para_puntos,
+           p.puntos_otorgados,
+           c.nombreCategoria AS nombreCategoria, 
+           s.nombrSubcategoria AS nombreSubcategoria
+    FROM productos p
+    INNER JOIN subcategorias s ON p.subcategoria_id = s.id
+    INNER JOIN categorias c ON s.categoria_id = c.id
+    WHERE p.isActive = 1
+    LIMIT :limit OFFSET :offset;
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    ";
+
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error en ObtenerProductosPopulares(): " . $e->getMessage());
+            return false;
+        }
     }
+
 
     // Método para obtener productos por categoría
     // Método para obtener productos por categoría
@@ -418,5 +466,69 @@ class ProductoModel
             error_log("Error en la consulta: " . $e->getMessage());
             return [];  // En caso de error, devolvemos un arreglo vacío
         }
+    }
+
+    public function searchAdminProducts($query)
+    {
+        // Asegúrate de que $query no esté vacío o sea nulo
+        if (empty($query)) {
+            return [];  // Retorna un arreglo vacío si no se proporciona una consulta
+        }
+
+        // Agregar los comodines de búsqueda al término de búsqueda
+        $searchTerm = '%' . $query . '%';
+
+        $sql = "
+    SELECT p.*, c.nombreCategoria, s.nombrSubcategoria
+    FROM productos p
+    JOIN subcategorias s ON p.subcategoria_id = s.id
+    JOIN categorias c ON s.categoria_id = c.id
+  WHERE (
+        p.nombreProducto COLLATE utf8mb4_general_ci LIKE :queryProducto
+        OR c.nombreCategoria COLLATE utf8mb4_general_ci LIKE :queryCategoria
+        OR s.nombrSubcategoria COLLATE utf8mb4_general_ci LIKE :querySubcategoria
+        OR p.codigo_barras COLLATE utf8mb4_general_ci LIKE :queryCodigoBarras
+    )
+    ";
+
+
+        try {
+            // Preparamos la sentencia
+            $stmt = $this->conn->prepare($sql);
+
+            // Preparamos los parámetros de búsqueda
+            $params = [
+                ':queryProducto' => $searchTerm,
+                ':queryCategoria' => $searchTerm,
+                ':querySubcategoria' => $searchTerm,
+                ':queryCodigoBarras' => $searchTerm // Agregado el parámetro para buscar por código de barras
+            ];
+
+            // Ejecutamos la consulta pasando los parámetros
+            $stmt->execute($params);
+
+            // Obtenemos los resultados
+            $resultados = $stmt->fetchAll();
+
+            // Si no hay resultados, retornamos un arreglo vacío
+            if (empty($resultados)) {
+                return [];
+            }
+
+            return $resultados;  // Devolvemos los productos encontrados
+        } catch (PDOException $e) {
+            // Loguea el error si ocurre algún problema con la consulta
+            error_log("Error en la consulta: " . $e->getMessage());
+            return [];  // En caso de error, devolvemos un arreglo vacío
+        }
+    }
+
+    //para el sistema de canje de puntos
+    public function obtenerProductosConPuntos()
+    {
+        $query = "SELECT * FROM productos WHERE puntos_otorgados > 0 AND isActive = 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

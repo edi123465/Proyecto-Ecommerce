@@ -21,78 +21,85 @@ class PedidosController
         $this->modeloPedidos = new PedidoModel($this->conn); // Usa $this->conn para el modelo
     }
     public function ordenPedido()
-    {
-        $jsonInput = file_get_contents('php://input');
-        error_log("JSON recibido: " . $jsonInput);  // Log para revisar el JSON recibido
-        $data = json_decode($jsonInput, true);
-        error_log("Datos recibidos: " . print_r($data, true));
+{
+    $jsonInput = file_get_contents('php://input');
+    error_log("JSON recibido: " . $jsonInput);
+    $data = json_decode($jsonInput, true);
+    error_log("Datos recibidos: " . print_r($data, true));
 
-        if (
-            is_null($data) ||
-            !isset($data['usuario_id'], $data['fecha'], $data['subtotal'], $data['iva'], $data['total'], $data['estado'], $data['numeroPedido'], $data['totalProductos'], $data['metodoPago'], $data['productos'])
-        ) {
-            echo json_encode(['success' => false, 'message' => 'Datos incompletos o mal formateados.']);
-            return;
-        }
+    if (
+        is_null($data) ||
+        !isset($data['usuario_id'], $data['fecha'], $data['subtotal'], $data['iva'], $data['total'], $data['estado'], $data['numeroPedido'], $data['totalProductos'], $data['metodoPago'], $data['productos'])
+    ) {
+        echo json_encode(['success' => false, 'message' => 'Datos incompletos o mal formateados.']);
+        return;
+    }
 
-        // Extraer datos del pedido
-        $usuario_id = $data['usuario_id'];
-        $fecha = $data['fecha'];
-        $subtotal = $data['subtotal'];
-        $iva = $data['iva'];
-        $total = $data['total'];
-        $estado = $data['estado'];
-        $numeroPedido = $data['numeroPedido'];
-        $totalProductos = $data['totalProductos'];
-        $productos = $data['productos'];
-        $metodoPago = $data['metodoPago'];
-        
-        // Log para revisar la fecha antes de la validación
-        error_log("Fecha recibida: " . $fecha);
+    // Extraer datos del pedido
+    $usuario_id = $data['usuario_id'];
+    $fecha = $data['fecha'];
+    $subtotal = $data['subtotal'];
+    $iva = $data['iva'];
+    $total = $data['total'];
+    $estado = $data['estado'];
+    $numeroPedido = $data['numeroPedido'];
+    $totalProductos = $data['totalProductos'];
+    $productos = $data['productos'];
+    $metodoPago = $data['metodoPago'];
+    $direccion = $data['direccion'];
+    $puntos = isset($data['puntos']) ? floatval($data['puntos']) : 0; // 👈 Recoger puntos
 
-        // Validar la fecha (asegurarse de que esté en el formato correcto YYYY-MM-DD HH:MM:SS)
-        $fecha_valida = DateTime::createFromFormat('Y-m-d H:i:s', $fecha);
-        if ($fecha_valida === false) {
-            echo json_encode(['success' => false, 'message' => 'Formato de fecha inválido.']);
-            return;
-        }
+    error_log("Fecha recibida: " . $fecha);
 
-        
-        // Crear pedido
-        $pedido_id = $this->modeloPedidos->crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $metodoPago);
-        error_log("Pedido creado con ID: " . $pedido_id);
+    // Validar la fecha
+    $fecha_valida = DateTime::createFromFormat('Y-m-d H:i:s', $fecha);
+    if ($fecha_valida === false) {
+        echo json_encode(['success' => false, 'message' => 'Formato de fecha inválido.']);
+        return;
+    }
 
-        if ($pedido_id) {
+    // Crear pedido
+    $pedido_id = $this->modeloPedidos->crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $metodoPago, $direccion);
+    error_log("Pedido creado con ID: " . $pedido_id);
 
-            // Insertar detalles del pedido
-            foreach ($productos as $producto) {
-                if (isset($producto['id'], $producto['cantidad'], $producto['precio'], $producto['subtotal'], $producto['imagen'])) {
-                    $resultado = $this->modeloPedidos->insertarDetallePedido(
-                        $pedido_id,
-                        $producto['id'],
-                        $producto['cantidad'],
-                        $producto['precio'],
-                        $producto['subtotal'],
-                        $producto['imagen']
-                    );
+    if ($pedido_id) {
+        // Insertar detalles del pedido
+        foreach ($productos as $producto) {
+            if (isset($producto['id'], $producto['cantidad'], $producto['precio'], $producto['subtotal'], $producto['imagen'])) {
+                $resultado = $this->modeloPedidos->insertarDetallePedido(
+                    $pedido_id,
+                    $producto['id'],
+                    $producto['cantidad'],
+                    $producto['precio'],
+                    $producto['subtotal'],
+                    $producto['imagen']
+                );
 
-                    if (!$resultado) {
-                        echo json_encode(['success' => false, 'message' => 'Error al insertar detalle para producto ID: ' . $producto['id']]);
-                        return;
-                    }
-                } else {
-                    echo json_encode(['success' => false, 'message' => 'Faltan datos en uno o más productos.']);
+                if (!$resultado) {
+                    echo json_encode(['success' => false, 'message' => 'Error al insertar detalle para producto ID: ' . $producto['id']]);
                     return;
                 }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Faltan datos en uno o más productos.']);
+                return;
             }
-
-            echo json_encode(['success' => true, 'pedido_id' => $pedido_id, 'message' => 'Pedido y detalles creados exitosamente.']);
-            exit;
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Error al crear el pedido.']);
-            exit;
         }
+
+        // 👇 Actualizar puntos del usuario
+        if ($usuario_id && $puntos > 0) {
+            $resultadoPuntos = $this->modeloPedidos->sumarPuntosUsuario($usuario_id, $puntos);
+            if (!$resultadoPuntos) {
+                error_log("No se pudieron sumar los puntos al usuario con ID: $usuario_id");
+            }
+        }
+
+        echo json_encode(['success' => true, 'pedido_id' => $pedido_id, 'message' => 'Pedido y detalles creados exitosamente.']);
+        exit;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al crear el pedido.']);
+        exit;
     }
+}
 
     public function obtenerTodo()
     {

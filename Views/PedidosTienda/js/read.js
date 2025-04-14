@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <td>${pedido.NumeroPedido}</td>
                 <td>${pedido.NombreUsuario}</td>
                 <td>${new Date(pedido.FechaCreacion).toLocaleDateString()}</td>
+                <td>${pedido.DireccionPedido || 'Sin dirección'}</td> <!-- Dirección agregada -->
                 <td>${pedido.EstadoPedido}</td>
                 <td>${pedido.SubtotalPedido}</td>
                 <td>${pedido.IVAPedido}</td>

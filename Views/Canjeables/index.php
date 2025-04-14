@@ -24,7 +24,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MILOGAR | Gestión Pedidos</title>
+    <title>MILOGAR | Canjes</title>
     <!-- Favicon icon-->
     <link rel="shortcut icon" type="image/x-icon" href="../../assets/imagenesMilogar/logomilo.jpg">
 
@@ -71,7 +71,6 @@ if (!isset($_SESSION['user_id'])) {
             color: white;
             /* Texto blanco para el botón activo */
         }
-
     </style>
 </head>
 
@@ -104,30 +103,180 @@ if (!isset($_SESSION['user_id'])) {
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">Gestión pedidos(Tienda virtual)</h1>
+                            <h1 class="m-0">Gestión de productos a canjear</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-success" data-toggle="modal" data-target="#modalCanjeable">Agregar Canjeable</button>
+            <a href="#" class="btn btn-secondary" onclick="window.open('../../menu', '_self')">Regresar al menú</a>
+            <!-- Botón para abrir el modal -->
+            <br><br>
+
+            <!-- El Modal -->
+            <div class="modal fade" id="modalCanjeable" tabindex="-1" role="dialog" aria-labelledby="modalCanjeableLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalCanjeableLabel">Formulario para Crear Canjeable</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Formulario dentro del modal -->
+                            <form action="" method="POST" enctype="multipart/form-data">
+                                <!-- Campo para producto_id -->
+                                <div class="form-group">
+                                    <label for="producto_id">Producto:</label>
+                                    <select id="producto_id" name="producto_id" class="form-control" required>
+                                        <option value="">Seleccione un producto</option>
+                                        <!-- Aquí se llenarán los productos dinámicamente -->
+                                    </select>
+                                </div>
+                                <!-- Campo para nombre -->
+                                <div class="form-group">
+                                    <label for="nombre">Nombre:</label>
+                                    <input type="text" id="nombre" name="nombre" class="form-control" required maxlength="100" placeholder="Nombre del canjeable">
+                                </div>
+
+                                <!-- Campo para descripcion -->
+                                <div class="form-group">
+                                    <label for="descripcion">Descripción:</label>
+                                    <textarea id="descripcion" name="descripcion" class="form-control" required placeholder="Descripción del canjeable"></textarea>
+                                </div>
+
+                                <!-- Campo para tipo (producto o cupon) -->
+                                <div class="form-group">
+                                    <label for="tipo">Tipo:</label>
+                                    <select id="tipo" name="tipo" class="form-control" required>
+                                        <option value="producto">Producto</option>
+                                        <option value="cupon">Cupón</option>
+                                    </select>
+                                </div>
+
+                                <!-- Campo para valor_descuento -->
+                                <div class="form-group">
+                                    <label for="valor_descuento">Valor de Descuento:</label>
+                                    <input type="number" id="valor_descuento" name="valor_descuento" class="form-control" step="0.01" placeholder="Valor del descuento" required>
+                                </div>
+
+                                <!-- Campo para puntos_necesarios -->
+                                <div class="form-group">
+                                    <label for="puntos_necesarios">Puntos Necesarios:</label>
+                                    <input type="number" id="puntos_necesarios" name="puntos_necesarios" class="form-control" required placeholder="Puntos necesarios">
+                                </div>
+
+                                <!-- Campo para estado (activo o inactivo) -->
+                                <div class="form-group">
+                                    <label for="estado">Estado:</label>
+                                    <select id="estado" name="estado" class="form-control" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                    </select>
+                                </div>
+
+                                <!-- Campo para imagen (vista previa) -->
+                                <div class="form-group">
+                                    <label for="imagenPreview">Imagen del Producto:</label><br>
+                                    <img id="imagenPreview" src="" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
+                                </div>
+
+                                <input type="file" id="imagen" name="imagen">
+
+
+
+                                <!-- Botón para enviar el formulario -->
+                                <button type="submit" class="btn btn-primary">Crear Canjeable</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal de Edición de Canjeables -->
+            <div class="modal fade" id="modalEditarCanjeable" tabindex="-1" role="dialog" aria-labelledby="modalEditarCanjeableLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalEditarCanjeableLabel">Editar Canjeable</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="formEditarCanjeable">
+                                <input type="hidden" id="canjeable_id">
+                                <div class="form-group">
+                                    <label for="producto_idEditar">Producto</label>
+                                    <select class="form-control" id="producto_idEditar" required>
+                                        <!-- Las opciones de productos se cargarán dinámicamente aquí -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nombreEditar">Nombre</label>
+                                    <input type="text" class="form-control" id="nombreEditar" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="descripcionEditar">Descripción</label>
+                                    <textarea class="form-control" id="descripcionEditar" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="tipoEditar">Tipo</label>
+                                    <select class="form-control" id="tipoEditar" required>
+                                        <option value="cupon">Cupón</option>
+                                        <option value="producto">Producto</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="valor_descuentoEditar">Valor Descuento</label>
+                                    <input type="number" class="form-control" id="valor_descuentoEditar" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="puntos_necesariosEditar">Puntos Necesarios</label>
+                                    <input type="number" class="form-control" id="puntos_necesariosEditar" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="estadoEditar">Estado</label>
+                                    <select class="form-control" id="estadoEditar" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="imagenEditar">Imagen</label>
+                                    <input type="file" class="form-control-file" id="imagenEditar">
+                                </div>
+                                <div class="form-group">
+                                    <label for="imagenPreviewEditar">Vista previa de imagen</label>
+                                    <img id="imagenPreviewEditar" src="" alt="Vista previa" style="width: 100px;">
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <a href="#" class="btn btn-secondary" onclick="window.open('../../menu', '_self')">Regresar al menú</a>
-            
-            <br><br><div class="content">
+            <div class="content">
                 <div class="container-fluid">
                     <div class="table-responsive">
-                        <table id="tabla_Pedidos" class="table table-bordered table-striped">
+                        <table id="tabla_canjes" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>ID Pedido</th>
-                                    <th>Número de pedido</th>
-                                    <th>Nombre de Usuario</th>
-                                    <th>Fecha</th>
-                                    <th>Dirección</th>
+                                    <th>Id canje</th>
+                                    <th>Id Producto</th>
+                                    <th>Nombre</th>
+                                    <th>Descripcion</th>
+                                    <th>Tipo</th>
+                                    <th>Valor de descuento</th>
+                                    <th>Puntos Necesarios</th>
                                     <th>Estado</th>
-                                    <th>Subtotal</th>
-                                    <th>IVA</th>
-                                    <th>Total a pagar</th>
-                                    <th>Items</th>
+                                    <th>Imagen</th>
+                                    <th>Fecha de creacion</th>
                                     <th>Acciones</th>
 
                                 </tr>
