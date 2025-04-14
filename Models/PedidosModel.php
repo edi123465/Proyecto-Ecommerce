@@ -9,88 +9,92 @@ class PedidoModel
         $this->conn = $db;
     }
 
-    public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $tipoPago, $direccion)
-{
-    try {
-        // Insertar en la tabla 'pedidos' incluyendo la dirección
-        $sql = "INSERT INTO Pedidos (usuario_id, fechaCreacion, subtotal, iva, total, estado, numeroPedido, items, tipoPago, direccion) 
-                VALUES (:usuario_id, now(), :subtotal, :iva, :total, :estado, :numeroPedido, :items, :tipoPago, :direccion)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
-        $stmt->bindParam(':subtotal', $subtotal, PDO::PARAM_STR);
-        $stmt->bindParam(':iva', $iva, PDO::PARAM_STR);
-        $stmt->bindParam(':total', $total, PDO::PARAM_STR);
-        $stmt->bindParam(':estado', $estado, PDO::PARAM_STR);
-        $stmt->bindParam(':numeroPedido', $numeroPedido, PDO::PARAM_STR);
-        $stmt->bindParam(':items', $totalProductos, PDO::PARAM_INT);
-        $stmt->bindParam(':tipoPago', $tipoPago, PDO::PARAM_STR);
-        $stmt->bindParam(':direccion', $direccion, PDO::PARAM_STR); // Nuevo bind
-
-        if ($stmt->execute()) {
-            $pedido_id = $this->conn->lastInsertId();
-            return $pedido_id;
-        } else {
-            error_log("Error al ejecutar la consulta: " . implode(", ", $stmt->errorInfo()));
-            var_dump($stmt->errorInfo());
+    public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $tipoPago, $direccion, $descuento)
+    {
+        try {
+            // Insertar en la tabla 'pedidos' incluyendo la dirección y el descuento
+            $sql = "INSERT INTO Pedidos (usuario_id, fechaCreacion, subtotal, iva, descuento, total, estado, numeroPedido, items, tipoPago, direccion) 
+                    VALUES (:usuario_id, now(), :subtotal, :iva, :descuento, :total, :estado, :numeroPedido, :items, :tipoPago, :direccion)";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+            $stmt->bindParam(':subtotal', $subtotal, PDO::PARAM_STR);
+            $stmt->bindParam(':iva', $iva, PDO::PARAM_STR);
+            $stmt->bindParam(':descuento', $descuento, PDO::PARAM_STR); // Nuevo bind
+            $stmt->bindParam(':total', $total, PDO::PARAM_STR);
+            $stmt->bindParam(':estado', $estado, PDO::PARAM_STR);
+            $stmt->bindParam(':numeroPedido', $numeroPedido, PDO::PARAM_STR);
+            $stmt->bindParam(':items', $totalProductos, PDO::PARAM_INT);
+            $stmt->bindParam(':tipoPago', $tipoPago, PDO::PARAM_STR);
+            $stmt->bindParam(':direccion', $direccion, PDO::PARAM_STR);
+    
+            if ($stmt->execute()) {
+                $pedido_id = $this->conn->lastInsertId();
+                return $pedido_id;
+            } else {
+                error_log("Error al ejecutar la consulta: " . implode(", ", $stmt->errorInfo()));
+                var_dump($stmt->errorInfo());
+            }
+            return false;
+        } catch (PDOException $e) {
+            error_log("Error al crear el pedido: " . $e->getMessage());
+            return false;
         }
-        return false;
-    } catch (PDOException $e) {
-        error_log("Error al crear el pedido: " . $e->getMessage());
-        return false;
     }
-}
+    
+    
 
     public function obtenerTodosLosPedidos()
-    {
-        $query = "
-                    SELECT 
-    p.id AS PedidoID, -- ID del pedido
-    p.numeroPedido AS NumeroPedido, -- Número de pedido
-    p.usuario_id AS UsuarioID, -- ID del usuario
-    u.NombreUsuario AS NombreUsuario, -- Nombre del usuario
-    p.fechaCreacion AS FechaCreacion, -- Fecha de creación del pedido
-    p.direccion AS DireccionPedido, -- 
-    SUM(dp.subtotal) AS SubtotalPedido, -- Subtotal del pedido, agrupado por pedido
-    0 AS IVAPedido, -- IVA del pedido (0%)
-    SUM(dp.subtotal) AS TotalPedido, -- Total del pedido sin IVA
-    p.estado AS EstadoPedido, -- Estado del pedido
-    SUM(dp.cantidad) AS ItemsPedido -- Cantidad total de productos solicitados
-FROM 
-    pedidos p
-JOIN 
-    DetallesPedidos dp ON p.id = dp.pedido_id
-JOIN 
-    usuarios u ON p.usuario_id = u.id
-JOIN 
-    productos pr ON dp.producto_id = pr.id
-GROUP BY 
-    p.id, p.numeroPedido, p.usuario_id, u.NombreUsuario, p.fechaCreacion, p.estado
-ORDER BY 
-    p.id ASC;
-
+{
+    $query = "
+    SELECT 
+        p.id AS PedidoID,
+        p.numeroPedido AS NumeroPedido,
+        p.usuario_id AS UsuarioID,
+        u.NombreUsuario AS NombreUsuario,
+        p.fechaCreacion AS FechaCreacion,
+        p.direccion AS DireccionPedido,
+        p.descuento AS DescuentoPedido,
+        SUM(dp.subtotal) AS SubtotalPedido,
+        0 AS IVAPedido,
+        (SUM(dp.subtotal) - p.descuento) AS TotalPedido, -- ✅ Aquí está el cambio
+        p.estado AS EstadoPedido,
+        SUM(dp.cantidad) AS ItemsPedido
+    FROM 
+        pedidos p
+    JOIN 
+        DetallesPedidos dp ON p.id = dp.pedido_id
+    JOIN 
+        usuarios u ON p.usuario_id = u.id
+    JOIN 
+        productos pr ON dp.producto_id = pr.id
+    GROUP BY 
+        p.id, p.numeroPedido, p.usuario_id, u.NombreUsuario, p.fechaCreacion, 
+        p.direccion, p.descuento, p.estado
+    ORDER BY 
+        p.id ASC;
     ";
 
-        $stmt = $this->conn->query($query);
-        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $this->conn->query($query);
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Verifica el resultado de la consulta
-        error_log("Pedidos obtenidos: " . json_encode($resultados));
+    error_log("Pedidos obtenidos: " . json_encode($resultados));
 
-        return $resultados;
-    }
+    return $resultados;
+}
 
 
     public function obtenerPedidosPorUsuario($userId)
-{
-    try {
-        // Verificar si $userId está definido correctamente
-        if (empty($userId)) {
-            error_log("Error: userId está vacío o no definido.");
-            return false;
-        }
+    {
+        try {
+            // Verificar si $userId está definido correctamente
+            if (empty($userId)) {
+                error_log("Error: userId está vacío o no definido.");
+                return false;
+            }
 
-        // Consulta SQL con el filtro por usuario
-        $query = "
+            // Consulta SQL con el filtro por usuario
+            $query = "
             SELECT 
                 p.id AS PedidoID,
                 p.numeroPedido AS NumeroPedido,
@@ -118,32 +122,32 @@ ORDER BY
                 p.id ASC
         ";
 
-        // Preparar la consulta
-        $stmt = $this->conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
+            // Preparar la consulta
+            $stmt = $this->conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
 
-        if (!$stmt) {
-            error_log("Error al preparar la consulta: " . implode(", ", $this->conn->errorInfo()));
+            if (!$stmt) {
+                error_log("Error al preparar la consulta: " . implode(", ", $this->conn->errorInfo()));
+                return false;
+            }
+
+            // Asignar el parámetro y ejecutar la consulta
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Verificar si la consulta tuvo éxito
+            if ($stmt->errorCode() !== '00000') {
+                error_log("Error en la ejecución de la consulta: " . implode(", ", $stmt->errorInfo()));
+                return false;
+            }
+
+            // Devolver el objeto PDOStatement para que se maneje el fetch en el controlador
+            return $stmt;
+        } catch (PDOException $e) {
+            // Capturar y registrar cualquier excepción de PDO
+            error_log("Error en obtenerPedidosPorUsuario: " . $e->getMessage());
             return false;
         }
-
-        // Asignar el parámetro y ejecutar la consulta
-        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        // Verificar si la consulta tuvo éxito
-        if ($stmt->errorCode() !== '00000') {
-            error_log("Error en la ejecución de la consulta: " . implode(", ", $stmt->errorInfo()));
-            return false;
-        }
-
-        // Devolver el objeto PDOStatement para que se maneje el fetch en el controlador
-        return $stmt;
-    } catch (PDOException $e) {
-        // Capturar y registrar cualquier excepción de PDO
-        error_log("Error en obtenerPedidosPorUsuario: " . $e->getMessage());
-        return false;
     }
-}
 
 
 
@@ -215,7 +219,7 @@ ORDER BY
             return false;
         }
     }
-    
+
     // Método para actualizar los puntos del usuario
     public function sumarPuntosUsuario($usuario_id, $puntos)
     {

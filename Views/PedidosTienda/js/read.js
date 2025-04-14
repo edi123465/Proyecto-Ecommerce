@@ -1,15 +1,15 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     // Función para obtener los pedidos
     const obtenerPedidos = async () => {
         try {
             // Realizando la solicitud fetch
             const response = await fetch('http://localhost:8088/Milogar/Controllers/PedidosController.php?action=obtenerTodo');
-            
+
             // Verificar si la respuesta fue exitosa
             if (!response.ok) {
                 throw new Error('Error en la solicitud: ' + response.status);
             }
-            
+
             // Obtener los datos en formato JSON
             const respuestaJson = await response.json();
 
@@ -32,32 +32,34 @@ document.addEventListener("DOMContentLoaded", function() {
     // Función para mostrar los pedidos en la tabla
     const mostrarPedidosEnTabla = (pedidos) => {
         const tablaBody = document.querySelector('#tabla_Pedidos tbody');
-        
+
         // Limpiar la tabla antes de agregar los nuevos datos
         tablaBody.innerHTML = '';
-        
+
         // Recorrer los pedidos y agregar las filas en la tabla
         pedidos.forEach(pedido => {
             const row = document.createElement('tr');
-            
+
             // Crear las celdas con los datos del pedido
             row.innerHTML = `
-                <td>${pedido.PedidoID}</td>
-                <td>${pedido.NumeroPedido}</td>
-                <td>${pedido.NombreUsuario}</td>
-                <td>${new Date(pedido.FechaCreacion).toLocaleDateString()}</td>
-                <td>${pedido.DireccionPedido || 'Sin dirección'}</td> <!-- Dirección agregada -->
-                <td>${pedido.EstadoPedido}</td>
-                <td>${pedido.SubtotalPedido}</td>
-                <td>${pedido.IVAPedido}</td>
-                <td>${pedido.TotalPedido}</td>
-                <td>${pedido.ItemsPedido}</td>
-                <td>
-                    <button class="btn btn-info btn-sm" onclick="mostrarDetallesPedido(${pedido.PedidoID})">Ver</button>
-                    <button class="btn btn-danger btn-sm" onclick="eliminarPedido(${pedido.idPedido})">Eliminar</button>
-                </td>
+            <td>${pedido.PedidoID}</td>
+            <td>${pedido.NumeroPedido}</td>
+            <td>${pedido.NombreUsuario}</td>
+            <td>${new Date(pedido.FechaCreacion).toLocaleDateString()}</td>
+            <td>${pedido.DireccionPedido || 'Sin dirección'}</td>
+            <td>${pedido.EstadoPedido}</td>
+            <td>${pedido.SubtotalPedido}</td>
+            <td>${pedido.IVAPedido}</td>
+            <td>${pedido.DescuentoPedido}</td> <!-- Agregado aquí -->
+            <td>${pedido.TotalPedido}</td>
+            <td>${pedido.ItemsPedido}</td>
+            <td>
+                <button class="btn btn-info btn-sm" onclick="mostrarDetallesPedido(${pedido.PedidoID})">Ver</button>
+                <button class="btn btn-danger btn-sm" onclick="eliminarPedido(${pedido.idPedido})">Eliminar</button>
+            </td>
             `;
-            
+
+
             // Agregar la fila a la tabla
             tablaBody.appendChild(row);
         });

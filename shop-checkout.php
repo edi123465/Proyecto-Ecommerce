@@ -405,7 +405,7 @@ echo $userId . "" . $userId;
                                     <label for="telefono" class="form-label">Teléfono</label>
                                     <input type="text" class="form-control" id="celular" placeholder="Ingresa tu teléfono" required>
                                 </div>
-                                <div class="mb-3">
+                                <div class="mb-3" id="direccionContainer">
                                     <label for="email" class="form-label">Dirección de envío</label>
                                     <input type="text" class="form-control" id="direccion" placeholder="Ingresa tu dirección de envio" required>
                                 </div>
@@ -601,6 +601,28 @@ echo $userId . "" . $userId;
                     alert("Hubo un error al realizar la solicitud de pago.");
                 });
         });
+        document.addEventListener("DOMContentLoaded", function () {
+    const direccionContainer = document.getElementById("direccionContainer");
+    const recogerOption = document.getElementById("recogerEnTienda");
+    const enviarOption = document.getElementById("agregarDireccionEnvio");
+
+    // Función para mostrar u ocultar el campo de dirección según la opción seleccionada
+    function toggleDireccion() {
+        if (enviarOption.checked) {
+            direccionContainer.style.display = "block";
+        } else {
+            direccionContainer.style.display = "none";
+            document.getElementById("direccion").value = ""; // Limpiar si se oculta
+        }
+    }
+
+    // Detectar cambio en los radio buttons
+    recogerOption.addEventListener("change", toggleDireccion);
+    enviarOption.addEventListener("change", toggleDireccion);
+
+    // Llamar a la función al cargar la página por si ya hay una opción seleccionada
+    toggleDireccion();
+});
     </script>
     <script src="assets/js/cart.js"></script>
     <script src="assets/js/theme.min.js"></script>

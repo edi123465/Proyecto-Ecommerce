@@ -126,6 +126,7 @@ if (!isset($_SESSION['user_id'])) {
                                     <th>Estado</th>
                                     <th>Subtotal</th>
                                     <th>IVA</th>
+                                    <th>Descuento</th>
                                     <th>Total a pagar</th>
                                     <th>Items</th>
                                     <th>Acciones</th>

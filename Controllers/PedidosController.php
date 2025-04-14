@@ -40,14 +40,15 @@ class PedidosController
     $fecha = $data['fecha'];
     $subtotal = $data['subtotal'];
     $iva = $data['iva'];
-    $total = $data['total'];
+    $descuento = isset($data['descuento']) ? $data['descuento'] : 0;
+    $total = ($subtotal - $descuento) + $iva;
     $estado = $data['estado'];
     $numeroPedido = $data['numeroPedido'];
     $totalProductos = $data['totalProductos'];
     $productos = $data['productos'];
     $metodoPago = $data['metodoPago'];
     $direccion = $data['direccion'];
-    $puntos = isset($data['puntos']) ? floatval($data['puntos']) : 0; // 👈 Recoger puntos
+    $puntos = isset($data['puntos']) ? floatval($data['puntos']) : 0;
 
     error_log("Fecha recibida: " . $fecha);
 
@@ -58,11 +59,12 @@ class PedidosController
         return;
     }
 
-    // Crear pedido
-    $pedido_id = $this->modeloPedidos->crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $metodoPago, $direccion);
+    // Crear pedido con descuento incluido
+    $pedido_id = $this->modeloPedidos->crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $metodoPago, $direccion, $descuento);
     error_log("Pedido creado con ID: " . $pedido_id);
 
     if ($pedido_id) {
+        
         // Insertar detalles del pedido
         foreach ($productos as $producto) {
             if (isset($producto['id'], $producto['cantidad'], $producto['precio'], $producto['subtotal'], $producto['imagen'])) {
@@ -85,7 +87,7 @@ class PedidosController
             }
         }
 
-        // 👇 Actualizar puntos del usuario
+        // Sumar puntos si corresponde
         if ($usuario_id && $puntos > 0) {
             $resultadoPuntos = $this->modeloPedidos->sumarPuntosUsuario($usuario_id, $puntos);
             if (!$resultadoPuntos) {
