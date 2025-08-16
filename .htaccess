@@ -1,0 +1,73 @@
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+RewriteEngine On
+RewriteRule ^buscar/(.*)$ /Milogar/Controllers/ProductoController.php?action=buscar&query=$1 [L]
+# Protección para el panel administrativo
+RewriteCond %{REQUEST_URI} ^/Milogar/menu.php$
+RewriteCond %{HTTP_COOKIE} !^.*PHPSESSID=.*$
+RewriteRule ^(.*)$ /Milogar/index.php [R=301,L]
+
+# Protección para RolesUsuarios
+RewriteCond %{REQUEST_URI} ^/Milogar/Views/RolesUsuarios/index\.php$ [NC]
+RewriteCond %{HTTP_COOKIE} !PHPSESSID= [NC]
+RewriteRule ^.*$ /Milogar/index.php [R=301,L]
+
+# Protección para Usuarios
+RewriteCond %{REQUEST_URI} ^/Milogar/Views/Usuarios/index\.php$ [NC]
+RewriteCond %{HTTP_COOKIE} !PHPSESSID= [NC]
+RewriteRule ^.*$ /Milogar/index.php [R=301,L]
+
+# Protección para Categorias
+RewriteCond %{REQUEST_URI} ^/Milogar/Views/Categorias/index\.php$ [NC]
+RewriteCond %{HTTP_COOKIE} !PHPSESSID= [NC]
+RewriteRule ^.*$ /Milogar/index.php [R=301,L]
+
+# Protección para Subcategorias
+RewriteCond %{REQUEST_URI} ^/Milogar/Views/Subcategorias/index\.php$ [NC]
+RewriteCond %{HTTP_COOKIE} !PHPSESSID= [NC]
+RewriteRule ^.*$ /Milogar/index.php [R=301,L]
+
+# Protección para Productos
+RewriteCond %{REQUEST_URI} ^/Milogar/Views/Productos/index\.php$ [NC]
+RewriteCond %{HTTP_COOKIE} !PHPSESSID= [NC]
+RewriteRule ^.*$ /Milogar/index.php [R=301,L]
+
+# Protección para PedidosTienda
+RewriteCond %{REQUEST_URI} ^/Milogar/Views/PedidosTienda/index\.php$ [NC]
+RewriteCond %{HTTP_COOKIE} !PHPSESSID= [NC]
+RewriteRule ^.*$ /Milogar/index.php [R=301,L]
+
+
+# Establecer index.php como página de inicio
+DirectoryIndex index.php
+
+# Quitar la extensión .php de los archivos
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*)$ $1.php [L]
+
+
+
+
+
+# Redirigir automáticamente index.php a /
+RewriteRule ^index$ index.php [L,QSA]
+
+# Opcional: Hacer que shop-grid.php y todas las vistas de la tienda  se acceda sin la extensión .php
+RewriteRule ^(account-orders|account-settings|forgot-password|respuesta|shop-cart|shop-checkout|shop-grid|signup|sobreNosotros)$ $1.php [L,QSA]
+
+#REGLAS PARA LA PARTE ADMINISTRATIVA
+RewriteRule ^PedidosTienda/(.*)$ Views/PedidosTienda/$1.php [L]
+# Reglas para la parte administrativa (RolesUsuarios)
+RewriteRule ^RolesUsuarios/(.*)$ Views/RolesUsuarios/$1.php [L]
+# Reglas para la parte administrativa (Usuarios)
+RewriteRule ^Usuarios/(.*)$ Views/Usuarios/$1.php [L]
+# Reglas para la parte administrativa (Categorias)
+RewriteRule ^Categorias/(.*)$ Views/Categorias/$1.php [L]
+# Reglas para la parte administrativa (Subcategorias)
+RewriteRule ^Subcategorias/(.*)$ Views/Subcategorias/$1.php [L]
+# Reglas para la parte administrativa (Productos)
+RewriteRule ^Productos/(.*)$ Views/Productos/$1.php [L]
