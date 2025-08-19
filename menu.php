@@ -241,7 +241,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
                         </li>
 
                         <li class="nav-item">
-                            <a href="Views/Usuarios/index" class="nav-link">
+                            <a href="/Milogar/Views/Usuarios/index" class="nav-link">
                                 <i class="nav-icon fas fa-users"></i>
                                 <p>
                                     Usuarios

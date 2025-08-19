@@ -9,11 +9,11 @@ class PedidoModel
         $this->conn = $db;
     }
 
-    public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $tipoPago, $direccion, $descuento)
+public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $numeroPedido, $totalProductos, $tipoPago, $direccion, $descuento)
     {
         try {
             // Insertar en la tabla 'pedidos' incluyendo la dirección y el descuento
-            $sql = "INSERT INTO Pedidos (usuario_id, fechaCreacion, subtotal, iva, descuento, total, estado, numeroPedido, items, tipoPago, direccion) 
+            $sql = "INSERT INTO pedidos (usuario_id, fechaCreacion, subtotal, iva, descuento, total, estado, numeroPedido, items, tipoPago, direccion) 
                     VALUES (:usuario_id, now(), :subtotal, :iva, :descuento, :total, :estado, :numeroPedido, :items, :tipoPago, :direccion)";
             
             $stmt = $this->conn->prepare($sql);
@@ -42,12 +42,12 @@ class PedidoModel
         }
     }
     
-    
-
-    public function obtenerTodosLosPedidos()
+     public function obtenerPedidosConFiltros($limit = 10, $offset = 0, $numeroPedido = null, $nombreUsuario = null, $fechaInicio = null, $fechaFin = null)
 {
-    $query = "
-    SELECT 
+    $limit = (int)$limit;
+    $offset = (int)$offset;
+
+    $query = "SELECT 
         p.id AS PedidoID,
         p.numeroPedido AS NumeroPedido,
         p.usuario_id AS UsuarioID,
@@ -55,33 +55,73 @@ class PedidoModel
         p.fechaCreacion AS FechaCreacion,
         p.direccion AS DireccionPedido,
         p.descuento AS DescuentoPedido,
-        SUM(dp.subtotal) AS SubtotalPedido,
+        IFNULL(SUM(dp.subtotal), 0) AS SubtotalPedido,
         0 AS IVAPedido,
-        (SUM(dp.subtotal) - p.descuento) AS TotalPedido, -- ✅ Aquí está el cambio
+        (IFNULL(SUM(dp.subtotal), 0) - p.descuento) AS TotalPedido,
         p.estado AS EstadoPedido,
-        SUM(dp.cantidad) AS ItemsPedido
+        IFNULL(SUM(dp.cantidad), 0) AS ItemsPedido,
+        IFNULL(u.NombreUsuario, 'No disponible') AS NombreUsuario
     FROM 
         pedidos p
-    JOIN 
-        DetallesPedidos dp ON p.id = dp.pedido_id
-    JOIN 
+    LEFT JOIN  
+        detallespedidos dp ON p.id = dp.pedido_id
+    LEFT JOIN 
         usuarios u ON p.usuario_id = u.id
-    JOIN 
+    LEFT JOIN  
         productos pr ON dp.producto_id = pr.id
-    GROUP BY 
+    WHERE 1=1";  // Esto asegura que siempre haya al menos una condición en WHERE
+
+    // Filtros opcionales
+    if ($numeroPedido !== null) {
+        $query .= " AND p.numeroPedido LIKE :numeroPedido";
+    }
+    if ($nombreUsuario !== null) {
+        $query .= " AND u.NombreUsuario LIKE :nombreUsuario";
+    }
+    if ($fechaInicio !== null && $fechaFin !== null) {
+        $query .= " AND p.fechaCreacion BETWEEN :fechaInicio AND :fechaFin";
+    } elseif ($fechaInicio !== null) {
+        $query .= " AND p.fechaCreacion >= :fechaInicio";
+    } elseif ($fechaFin !== null) {
+        $query .= " AND p.fechaCreacion <= :fechaFin";
+    }
+
+    $query .= " GROUP BY 
         p.id, p.numeroPedido, p.usuario_id, u.NombreUsuario, p.fechaCreacion, 
         p.direccion, p.descuento, p.estado
     ORDER BY 
-        p.id ASC;
-    ";
+        p.id ASC
+    LIMIT $limit OFFSET $offset";
 
-    $stmt = $this->conn->query($query);
-    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $this->conn->prepare($query);
 
-    error_log("Pedidos obtenidos: " . json_encode($resultados));
+    // Enlazar los parámetros de los filtros si existen
+    if ($numeroPedido !== null) {
+        $stmt->bindValue(':numeroPedido', "%$numeroPedido%", PDO::PARAM_STR);
+    }
+    if ($nombreUsuario !== null) {
+        $stmt->bindValue(':nombreUsuario', "%$nombreUsuario%", PDO::PARAM_STR);
+    }
+    if ($fechaInicio !== null) {
+        $stmt->bindValue(':fechaInicio', $fechaInicio, PDO::PARAM_STR);
+    }
+    if ($fechaFin !== null) {
+        $stmt->bindValue(':fechaFin', $fechaFin, PDO::PARAM_STR);
+    }
 
-    return $resultados;
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+    // Contar total de pedidos
+    public function contarTotalPedidos()
+    {
+        $query = "SELECT COUNT(DISTINCT p.id) AS total FROM pedidos p";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    }
 
 
     public function obtenerPedidosPorUsuario($userId)
@@ -102,14 +142,15 @@ class PedidoModel
                 u.NombreUsuario AS NombreUsuario,
                 p.fechaCreacion AS FechaCreacion,
                 SUM(dp.subtotal) AS SubtotalPedido,
+                p.descuento AS DescuentoPedido,
                 0 AS IVAPedido,
-                SUM(dp.subtotal) AS TotalPedido,
+                SUM(dp.subtotal) - p.descuento AS TotalPedido,
                 p.estado AS EstadoPedido,
                 SUM(dp.cantidad) AS ItemsPedido
             FROM 
                 pedidos p
             JOIN 
-                DetallesPedidos dp ON p.id = dp.pedido_id
+                detallespedidos dp ON p.id = dp.pedido_id
             JOIN 
                 usuarios u ON p.usuario_id = u.id
             JOIN 
@@ -117,10 +158,11 @@ class PedidoModel
             WHERE 
                 p.usuario_id = :userId
             GROUP BY 
-                p.id, p.numeroPedido, p.usuario_id, u.NombreUsuario, p.fechaCreacion, p.estado
+                p.id, p.numeroPedido, p.usuario_id, u.NombreUsuario, p.fechaCreacion, p.estado, p.descuento
             ORDER BY 
                 p.id ASC
-        ";
+            ";
+
 
             // Preparar la consulta
             $stmt = $this->conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
@@ -150,27 +192,29 @@ class PedidoModel
     }
 
 
-
     public function getDetallePedidoById($pedido_id)
     {
         try {
             error_log("Ejecutando consulta para el pedido_id: " . $pedido_id);
 
-            $sql = "SELECT     p.id, 
+            $sql = "SELECT 
+                    p.id, 
                     p.nombreProducto, 
                     dp.cantidad, 
                     dp.precio_unitario, 
                     (dp.cantidad * dp.precio_unitario) AS subtotal, 
                     ped.numeroPedido,  -- Número de pedido
                     ped.fechaCreacion,  -- Fecha de creación del pedido
-                    ped.estado  -- Estado del pedido
-                    FROM 
-                    DetallesPedidos dp
-                    JOIN 
-                    Productos p ON dp.producto_id = p.id
-                    JOIN 
-		            Pedidos ped ON dp.pedido_id = ped.id  -- Unir con la tabla Pedidos
-                    WHERE dp.pedido_id = :pedido_id";
+                    ped.estado,  -- Estado del pedido
+                    ped.descuento  -- Descuento del pedido
+                FROM 
+                    detallespedidos dp
+                JOIN 
+                    productos p ON dp.producto_id = p.id
+                JOIN 
+                    pedidos ped ON dp.pedido_id = ped.id  -- Unir con la tabla Pedidos
+                WHERE 
+                    dp.pedido_id = :pedido_id";
 
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':pedido_id', $pedido_id, PDO::PARAM_INT);
@@ -197,30 +241,75 @@ class PedidoModel
         }
     }
 
-
-
-    public function insertarDetallePedido($pedido_id, $producto_id, $cantidad, $precio, $subtotal, $imagen)
+    
+    public function actualizarEstadoPedido($pedidoID, $nuevoEstado)
     {
-        try {
-            // Insertar en la tabla 'detallesPedidos'
-            $sql = "INSERT INTO DetallesPedidos (pedido_id, producto_id, cantidad, precio_unitario, subtotal, imagen) 
-                    VALUES (:pedido_id, :producto_id, :cantidad, :precio, :subtotal, :imagen)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':pedido_id', $pedido_id, PDO::PARAM_INT);
-            $stmt->bindParam(':producto_id', $producto_id, PDO::PARAM_INT);
-            $stmt->bindParam(':cantidad', $cantidad, PDO::PARAM_INT);
-            $stmt->bindParam(':precio', $precio, PDO::PARAM_STR);
-            $stmt->bindParam(':subtotal', $subtotal, PDO::PARAM_STR);
-            $stmt->bindParam(':imagen', $imagen, PDO::PARAM_STR);
+        // Consulta de actualización
+        $query = "UPDATE pedidos SET estado = :estado WHERE id = :id";
 
-            return $stmt->execute();  // Devuelve true si se ejecutó correctamente
-        } catch (PDOException $e) {
-            error_log("Error al insertar detalle de pedido: " . $e->getMessage());
+        // Preparar la consulta
+        $stmt = $this->conn->prepare($query);
+
+        // Vincular los parámetros
+        $stmt->bindParam(':estado', $nuevoEstado, PDO::PARAM_STR);
+        $stmt->bindParam(':id', $pedidoID, PDO::PARAM_INT);
+
+        // Ejecutar la consulta
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            error_log("Error al actualizar estado del pedido: " . implode(", ", $stmt->errorInfo()));
             return false;
         }
     }
 
-    // Método para actualizar los puntos del usuario
+        // Método para obtener el último pedido del usuario
+    public function obtenerUltimoPedido($usuarioID)
+    {
+        $query = "SELECT * FROM pedidos WHERE usuario_id = :usuarioID ORDER BY fechaCreacion DESC LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":usuarioID", $usuarioID);
+        $stmt->execute();
+
+        $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $pedido;
+    }
+
+    // Método para verificar si el último pedido está pendiente
+    public function ultimoPedidoPendiente($usuarioID)
+    {
+        $ultimoPedido = $this->obtenerUltimoPedido($usuarioID);
+        if ($ultimoPedido && $ultimoPedido['estado'] == 'Pendiente') {
+            return true;  // El último pedido está pendiente
+        }
+        return false;  // El último pedido no está pendiente
+    }
+
+public function insertarDetallePedido($pedido_id, $producto_id, $cantidad, $precio, $subtotal, $imagen)
+{
+    try {
+        $sql = "INSERT INTO detallespedidos (pedido_id, producto_id, cantidad, precio_unitario, subtotal, imagen)
+                VALUES (:pedido_id, :producto_id, :cantidad, :precio, :subtotal, :imagen)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':pedido_id', $pedido_id, PDO::PARAM_INT);
+        $stmt->bindParam(':producto_id', $producto_id, PDO::PARAM_INT);
+        $stmt->bindParam(':cantidad', $cantidad, PDO::PARAM_INT);
+        $stmt->bindParam(':precio', $precio, PDO::PARAM_STR);
+        $stmt->bindParam(':subtotal', $subtotal, PDO::PARAM_STR);
+        $stmt->bindParam(':imagen', $imagen, PDO::PARAM_STR);
+
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            error_log("Error en consulta: " . implode(", ", $stmt->errorInfo()));
+            return false;
+        }
+    } catch (PDOException $e) {
+        error_log("Error al insertar detalle del pedido: " . $e->getMessage());
+        return false;
+    }
+}
+   // Método para actualizar los puntos del usuario
     public function sumarPuntosUsuario($usuario_id, $puntos)
     {
         try {
@@ -231,4 +320,7 @@ class PedidoModel
             return false;
         }
     }
+
+    
+
 }

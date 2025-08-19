@@ -5,29 +5,50 @@ class CategoriaController
 {
 
     private $conn;
-    private $table = 'Categorias';
+    private $table = 'categorias';
     private $categoriaModel;
     private $subcategoriaModel;
 
     public function __construct($db)
     {
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
         $this->conn = $db;
         $this->categoriaModel = new CategoriaModel($this->conn);
     }
 
-    public function obtenerCategorias()
+public function obtenerCategorias()
     {
         header('Content-Type: application/json');
-
+    
         $categoriasModel = new CategoriaModel($this->conn);
-
+    
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $offset = ($page - 1) * $limit;
+    
+        // LOG para depuración
+        error_log("Parámetro 'search': " . $search);
+        error_log("Parámetro 'limit': " . $limit);
+        error_log("Parámetro 'page': " . $page);
+        error_log("Parámetro 'offset': " . $offset);
+    
         try {
-            $result = $categoriasModel->getAll();
-
+            $result = $categoriasModel->getAll($search, $limit, $offset);
+            $totalCategorias = $categoriasModel->countTotal($search);
+            $totalPages = ceil($totalCategorias / $limit);
+    
+            error_log("Total de categorías: " . $totalCategorias);
+            error_log("Total de páginas: " . $totalPages);
+    
             if ($result && count($result) > 0) {
                 echo json_encode([
                     'status' => 'success',
-                    'data' => $result
+                    'data' => $result,
+                    'totalPages' => $totalPages,
+                    'currentPage' => $page
                 ]);
             } else {
                 echo json_encode([
@@ -36,14 +57,14 @@ class CategoriaController
                 ]);
             }
         } catch (Exception $e) {
-            error_log($e->getMessage());  // Registrar el error en el log del servidor
+            error_log($e->getMessage());
             echo json_encode([
                 'status' => 'error',
                 'message' => 'Error al obtener las categorías: ' . $e->getMessage()
             ]);
         }
     }
-
+    
     // Acción para obtener una categoría por ID
     public function obtenerCategoriaPorId()
     {

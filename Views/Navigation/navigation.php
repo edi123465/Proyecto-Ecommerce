@@ -119,7 +119,7 @@ if (isset($_SESSION['user_role']) &&
                                             <line x1="3" y1="6" x2="21" y2="6"></line>
                                             <path d="M16 10a4 4 0 0 1-8 0"></path>
                                         </svg>
-                                        <span class="cart-counter position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                                        <span id="contador-carrito" class="cart-counter position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
                                             0
                                         </span>
                                     </a>
@@ -140,7 +140,6 @@ if (isset($_SESSION['user_role']) &&
                                             </a>
                                         </div>
                                     <?php endif; ?>
-
                             </div>
                             <!-- Button -->
                             <button class="navbar-toggler collapsed" type="button" data-bs-toggle="offcanvas"
@@ -285,7 +284,7 @@ if (isset($_SESSION['user_role']) &&
                             </ul>
                         </li> -->
                         <li class="nav-item">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>index">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>/index.php">
         Inicio
     </a>
 </li>
@@ -301,13 +300,13 @@ if (isset($_SESSION['user_role']) &&
 
 
 <li class="nav-item">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>shop-checkout">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>/shop-checkout.php">
         Ver Carrito
     </a>
 </li>
 
 <li class="nav-item">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>sobreNosotros">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>/sobreNosotros.php">
         Acerca de nosotros
     </a>
 </li>
@@ -319,12 +318,12 @@ if (isset($_SESSION['user_role']) &&
         </a>
         <ul class="dropdown-menu">
             <li>
-                <a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">
+                <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-orders.php">
                     <i class="feather-icon icon-package me-2"></i>Pedidos
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">
+                <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-settings.php">
                     <i class="feather-icon icon-settings me-2"></i>Configuración
                 </a>
             </li>
@@ -338,13 +337,13 @@ if (isset($_SESSION['user_role']) &&
 <?php endif; ?>
 
 <li class="nav-item">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>signup">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>/signup.php">
         <i class="feather-icon icon-user-plus me-2"></i>Suscríbete
     </a>
 </li>
 
 <li class="nav-item">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>terminos_condiciones.php">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>/terminos_condiciones.php">
         <i class="feather-icon icon-file-text me-2"></i>Términos y condiciones
     </a>
 </li>
@@ -358,7 +357,7 @@ if (isset($_SESSION['user_role']) &&
                     <?php
 if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
     echo "<li class='nav-item'>
-        <a class='nav-link' href='" . BASE_URL . "menu.php'>
+        <a class='nav-link' href='" . BASE_URL . "/menu.php'>
             <i class='feather-icon icon-settings me-2'></i>Panel administrativo
         </a>
     </li>";
@@ -376,12 +375,12 @@ if (isset($_SESSION['user_role']) &&
         </a>
         <ul class="dropdown-menu">
             <li>
-                <a class="dropdown-item" href="' . BASE_URL . 'oferta_puntos.php">
+                <a class="dropdown-item" href="' . BASE_URL . '/oferta_puntos.php">
                     <i class="feather-icon icon-star me-2"></i>Ganar puntos
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="' . BASE_URL . 'canjear.php">
+                <a class="dropdown-item" href="' . BASE_URL . '/canjear.php">
                     <i class="feather-icon icon-refresh-ccw me-2"></i>Canjear puntos
                 </a>
             </li>

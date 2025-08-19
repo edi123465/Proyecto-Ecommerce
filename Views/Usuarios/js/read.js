@@ -29,6 +29,8 @@ async function cargarUsuarios(pagina = 1) {
                         </span>
                     </td>
                     <td>${usuario.FechaCreacion}</td>
+                    <td>${usuario.total_puntos}</td>
+
                     <td>
                         <button class="btn btn-info btn-sm" onclick="editarUsuario(${usuario.ID})">
                             <i class="fas fa-edit"></i> Editar

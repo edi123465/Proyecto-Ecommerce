@@ -36,7 +36,7 @@ require_once __DIR__ . "/../../Config/config.php";
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-header">Administración</li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/Usuarios/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/Usuarios/index" class="nav-link">
                         <i class="nav-icon fas fa-users"></i>
                         <p>
                             Usuarios
@@ -44,7 +44,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/RolesUsuarios/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/RolesUsuarios/index" class="nav-link">
                         <i class="nav-icon fas fa-user-shield"></i>
                         <p>
                             Roles
@@ -52,7 +52,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/Categorias/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/Categorias/index" class="nav-link">
                         <i class="nav-icon fas fa-folder"></i>
                         <p>
                             Categorías
@@ -60,7 +60,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/Subcategorias/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/Subcategorias/index" class="nav-link">
                         <i class="nav-icon fas fa-sitemap"></i>
                         <p>
                             Subcategorías
@@ -68,7 +68,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/Productos/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/Productos/index" class="nav-link">
                         <i class="nav-icon fas fa-box"></i>
                         <p>
                             Productos
@@ -76,7 +76,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/index" class="nav-link">
                         <i class="nav-icon fas fa-shopping-bag"></i>
                         <p>
                             Tienda
@@ -84,7 +84,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/PedidosTienda/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/PedidosTienda/index" class="nav-link">
                         <i class="nav-icon fas fa-receipt"></i>
                         <p>
                             Pedidos tienda Virtual
@@ -92,7 +92,7 @@ require_once __DIR__ . "/../../Config/config.php";
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>Views/Canjeables/index" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/Views/Canjeables/index" class="nav-link">
                         <i class="nav-icon fas fa-receipt"></i>
                         <p>
                             Productos Canjeables

@@ -28,7 +28,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
 
 <head>
 
-    <title>MILOGAR - Catalogo</title>
+    <title>MILOGAR - Oferta de puntos</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -51,6 +51,120 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
     <!-- Theme CSS -->
     <link rel="stylesheet" href="assets/css/theme.min.css">
     <style>
+.promo-banner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  overflow-x: visible; /* Cambio: quitar scroll horizontal en PC */
+  -webkit-overflow-scrolling: touch;
+}
+
+.promo-banner .promo-img {
+  flex: 0 0 auto;
+  max-width: 350px; /* Aumentamos ancho máximo para PC */
+  width: 100%;
+  /* Quitamos max-height para que la imagen no se corte */
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.promo-banner .promo-img img {
+  max-width: 100%;
+  height: auto; /* mantener proporción */
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.promo-banner .promo-text {
+  flex: 1 1 auto;
+  min-width: 220px;
+  color: #222;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.promo-banner .promo-text h1 {
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 2.2rem;
+}
+
+.promo-banner .promo-text p {
+  color: #555;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.promo-banner .promo-text a.btn {
+  background-color: #ffdd57;
+  color: #333;
+  font-weight: 600;
+  padding: 0.75rem 1.8rem;
+  border-radius: 30px;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 5px 12px rgba(255, 221, 87, 0.6);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.promo-banner .promo-text a.btn:hover,
+.promo-banner .promo-text a.btn:focus {
+  background-color: #ffc107;
+  box-shadow: 0 7px 16px rgba(255, 193, 7, 0.8);
+  color: #000;
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .promo-banner {
+    flex-direction: column; /* Imagen arriba, texto abajo */
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    overflow-x: visible; /* quitamos scroll horizontal */
+    padding: 0 1rem;
+  }
+
+  .promo-banner .promo-img {
+    max-width: 80%;
+    height: auto;
+  }
+
+  .promo-banner .promo-img img {
+    width: 100%;
+    height: auto;
+  }
+
+  .promo-banner .promo-text h1 {
+    font-size: 1.6rem;
+  }
+
+  .promo-banner .promo-text p {
+    font-size: 1rem;
+  }
+
+  .promo-banner .promo-text ul {
+    padding-left: 1.2rem;
+    text-align: left; /* las listas lucen mejor alineadas a la izquierda */
+  }
+
+  .promo-banner .promo-text a.btn {
+    padding: 0.6rem 1.4rem;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+  }
+}
+
+
         /* Ocultar subcategorías por defecto y agregar transición */
         .subcategories-menu {
             display: none;
@@ -136,18 +250,104 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             opacity: 1;
         }
 
-        /* Añadir un margen superior para que el contenido no se solape con el navbar fijo */
-        body {
-            margin-top: 0px;
-            /* Ajusta según la altura del navbar fijo */
-        }
+.chatbot-container {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1001;
+}
 
-        /* También puedes aplicar el z-index si es necesario */
-        .navbar {
-            z-index: 1050;
-        }
+.chatbot-icon {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
 
-        /* Tamanio predeterminado de la imagen*/
+.chatbot-icon img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.chatbot-icon:hover img {
+  transform: scale(1.1);
+}
+
+.chatbot-text {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  background-color: #343a40;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-icon:hover .chatbot-text {
+  opacity: 1;
+}
+
+.chatbot-box {
+  display: none;
+  width: 300px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  overflow: hidden;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 10px;
+  font-weight: bold;
+  position: relative;
+}
+
+.chatbot-close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  cursor: pointer;
+}
+
+.chatbot-log {
+  height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #f9f9f9;
+}
+
+.chatbot-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+}
+
+.chatbot-input button {
+  background-color: #343a40;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
     </style>
 </head>
 
@@ -260,102 +460,93 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
 
             </div>
         </div>
-    </div>
+    </div> 
 
-    <!-- section -->
-    <section class=" mt-8 mb-lg-14 mb-8">
-        <!-- container -->
-        <div class="container">
-            <!-- row -->
-            <div class="row gx-10">
-
-                <div class="col-lg-12 col-md-2">
-                    <!-- card -->
-                    <div class="card mb-4 bg-light border-0">
-                        <!-- card body -->
-                        <div class=" card-body p-9">
-                            <h1 class="mb-0">Productos Populares</h1>
-                        </div>
-                    </div>
-
-
-                    <!-- list icon -->
-                    <div class="d-md-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-3 mb-md-0"> <span class="text-dark">24 </span> Products found </p>
-                        </div>
-                        <!-- icon -->
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="shop-list.html" class="text-muted me-3"><i class="bi bi-list-ul"></i></a>
-                            <a href="shop-grid.html" class=" me-3 active"><i class="bi bi-grid"></i></a>
-                            <a href="shop-grid-3-column.html" class="me-3 text-muted"><i class="bi bi-grid-3x3-gap"></i></a>
-                            <div class="me-2">
-                                <!-- select option -->
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Show: 50</option>
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="30">30</option>
-                                </select>
-                            </div>
-                            <div>
-                                <!-- select option -->
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Sort by: Featured</option>
-                                    <option value="Low to High">Price: Low to High</option>
-                                    <option value="High to Low"> Price: High to Low</option>
-                                    <option value="Release Date"> Release Date</option>
-                                    <option value="Avg. Rating"> Avg. Rating</option>
-
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <h1>Compra mas y gana puntos!</h1>
-                    <!-- Contenedor de productos populares -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-con-puntos">
-                    </div>
-                    <!-- Contenedor de productos populares -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-populares-container">
-                    </div>
-
-                    <!-- Contenedor de productos generales -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-container">
-                    </div>
-
-                    <!-- Contenedor de resultados de búsqueda -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="resultados-busqueda-container">
-                    </div>
-
-
-                    <div class="row mt-8">
-                        <div class="col">
-                            <!-- nav -->
-                            <nav>
-                                <ul class="pagination">
-                                    <li class="page-item disabled">
-                                        <a class="page-link  mx-1 rounded-3 " href="#" aria-label="Previous">
-                                            <i class="feather-icon icon-chevron-left"></i>
-                                        </a>
-                                    </li>
-                                    <li class="page-item "><a class="page-link  mx-1 rounded-3 active" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link mx-1 rounded-3 text-body" href="#">2</a></li>
-
-                                    <li class="page-item"><a class="page-link mx-1 rounded-3 text-body" href="#">...</a></li>
-                                    <li class="page-item"><a class="page-link mx-1 rounded-3 text-body" href="#">12</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link mx-1 rounded-3 text-body" href="#" aria-label="Next">
-                                            <i class="feather-icon icon-chevron-right"></i>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
+    <section class="mt-8 mb-lg-14 mb-8">
+    <div class="container">
+            <!-- Promo banner -->
+            <div class="promo-banner" role="region" aria-label="Promoción sistema de puntos Milogar">
+                <div class="promo-img">
+                    <img src="https://milogar.wuaze.com/assets/imagenesMilogar/imagenesPuntos.jpg" alt="Gana puntos con Milogar" />
+                </div>
+                <div class="promo-text">
+                    <h1>En Milogar premiamos tus compras!</h1>
+                    <p>
+                        Con cada compra, acumulas puntos que podrás canjear por descuentos exclusivos, regalos y promociones especiales diseñadas solo para ti.
+                    </p>
+                    <p>
+                        ¡Es rápido, sencillo y cada compra te acerca a mayores beneficios!
+                    </p>
+                <p style="font-weight: 600; color: #444; margin-top: 1rem;">
+                ¿Por qué comprar en Milogar?  
+                </p>
+                <ul style="list-style: none; padding-left: 0; color: #666; line-height: 1.5;">
+                <li>✨ Gana puntos con cada compra que realices.</li>
+                <li>🎁 Canjea tus puntos por descuentos y regalos exclusivos.</li>
+                <li>🔥 Accede a ofertas y promociones especiales solo para miembros.</li>
+                <li>⚡️ Disfruta de un proceso fácil y rápido para empezar a ganar.</li>
+                </ul>
+                    <a href="terminos_condiciones.php" class="btn" aria-label="Más información sobre cómo ganar puntos">Saber más sobre los puntos</a>
                 </div>
             </div>
+
+            <!-- Productos con puntos -->
+            <div>
+            <h3 class="mb-4">Productos con Puntos</h3>
+            <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-2" id="productos-con-puntos">
+                <!-- Aquí se insertan los productos dinámicamente -->
+            </div>
+            </div>
+
+            <!-- Productos populares -->
+            <div class="mt-5">
+            <h3 class="mb-4">Productos Populares</h3>
+            <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-2" id="productos-populares-container">
+                <!-- Productos populares -->
+            </div>
+            </div>
+
+            <!-- Productos generales -->
+            <div class="mt-5">
+            <h3 class="mb-4">Catálogo General</h3>
+            <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-2" id="productos-container">
+                <!-- Productos generales -->
+            </div>
+            </div>
+
+            <!-- Resultados búsqueda (opcional) -->
+            <div class="mt-5" style="display:none;" id="resultados-busqueda-wrapper">
+                <h3 class="mb-4">Resultados de búsqueda</h3>
+                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-2" id="resultados-busqueda-container">
+                    </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="row mt-8">
+                <div class="col">
+                    <nav>
+                    <ul class="pagination justify-content-center flex-wrap gap-2">
+                        <li class="page-item disabled">
+                        <a class="page-link mx-1 rounded-3" href="#" aria-label="Anterior">
+                            <i class="feather-icon icon-chevron-left"></i>
+                        </a>
+                        </li>
+                        <li class="page-item"><a class="page-link mx-1 rounded-3 active" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link mx-1 rounded-3 text-body" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link mx-1 rounded-3 text-body" href="#">...</a></li>
+                        <li class="page-item"><a class="page-link mx-1 rounded-3 text-body" href="#">12</a></li>
+                        <li class="page-item">
+                        <a class="page-link mx-1 rounded-3 text-body" href="#" aria-label="Siguiente">
+                            <i class="feather-icon icon-chevron-right"></i>
+                        </a>
+                        </li>
+                    </ul>
+                    </nav>
+                </div>
         </div>
-    </section>
+    </div>
+</section>
+
     <!-- Modal -->
     <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -454,9 +645,27 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         </div>
     </div>
     <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
+<!-- Chatbot Bubble Container -->
+<div class="chatbot-container">
+  <div class="chatbot-icon" onclick="toggleChatbot()">
+    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712104.png" alt="Chatbot">
+    <span class="chatbot-text">¿Necesitas ayuda?</span>
+  </div>
 
+  <div id="chatbot-box" class="chatbot-box">
+    <div class="chatbot-header">
+      Chat Milogar
+      <span class="chatbot-close" onclick="toggleChatbot()">✖</span>
+    </div>
+    <div id="chatlog" class="chatbot-log"></div>
+    <div class="chatbot-input">
+      <input id="userInput" type="text" placeholder="Escribe tu mensaje...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+</div>
     <div class="whatsapp-container">
-        <a href="https://wa.me/593989082073" target="_blank" class="whatsapp-icon">
+        <a href="https://wa.me/593967342065" target="_blank" class="whatsapp-icon">
             <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
             <span class="whatsapp-text">¿Cómo podemos ayudarte?</span>
         </a>
@@ -504,6 +713,65 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             }
         });
     </script>
+    <script>
+  const respuestas = {
+    hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
+    envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
+    precios: "Puedes ver los precios actualizados directamente en cada producto.",
+    ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
+    
+    puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
+    canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
+    ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
+    contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
+    mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
+    pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
+    
+    pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
+    devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
+    
+    default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
+  };
+
+  function toggleChatbot() {
+    const box = document.getElementById('chatbot-box');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
+
+    appendMessage("Tú", userMessage);
+    input.value = "";
+
+    const lowerMsg = userMessage.toLowerCase();
+    let respuesta = respuestas.default;
+
+    for (const key in respuestas) {
+      if (lowerMsg.includes(key)) {
+        respuesta = respuestas[key];
+        break;
+      }
+    }
+
+    setTimeout(() => {
+      appendMessage("MILOGAR", respuesta);
+    }, 600);
+  }
+
+  function appendMessage(sender, text) {
+    const chatlog = document.getElementById("chatlog");
+    const newMsg = document.createElement("div");
+    newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    newMsg.style.marginBottom = "10px";
+    chatlog.appendChild(newMsg);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+</script>
+
     <script src="assets/js/ofertasPuntos.js"></Script>
 
 

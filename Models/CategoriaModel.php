@@ -6,7 +6,7 @@ class CategoriaModel
 {
 
     private $conn;
-    private $table = 'Categorias';
+    private $table = 'categorias';
     public $RolID;
     public $RolName;
     public $RolDescription;
@@ -19,27 +19,66 @@ class CategoriaModel
         $this->conn = $db;
     }
 
-    public function getAll()
-    {
-        $query = "SELECT id, nombreCategoria, descripcionCategoria, isActive, fechaCreacion, imagen FROM " . $this->table;
-        $stmt = $this->conn->prepare($query);
+public function getAll($search = '', $limit = 10, $offset = 0)
+{
+    // Modificamos la consulta para aceptar filtros y paginación
+    $query = "
+        SELECT id, nombreCategoria, descripcionCategoria, isActive, fechaCreacion, imagen 
+        FROM " . $this->table . "
+        WHERE nombreCategoria LIKE :search OR descripcionCategoria LIKE :search
+        ORDER BY nombreCategoria ASC
+        LIMIT :limit OFFSET :offset
+    ";
 
-        try {
-            $stmt->execute();  // Ejecutamos la consulta
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Obtenemos los resultados
+    $stmt = $this->conn->prepare($query);
 
-            return $result;  // Devuelve el resultado
-        } catch (Exception $e) {
-            // En caso de error, loguear el error y devolver null
-            error_log($e->getMessage());
-            return null;
-        }
+    try {
+        // Vinculamos los parámetros de la consulta
+        $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        
+        $stmt->execute();  // Ejecutamos la consulta
+        
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Obtenemos los resultados
+
+        return $result;  // Devuelve el resultado
+    } catch (Exception $e) {
+        // En caso de error, loguear el error y devolver null
+        error_log($e->getMessage());
+        return null;
     }
+}
+public function countTotal($search = '')
+{
+    $query = "
+        SELECT COUNT(*) AS total
+        FROM " . $this->table . "
+        WHERE nombreCategoria LIKE :search OR descripcionCategoria LIKE :search
+    ";
+
+    $stmt = $this->conn->prepare($query);
+    
+    try {
+        // Vinculamos el parámetro de búsqueda
+        $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+        $stmt->execute();  // Ejecutamos la consulta
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);  // Obtenemos el resultado
+        
+        return $result['total'];  // Devolvemos el número total de registros
+    } catch (Exception $e) {
+        // En caso de error, loguear el error y devolver null
+        error_log($e->getMessage());
+        return null;
+    }
+}
+
 
     public function create($data)
     {
         // Prepara la consulta SQL para la tabla Categorías
-        $query = "INSERT INTO Categorias (nombreCategoria, descripcionCategoria, isActive, fechaCreacion, imagen) 
+        $query = "INSERT INTO categorias (nombreCategoria, descripcionCategoria, isActive, fechaCreacion, imagen) 
                   VALUES (:nombre, :descripcion, :isActive, now(), :imagen)";  // Se agrega el campo 'imagen'
 
         // Prepara la declaración
@@ -127,7 +166,7 @@ public function update($id, $data)
     // y aplicarlos a la lista de la 
     public function getCategoryByName()
     {
-        $query = "SELECT id, nombreCategoria FROM Categorias";
+        $query = "SELECT id, nombreCategoria FROM categorias";
         $stmt = $this->conn->prepare($query);
 
         if ($stmt->execute()) {
@@ -137,4 +176,16 @@ public function update($id, $data)
             return null;  // Si falla, devuelve null
         }
     }
+
+    public function existsByName($nombreCategoria)
+{
+    $sql = "SELECT COUNT(*) as total FROM Categorias WHERE nombreCategoria = :nombre";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(':nombre', $nombreCategoria, PDO::PARAM_STR);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row['total'] > 0;
+}
+
 }

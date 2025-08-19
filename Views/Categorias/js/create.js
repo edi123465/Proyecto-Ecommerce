@@ -18,7 +18,7 @@ document.getElementById('createCategoryForm').addEventListener('submit', functio
        });
 
     // Enviar la solicitud Fetch
-    fetch('http://localhost:8088/Milogar/controllers/CategoriaController.php?action=createCategory', {
+    fetch('http://localhost:8080/Milogar/controllers/CategoriaController.php?action=createCategory', {
         method: 'POST',
         body: formData // Pasar los datos del formulario, incluyendo la imagen
     })

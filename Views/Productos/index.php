@@ -409,7 +409,6 @@ if (!isset($_SESSION['user_id'])) {
                                             <th>Stock</th>
                                             <th>Cantidad minima para puntos</th>
                                             <th>Puntos otorgados al comprar</th>
-                                            <th>Puntos requeridos para canje</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>

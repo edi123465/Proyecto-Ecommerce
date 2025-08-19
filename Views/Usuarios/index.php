@@ -1,10 +1,5 @@
 <?php
 session_start(); // Iniciar la sesión para acceder a la información del usuario
-// Definimos un array con las opciones del menú
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /Milogar/index.php");
-    exit();
-}
 ?>
 
 <!DOCTYPE html>
@@ -17,18 +12,13 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="../../Recursos/plugins/fontawesome-free/css/all.min.css">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="../../Recursos/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="../../Recursos/dist/css/adminlte.min.css">
-    <!--Uso de DataTables-->
-    <link rel="stylesheet" href="../../Recursos/plugins/">
+<!-- CSS de AdminLTE desde CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/css/adminlte.min.css" rel="stylesheet">
+    <!-- CSS de FontAwesome desde CDN (opcional, si lo necesitas) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="../../Recursos/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="../../Recursos/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" href="../../Recursos/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
-    <link rel="stylesheet" href="../../Recursos/dist/css/adminlte.min.css">
+
+    <link rel="stylesheet" href="css/styles.css">
 
 </head>
 
@@ -45,135 +35,26 @@ if (!isset($_SESSION['user_id'])) {
             <li class="nav-item">
                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
             </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="../../menu" class="nav-link">Home</a>
-            </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
-            </li>
+       
 
         </ul>
 
-        <!-- Right navbar links -->
-        <ul class="navbar-nav ml-auto">
-            <!-- Navbar Search -->
-            <li class="nav-item">
-                <a class="nav-link" data-widget="navbar-search" href="#" role="button">
-                    <i class="fas fa-search"></i>
-                </a>
-                <div class="navbar-search-block">
-                    <form class="form-inline">
-                        <div class="input-group input-group-sm">
-                            <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
-                            <div class="input-group-append">
-                                <button class="btn btn-navbar" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </li>
+            <!-- Right navbar links -->
+            <ul class="navbar-nav ml-auto">
+                <!-- Fullscreen -->
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                    </a>
+                </li>
 
-            <!-- Messages Dropdown Menu -->
-            <li class="nav-item dropdown">
-                <a class="nav-link" data-toggle="dropdown" href="#">
-                    <i class="far fa-comments"></i>
-                    <span class="badge badge-danger navbar-badge">3</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
-                        <div class="media">
-                            <img src="dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    Brad Diesel
-                                    <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
-                                </h3>
-                                <p class="text-sm">Call me whenever you can...</p>
-                                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
+                <!-- Logout Icon -->
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logoutBtn" title="Cerrar sesión">
+                        <i class="fas fa-sign-out-alt"></i>
                     </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
-                        <div class="media">
-                            <img src="dist/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    John Pierce
-                                    <span class="float-right text-sm text-muted"><i class="fas fa-star"></i></span>
-                                </h3>
-                                <p class="text-sm">I got your message bro</p>
-                                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
-                        <div class="media">
-                            <img src="dist/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    Nora Silvester
-                                    <span class="float-right text-sm text-warning"><i class="fas fa-star"></i></span>
-                                </h3>
-                                <p class="text-sm">The subject goes here</p>
-                                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
-                </div>
-            </li>
-            <!-- Notifications Dropdown Menu -->
-            <li class="nav-item dropdown">
-                <a class="nav-link" data-toggle="dropdown" href="#">
-                    <i class="far fa-bell"></i>
-                    <span class="badge badge-warning navbar-badge">15</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <span class="dropdown-item dropdown-header">15 Notifications</span>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-envelope mr-2"></i> 4 new messages
-                        <span class="float-right text-muted text-sm">3 mins</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-users mr-2"></i> 8 friend requests
-                        <span class="float-right text-muted text-sm">12 hours</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-file mr-2"></i> 3 new reports
-                        <span class="float-right text-muted text-sm">2 days</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-                    <i class="fas fa-expand-arrows-alt"></i>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
-                    <i class="fas fa-th-large"></i>
-                </a>
-            </li>
-        </ul>
+                </li>
+            </ul>
     </nav>
 
     <div class="wrapper">
@@ -215,24 +96,27 @@ if (!isset($_SESSION['user_id'])) {
                                     <label for="crearEmail" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="crearEmail" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="crearRol" class="form-label">Rol</label>
-                                    <select class="form-select" id="crearRol">
+                                <div class="form-group">
+                                    <label for="crearRol">Rol</label>
+                                    <select class="form-control select2bs4" id="crearRol" style="width: 100%;">
                                         <!-- Los roles se llenarán dinámicamente -->
                                     </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="crearIsActive" class="form-label">Estado</label>
-                                    <select class="form-select" id="crearIsActive">
+
+                                <div class="form-group">
+                                    <label for="crearIsActive">Estado</label>
+                                    <select class="form-control select2bs4" id="crearIsActive" style="width: 100%;">
                                         <option value="1">Activo</option>
                                         <option value="0">Inactivo</option>
                                     </select>
                                 </div>
+
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             <button type="button" class="btn btn-primary" onclick="guardarNuevoUsuario(event)">Crear Usuario</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+
                         </div>
                     </div>
                 </div>
@@ -259,15 +143,15 @@ if (!isset($_SESSION['user_id'])) {
                                     <label for="editarEmail" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="editarEmail" required readonly>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="editarRol" class="form-label">Rol</label>
-                                    <select class="form-select" id="editarRol">
-
+                                <div class="form-group">
+                                    <label for="editarRol">Rol</label>
+                                    <select class="form-control select2bs4" id="editarRol" style="width: 100%;">
+                                        
                                     </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="editarIsActive" class="form-label">Estado</label>
-                                    <select class="form-select" id="editarIsActive">
+                                <div class="form-group">
+                                    <label for="editarIsActive">Estado</label>
+                                    <select class="form-control select2bs4" id="editarIsActive" style="width: 100%;">
                                         <option value="1">Activo</option>
                                         <option value="0">Inactivo</option>
                                     </select>
@@ -275,18 +159,24 @@ if (!isset($_SESSION['user_id'])) {
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             <button type="button" class="btn btn-primary" onclick="actualizarUsuario()">Guardar Cambios</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-
+<!-- Contenedor del campo de búsqueda -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Buscar</h3>
+    <div class="card-tools">
+      <input type="text" id="busqueda" class="form-control form-control-sm" placeholder="Buscar en la tabla...">
+    </div>
+  </div>
+</div>
             <div id="paginacion" class="mt-3"></div>
-
-
-
             <div class="content">
                 <div class="container-fluid">
                     <div class="table-responsive">
@@ -297,8 +187,9 @@ if (!isset($_SESSION['user_id'])) {
                                     <th>Nombre Usuario</th>
                                     <th>Email</th>
                                     <th>Rol</th>
-                                    <th>Activo</th>
+                                    <th>Estado</th>
                                     <th>Fecha Creación</th>
+                                    <th>Puntos disponibles</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -325,6 +216,7 @@ if (!isset($_SESSION['user_id'])) {
 
     <!-- AdminLTE App -->
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="js/read.js"></script>
     <script src="js/create.js"></script>
@@ -334,8 +226,39 @@ if (!isset($_SESSION['user_id'])) {
             // Redirigir directamente a la página del menú sin confirmación
             window.location.href = "../../menu"; // Redirige en la misma pestaña
         });
+
+        
     </script>
+    <script>
+document.getElementById("logoutBtn").addEventListener("click", function(e) {
+    e.preventDefault(); // Evita que el enlace se ejecute inmediatamente
+
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¿Deseas cerrar sesión?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+            // Redirige al logout
+            window.location.href = "../../Views/login/logout.php";
+        }
+    });
+});
+</script>
 
 </body>
 
-</html>
+</html><?php
+session_start(); // Iniciar la sesión para acceder a la información del usuario
+// Definimos un array con las opciones del menú
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /Milogar/index.php");
+    exit();
+}
+?>
+

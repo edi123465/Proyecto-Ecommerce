@@ -1,21 +1,25 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 // Cargar la conexión usando ruta absoluta
 require_once __DIR__ . '/../../Config/db.php';           // Cargar la conexión a la base de datos
-require_once __DIR__ . '/../../Controllers/RolController.php'; // Cargar el controlador de roles
 require_once __DIR__ . '/../../Models/RolModel.php';
-require_once __DIR__ . '/../../models/PedidosModel.php';
-require_once __DIR__ . '/../../controllers/PedidosController.php';     // Cargar el modelo de roles
+require_once __DIR__ . '/../../Models/PedidosModel.php';
+require_once __DIR__ . '/../../Controllers/PedidosController.php';     // Cargar el modelo de roles
 // Crear una instancia de la conexión
 $db = new Database1();
 $connection = $db->getConnection();
-
 // Instanciar el controlador
-$controller = new RolController($connection);
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /Milogar/index.php");
+    header("Location: /index");
     exit();
 }
+require_once __DIR__ . '/../../Config/db.php'; // Conectar con la base de datos
+
+
 ?>
+
 
 
 <!DOCTYPE html>
@@ -26,16 +30,16 @@ if (!isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MILOGAR | Gestión Pedidos</title>
     <!-- Favicon icon-->
-    <link rel="shortcut icon" type="image/x-icon" href="../../assets/imagenesMilogar/logomilo.jpg">
+    <link rel="shortcut icon" type="image/x-icon" href="/../../assets/imagenesMilogar/logomilo.jpg">
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="../../Recursos/plugins/fontawesome-free/css/all.min.css">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="../../Recursos/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="../../Recursos/dist/css/adminlte.min.css">
+    <!-- CSS de AdminLTE desde CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/css/adminlte.min.css" rel="stylesheet">
+    <!-- CSS de FontAwesome desde CDN (opcional, si lo necesitas) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 
     <style>
         .pagination .page-link {
@@ -72,7 +76,11 @@ if (!isset($_SESSION['user_id'])) {
             /* Texto blanco para el botón activo */
         }
 
+   
     </style>
+    <script>
+    
+    </script>
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -92,9 +100,7 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="modal-body" id="modal-pedido-body">
                         <!-- Los detalles del pedido se agregarán dinámicamente aquí -->
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    </div>
+                 
                 </div>
             </div>
         </div>
@@ -111,10 +117,29 @@ if (!isset($_SESSION['user_id'])) {
             </div>
 
             <a href="#" class="btn btn-secondary" onclick="window.open('../../menu', '_self')">Regresar al menú</a>
-            
-            <br><br><div class="content">
+            <br><br><h3>Realiza tu búsqueda aquí</h3>
+                            <!-- PAGINACION -->
+                        <form id="formBusqueda" class="form-inline mb-3">
+    <div class="input-group mr-2">
+        <input type="text" id="numeroPedido" class="form-control" placeholder="Número de pedido" aria-label="Número de pedido">
+    </div>
+    <div class="input-group mr-2">
+        <input type="text" id="nombreUsuario" class="form-control" placeholder="Nombre de usuario" aria-label="Nombre de usuario">
+    </div>
+    <div class="input-group mr-2">
+        <input type="date" id="fechaInicio" class="form-control" aria-label="Fecha inicio">
+    </div>
+    <div class="input-group mr-2">
+        <input type="date" id="fechaFin" class="form-control" aria-label="Fecha fin">
+    </div>
+    <button type="button" id="btnBuscar" class="btn btn-primary">Buscar</button>
+</form>
+
+                        <div id="paginacion" class="text-center my-3"></div>
+            <br><div class="content">
                 <div class="container-fluid">
                     <div class="table-responsive">
+          
                         <table id="tabla_Pedidos" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
@@ -122,11 +147,11 @@ if (!isset($_SESSION['user_id'])) {
                                     <th>Número de pedido</th>
                                     <th>Nombre de Usuario</th>
                                     <th>Fecha</th>
-                                    <th>Dirección</th>
                                     <th>Estado</th>
+                                    <th>Dirección</th>
                                     <th>Subtotal</th>
                                     <th>IVA</th>
-                                    <th>Descuento</th>
+                                    <th>Descuento aplicado</th>
                                     <th>Total a pagar</th>
                                     <th>Items</th>
                                     <th>Acciones</th>
@@ -139,27 +164,8 @@ if (!isset($_SESSION['user_id'])) {
                         </table>
                     </div>
                 </div>
-                <!<!-- PAGINACION -->
-                    <div class="d-flex justify-content-center">
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
-                                </li>
-                                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">&raquo;</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
+               
             </div>
-        </div>
-        <!-- Preloader -->
-        <div class="preloader flex-column justify-content-center align-items-center">
-            <img class="animation__wobble" src="../../Recursos/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
         </div>
 
         <!-- Navbar -->
@@ -168,12 +174,6 @@ if (!isset($_SESSION['user_id'])) {
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="../menu.php" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>
@@ -202,101 +202,22 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </li>
 
-                <!-- Messages Dropdown Menu -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="far fa-comments"></i>
-                        <span class="badge badge-danger navbar-badge">3</span>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        <a href="#" class="dropdown-item">
-                            <!-- Message Start -->
-                            <div class="media">
-                                <img src="dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
-                                <div class="media-body">
-                                    <h3 class="dropdown-item-title">
-                                        Brad Diesel
-                                        <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
-                                    </h3>
-                                    <p class="text-sm">Call me whenever you can...</p>
-                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                                </div>
-                            </div>
-                            <!-- Message End -->
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <!-- Message Start -->
-                            <div class="media">
-                                <img src="dist/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
-                                <div class="media-body">
-                                    <h3 class="dropdown-item-title">
-                                        John Pierce
-                                        <span class="float-right text-sm text-muted"><i class="fas fa-star"></i></span>
-                                    </h3>
-                                    <p class="text-sm">I got your message bro</p>
-                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                                </div>
-                            </div>
-                            <!-- Message End -->
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <!-- Message Start -->
-                            <div class="media">
-                                <img src="dist/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
-                                <div class="media-body">
-                                    <h3 class="dropdown-item-title">
-                                        Nora Silvester
-                                        <span class="float-right text-sm text-warning"><i class="fas fa-star"></i></span>
-                                    </h3>
-                                    <p class="text-sm">The subject goes here</p>
-                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                                </div>
-                            </div>
-                            <!-- Message End -->
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
-                    </div>
-                </li>
-                <!-- Notifications Dropdown Menu -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="far fa-bell"></i>
-                        <span class="badge badge-warning navbar-badge">15</span>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        <span class="dropdown-item dropdown-header">15 Notifications</span>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-envelope mr-2"></i> 4 new messages
-                            <span class="float-right text-muted text-sm">3 mins</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-users mr-2"></i> 8 friend requests
-                            <span class="float-right text-muted text-sm">12 hours</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-file mr-2"></i> 3 new reports
-                            <span class="float-right text-muted text-sm">2 days</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-                    </div>
-                </li>
+
+
+                <!-- Fullscreen -->
                 <li class="nav-item">
                     <a class="nav-link" data-widget="fullscreen" href="#" role="button">
                         <i class="fas fa-expand-arrows-alt"></i>
                     </a>
                 </li>
+
+                <!-- Logout Icon -->
                 <li class="nav-item">
-                    <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
-                        <i class="fas fa-th-large"></i>
+                    <a class="nav-link" href="#" id="logoutBtn" title="Cerrar sesión">
+                        <i class="fas fa-sign-out-alt"></i>
                     </a>
                 </li>
+
             </ul>
         </nav>
         <!-- /.navbar -->
@@ -314,28 +235,33 @@ if (!isset($_SESSION['user_id'])) {
 
 
     </div>
-    <!-- ./wrapper -->
+  <!-- JS de AdminLTE y dependencias desde CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- REQUIRED SCRIPTS -->
-    <!-- jQuery -->
-    <script src="../../Recursos/plugins/jquery/jquery.min.js"></script>
-    <!-- Bootstrap -->
-    <script src="../../Recursos/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <!-- overlayScrollbars -->
-    <script src="../../Recursos/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-    <!-- AdminLTE App -->
-    <script src="../../Recursos/dist/js/adminlte.js"></script>
-    <!-- PAGE PLUGINS -->
-    <!-- jQuery Mapael -->
-    <script src="../../Recursos/plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
-    <script src="../../Recursos/plugins/raphael/raphael.min.js"></script>
-    <script src="../../Recursos/plugins/jquery-mapael/jquery.mapael.min.js"></script>
-    <script src="../../Recursos/plugins/jquery-mapael/maps/usa_states.min.js"></script>
-    <!-- ChartJS -->
-    <script src="../../Recursos/plugins/chart.js/Chart.min.js"></script>
+<script>
+document.getElementById("logoutBtn").addEventListener("click", function(e) {
+    e.preventDefault(); // Evita que el enlace se ejecute inmediatamente
 
-    <!-- AdminLTE for demo purposes -->
-    <script src="../../Recursos/dist/js/demo.js"></script>
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¿Deseas cerrar sesión?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+            // Redirige al logout
+            window.location.href = "../../Views/login/logout.php";
+        }
+    });
+});
+</script>
     <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
     <script src="js/read.js"></script>
 </body>

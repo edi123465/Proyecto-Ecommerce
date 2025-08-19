@@ -19,10 +19,10 @@ class UsuarioModel
     }
     public function obtenerUsuario($limit, $offset)
     {
-        $query = "SELECT u.ID, u.NombreUsuario, u.Email, u.RolID, u.IsActive, u.FechaCreacion, u.Imagen, r.RolName  
-                  FROM " . $this->table . " u 
-                  JOIN Roles r ON u.RolID = r.ID 
-                  LIMIT :limit OFFSET :offset";
+        $query = "SELECT u.ID, u.NombreUsuario, u.Email, u.RolID, u.IsActive, u.FechaCreacion, u.Imagen, u.total_puntos, r.RolName  
+                FROM " . $this->table . " u 
+                JOIN roles r ON u.RolID = r.ID 
+                LIMIT :limit OFFSET :offset";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);

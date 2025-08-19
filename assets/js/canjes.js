@@ -1,31 +1,7 @@
-document.addEventListener("DOMContentLoaded", function () {
-    fetch(`http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=obtenerPuntos&usuario_id=${usuarioSesion}`)
-        .then((response) => response.json())
-        .then((data) => {
-            // Actualiza el contenido en el navegador
-            document.getElementById("puntosUsuario").textContent = data.puntos;
-
-            // Guarda los puntos en localStorage para persistir entre recargas
-            localStorage.setItem('puntosUsuario', data.puntos);
-        })
-        .catch((error) => {
-            console.error("Error al obtener puntos:", error);
-            // Si hay un error, muestra un mensaje de error y establece el valor a 0
-            document.getElementById("puntosUsuario").textContent = "Error";
-            // En caso de error, puedes guardar un valor predeterminado (opcional)
-            localStorage.setItem('puntosUsuario', '0');
-        });
-
-    // Verificar si ya existen puntos en localStorage al cargar la página
-    const puntosGuardados = localStorage.getItem('puntosUsuario');
-    if (puntosGuardados !== null) {
-        document.getElementById("puntosUsuario").textContent = puntosGuardados;
-    }
-});
 
 // Función para obtener los canjeables activos de la tienda
 function obtenerCanjeablesActivos() {
-    fetch('http://localhost:8088/Milogar/Controllers/CanjeController.php?action=obtenerCanjeablesTienda')
+    fetch('http://localhost:8080/Milogar/Controllers/CanjeController.php?action=obtenerCanjeablesTienda')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -36,7 +12,7 @@ function obtenerCanjeablesActivos() {
                 // Iterar sobre los productos y crear las tarjetas dinámicamente
                 data.canjeables.forEach(producto => {
                     console.log(data);                    // Verificar si la imagen tiene una URL completa
-                    const imagenUrl = producto.imagen.startsWith('http') ? producto.imagen : 'http://localhost:8088/Milogar/assets/imagenesMilogar/productos/' + producto.imagen;
+                    const imagenUrl = producto.imagen.startsWith('http') ? producto.imagen : '/Milogar/assets/imagenesMilogar/productos/' + producto.imagen;
 
                     // Crear el HTML dinámicamente para cada producto
                     const productHTML = `

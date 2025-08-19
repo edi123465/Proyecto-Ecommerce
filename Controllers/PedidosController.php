@@ -1,4 +1,13 @@
 <?php
+// Permitir CORS desde cualquier origen (si quieres limitarlo a tu dominio, reemplaza '*' por 'http://milogar.wuaze.com')
+header("Access-Control-Allow-Origin: *"); 
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // Métodos HTTP permitidos
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Encabezados permitidos
+
+// Si la solicitud es un preflight (OPTIONS), responder con los encabezados adecuados y salir
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    exit(0);
+}
 session_start();
 
 // PedidosController.php
@@ -16,9 +25,37 @@ class PedidosController
 
     public function __construct()
     {
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
         $database = new Database1();
         $this->conn = $database->getConnection(); // Asigna la conexión a $this->conn
         $this->modeloPedidos = new PedidoModel($this->conn); // Usa $this->conn para el modelo
+    }
+        // Método para verificar si el usuario tiene un pedido pendiente
+    public function verificarPedidoPendiente()
+    {
+        // Obtener el ID del usuario (asumimos que ya está en la sesión)
+        $usuarioID = $_SESSION['user_id'];  // El ID del usuario registrado
+        require_once __DIR__ . '/../Models/PedidosModel.php';
+        require_once __DIR__ . '/../Config/db.php';
+        // Crear instancia del modelo de pedidos
+        $database = new Database1();
+        $db = $database->getConnection();
+        $pedidoModel = new PedidoModel($db);
+
+        // Verificar si el último pedido está pendiente
+        $pedidoPendiente = $pedidoModel->ultimoPedidoPendiente($usuarioID);
+
+        if ($pedidoPendiente) {
+            // Si el último pedido está pendiente, no se puede realizar otro
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Tienes un pedido pendiente. Cancélalo o contacta al administrador para validarlo antes de realizar uno nuevo.'
+            ]);
+            
+            exit;  // Salir del controlador
+        }
     }
     public function ordenPedido()
 {
@@ -26,7 +63,10 @@ class PedidosController
     error_log("JSON recibido: " . $jsonInput);
     $data = json_decode($jsonInput, true);
     error_log("Datos recibidos: " . print_r($data, true));
-
+         // Verificar si el usuario tiene un pedido pendiente
+         $usuarioID = $_SESSION['user_id'];  // Obtener ID de usuario de la sesión
+         $this->verificarPedidoPendiente($usuarioID);  // Verificar si hay un pedido pendiente
+ 
     if (
         is_null($data) ||
         !isset($data['usuario_id'], $data['fecha'], $data['subtotal'], $data['iva'], $data['total'], $data['estado'], $data['numeroPedido'], $data['totalProductos'], $data['metodoPago'], $data['productos'])
@@ -104,55 +144,111 @@ class PedidosController
 }
 
     public function obtenerTodo()
-    {
+{
+    try {
+        // Obtener parámetros de la solicitud
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $offset = ($page - 1) * $limit;
         
-        try {
-            error_log("Action: " . $_GET['action']);
-            // Llama al método del modelo para obtener los pedidos
-            $pedidos = $this->modeloPedidos->obtenerTodosLosPedidos();
+        // Filtros opcionales
+        $numeroPedido = isset($_GET['numeroPedido']) ? $_GET['numeroPedido'] : null;
+        $nombreUsuario = isset($_GET['nombreUsuario']) ? $_GET['nombreUsuario'] : null;
+        $fechaInicio = isset($_GET['fechaInicio']) ? $_GET['fechaInicio'] : null;
+        $fechaFin = isset($_GET['fechaFin']) ? $_GET['fechaFin'] : null;
 
-            // Verifica los datos recibidos
-            error_log("Pedidos obtenidos: " . json_encode($pedidos));
+        // Obtener pedidos con filtros y total
+        $pedidos = $this->modeloPedidos->obtenerPedidosConFiltros($limit, $offset, $numeroPedido, $nombreUsuario, $fechaInicio, $fechaFin);
+        $totalPedidos = $this->modeloPedidos->contarTotalPedidos($numeroPedido, $nombreUsuario, $fechaInicio, $fechaFin);  // Si tienes un método para contar con filtros.
+        
+        // Depurar valores (esto es opcional)
+        error_log("Total de pedidos: $totalPedidos");
+        error_log("Pedidos en la página $page: " . count($pedidos));
+        error_log("Limit: $limit, Offset: $offset");
 
-            // Devuelve la respuesta como JSON
-            if (!empty($pedidos)) {
-                header('Content-Type: application/json');
+        // Calcular total de páginas
+        $totalPaginas = ceil($totalPedidos / $limit);
+
+        // Responder en formato JSON
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'success',
+            'data' => $pedidos,
+            'paginaActual' => $page,
+            'totalPaginas' => $totalPaginas,
+            'totalPedidos' => $totalPedidos,
+            'limitePorPagina' => $limit
+        ]);
+    } catch (Exception $e) {
+        // Manejo de errores
+        error_log("Error al obtener pedidos: " . $e->getMessage());
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Ocurrió un error al procesar la solicitud.',
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+public function actualizarEstado()
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $inputRaw = file_get_contents('php://input');
+        $input = json_decode($inputRaw, true);
+
+        error_log("=== DEBUG actualizarEstado ===");
+        error_log("Raw input: " . $inputRaw);
+        error_log("Decoded input: " . print_r($input, true));
+
+        $pedidoID = $input['pedido_id'] ?? null;
+        $nuevoEstado = $input['estado'] ?? null;
+
+        error_log("Pedido ID: " . ($pedidoID ?? 'NULL'));
+        error_log("Nuevo Estado: " . ($nuevoEstado ?? 'NULL'));
+
+        if ($pedidoID && $nuevoEstado) {
+            require_once __DIR__ . '/../Config/db.php'; // Asegúrate que esta ruta es correcta
+            require_once __DIR__ . '/../Models/PedidosModel.php';
+            error_log("Actualizando estado del pedido con ID: " . $pedidoID . " al estado: " . $nuevoEstado);
+
+            $database = new Database1();
+            $db = $database->getConnection();
+
+            $modeloPedidos = new PedidoModel($db);
+            $resultado = $modeloPedidos->actualizarEstadoPedido($pedidoID, $nuevoEstado);
+
+            if ($resultado) {
                 echo json_encode([
                     'status' => 'success',
-                    'data' => $pedidos
+                    'message' => 'Estado del pedido actualizado correctamente'
                 ]);
             } else {
-                // Caso sin datos
-                header('Content-Type: application/json');
+                error_log("Error al actualizar estado en la base de datos.");
                 echo json_encode([
-                    'status' => 'empty',
-                    'message' => 'No hay pedidos disponibles.'
+                    'status' => 'error',
+                    'message' => 'Error al actualizar el estado del pedido'
                 ]);
             }
-        } catch (Exception $e) {
-            // Manejo de errores
-            error_log("Error al obtener pedidos: " . $e->getMessage());
-
-            header('Content-Type: application/json');
+        } else {
+            error_log("ID del pedido o estado no proporcionado.");
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Ocurrió un error al procesar la solicitud.',
-                'error' => $e->getMessage()
+                'message' => 'ID del pedido o estado no proporcionado'
             ]);
         }
+    } else {
+        error_log("Método no permitido. Se esperaba POST.");
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Método no permitido'
+        ]);
     }
-
-
+}
 
     public function obtenerPedidosUsuario()
     {
         try {
-            // Verificar que el usuario esté autenticado usando la sesión
-            if (!isset($_SESSION['user_id'])) {
-                error_log("No se encontró el usuario autenticado en la sesión.");
-                echo json_encode(['success' => false, 'message' => 'Usuario no autenticado']);
-                exit();
-            }
 
             $userId = $_SESSION['user_id']; // Obtener el ID del usuario desde la sesión
             error_log("ID de usuario obtenido desde la sesión: " . $userId);
@@ -164,7 +260,7 @@ class PedidosController
             if ($stmt === false) {
                 header('Content-Type: application/json');
                 error_log("Error al ejecutar la consulta para el usuario ID: " . $userId);
-                echo json_encode(['success' => false, 'message' => 'Error al consultar los pedidos']);
+                echo json_encode(['success' => false, 'message' => 'Usuario no autenticado']);
                 exit();
             }
 
@@ -224,20 +320,21 @@ class PedidosController
 
     public function generarPDF()
     {
+        header('Content-Type: application/json'); // Asegurar JSON
         require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
 
         $data = json_decode(file_get_contents('php://input'), true);
 
         // Validación solo para productos y número de pedido
         if (!isset($data['productos']) || !isset($data['numeroPedido'])) {
-            die('Faltan datos de productos o número de pedido.');
+            //die('Faltan datos de productos o número de pedido.');
         }
 
         $numeroPedido = $data['numeroPedido'];  // Obtener el número de pedido
         $productos = $data['productos'];
         $cliente = ($data['usuario_id'] === 'invitado') ? 'Invitado' : $data['usuario_nombre'];
         $emailCliente = $data['email'];  // Correo del cliente
-        $emailAdmin = 'ddonmilo100@gmail.com';  // Cambia esto por el correo del administrador
+        $emailAdmin = 'edi.borja1310@gmail.com';  // Cambia esto por el correo del administrador
 
         // Crear el objeto TCPDF y configurar el documento
         $pdf = new TCPDF();
@@ -294,9 +391,15 @@ class PedidosController
         $pdf->Cell(0, 10, 'Opción de Entrega: ' . $data['deliveryOption'], 0, 1, 'L'); // Mostrar la opción de entrega
         // Verifica la opción seleccionada y muestra la dirección si es "agregarDireccionEnvio"
         if ($data['deliveryOption'] === 'agregarDireccionEnvio') {
-            // Mostrar la dirección si se seleccionó "agregarDireccionEnvio"
-            $pdf->Cell(0, 10, 'Dirección de Envío: ' . $data['direccion'], 0, 1, 'L');
-            $pdf->Ln(); // Salto de línea
+            $provincia = $data['provinciaEnvio'] ?? '';
+            $ciudad = $data['ciudad'] ?? '';
+            $direccion = $data['direccion'] ?? 'No proporcionada';
+
+            // Concatenar la dirección en formato profesional
+            $direccionCompleta = $provincia . ', ' . $ciudad . ', ' . $direccion;
+
+            $pdf->Cell(0, 10, 'Dirección de Envío: ' . $direccionCompleta, 0, 1, 'L');
+            $pdf->Ln(); // Salto de línea opcional
         }
         // Mover la fecha un poco hacia arriba
         $pdf->SetY(70); // Ajusta la posición Y para mover la fecha hacia arriba
@@ -345,15 +448,82 @@ class PedidosController
         // Espaciado entre la tabla y el total
         $pdf->Ln(10);
 
-        // Mostrar el total
+              // Mostrar el total
         $pdf->SetFont('helvetica', 'B', 12);
-        $pdf->Cell(150, 10, 'Total', 1, 0, 'R');
-        $pdf->Cell(40, 10, '$' . number_format($total, 2), 1, 1, 'C');
+        // Mostrar Subtotal
+        $pdf->SetFont('helvetica', '', 12);
+        $pdf->Cell(150, 10, 'Subtotal', 1, 0, 'R');
+        $pdf->Cell(40, 10, '$' . number_format($data['subtotal'], 2), 1, 1, 'C');
+
+        // Mostrar Descuento
+        $pdf->Cell(150, 10, 'Descuento aplicado por cupones', 1, 0, 'R');
+        $pdf->Cell(40, 10, '-$' . number_format($data['descuento'], 2), 1, 1, 'C');
+
+        // 🔸 Mostrar Costo de Envío si es mayor a 0
+        if (isset($data['costoEnvio']) && floatval($data['costoEnvio']) > 0) {
+            $pdf->Cell(150, 10, 'Costo de Envío por sector', 1, 0, 'R');
+            $pdf->Cell(40, 10, '$' . number_format($data['costoEnvio'], 2), 1, 1, 'C');
+        }
+
+        // Mostrar Total
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->Cell(150, 10, 'Total a Pagar', 1, 0, 'R');
+        $pdf->Cell(40, 10, '$' . number_format($data['total'], 2), 1, 1, 'C');
+
         // Agregar el texto de "Precios ya incluyen IVA" en letra pequeña
         $pdf->SetFont('helvetica', '', 10); // Cambia el tamaño de la fuente para hacerlo más pequeño
         $pdf->Cell(0, 10, 'Los precios ya incluyen IVA (15%)', 0, 1, 'C'); // Centrado y debajo del total
+        // Guardar posición actual
+$x = $pdf->GetX();
+$y = $pdf->GetY();
+
+// Establecer ancho del cuadro (ajustado, no toda la hoja)
+$width = 120;
+$padding = 4;
+
+// Establecer fuente y tamaño
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 10, 'Información Adicional', 0, 1, 'C');
+
+$pdf->SetFont('helvetica', '', 11);
+
+// Contenido del bloque
+$infoText = 
+    'Empresa de Envío: ' . $data['empresaEnvio'] . "\n" .
+    'Tipo de Envío: ' . $data['tipoEnvio'] . "\n" .
+    'Referencias: ' . ($data['referencias'] ?? 'No proporcionadas');
+
+// Medir altura del texto para ajustar el alto del cuadro
+$nbLines = $pdf->getNumLines($infoText, $width - 2 * $padding);
+$lineHeight = 6;
+$height = $nbLines * $lineHeight + 2 * $padding;
+
+// Centrar el cuadro horizontalmente
+$x = ($pdf->GetPageWidth() - $width) / 2;
+$y = $pdf->GetY(); // posición actual Y
+
+// Dibujar rectángulo
+$pdf->Rect($x, $y, $width, $height);
+
+// Establecer posición para el texto dentro del cuadro
+$pdf->SetXY($x + $padding, $y + $padding);
+
+// Imprimir el texto
+$pdf->MultiCell(
+    $width - 2 * $padding,
+    $lineHeight,
+    $infoText,
+    0,
+    'L',
+    false
+);
+
+// Mover cursor debajo del cuadro
+$pdf->SetY($y + $height + 5);
+
+
         // Salida del PDF
-        $pdfPath = __DIR__ . '/../assets/pedidos/pedido_' . $numeroPedido . '.pdf';
+$pdfPath = $_SERVER['DOCUMENT_ROOT'] . '/assets/pedidos/pedido_' . $numeroPedido . '.pdf';
         // Guardar el PDF temporalmente en el servidor
         $pdf->Output($pdfPath, 'F'); // 'F' guarda el archivo en el servidor, pero no lo envía ni descarga
 
@@ -373,15 +543,15 @@ class PedidosController
         try {
             // Configuración del servidor SMTP
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com'; // Cambia esto si usas otro proveedor
+            $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'ddonmilo100@gmail.com'; // Cambia esto por tu correo
-            $mail->Password = 'fjju ugeu xrrq vrrd'; // Cambia esto por tu contraseña o usa una App Password
+            $mail->Username = 'edi.borja1310@gmail.com'; 
+            $mail->Password = 'udzm podh mvvb hbve'; 
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
             // Configurar remitente
-            $mail->setFrom('ddonmilo100@gmail.com', 'MILOGAR');
+            $mail->setFrom('edi.borja1310@gmail.com', 'MILOGAR');
 
             // Enviar al cliente
             $mail->addAddress($emailCliente);
@@ -438,9 +608,11 @@ class PedidosController
     }
 }
 
+
+
+
 // Manejar la solicitud dependiendo de la acción
 $action = $_GET['action'] ?? '';
-
 $controller = new PedidosController();
 
 if ($action === 'ordenPedido') {
@@ -448,7 +620,6 @@ if ($action === 'ordenPedido') {
 } elseif ($action === 'obtenerPedidosUsuario') {
     $controller->obtenerPedidosUsuario();
 }
-//if ($_SERVER['REQUEST_METHOD'] === 'POST') { para traer el action
 
 if (isset($_GET['action'])) {
     $action = $_GET['action'];  // Obtener la acción de la URL
@@ -493,18 +664,17 @@ if (isset($_GET['action'])) {
                 ]);
             }
             break;
+        case 'actualizarEstado':
+            $controller->actualizarEstado();
+            break;
 
 
         default:
-            echo json_encode([
-                'success' => false,
-                'message' => 'Acción no válida.'
-            ]);
-            break;
+        
     }
 } else {
     echo json_encode([
         'success' => false,
-        'message' => 'Acción no válida o no especificada.'
+        'message' => 'Acción no válida o no especificada.sss'
     ]);
 }

@@ -1,3 +1,4 @@
+
 let paginaActual = 1; // Página actual inicial
 
 function cargarProductos(pagina = 1) {

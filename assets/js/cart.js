@@ -22,14 +22,14 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("puntosUsuario").textContent = puntosGuardados;
     }
 });
-
-
 // Selecciona todos los botones "Add to Cart"
 const addToCartButtons = document.querySelectorAll('.add-to-cart');
+
 // Selecciona el elemento del contador
 const cartCounter = document.querySelector('#cart_counter');
 // Array para almacenar los productos en el carrito
-let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+let carrito = [];
+// Variable para mantener el conteo actual de productos (solo declarada una vez)
 
 // Función para guardar el carrito en localStorage
 function guardarCarrito() {
@@ -44,20 +44,6 @@ function actualizarTiempoUltimaActividad() {
     localStorage.setItem('ultimaActividad', ahora);
 }
 
-
-// Función para verificar la inactividad al abrir la tienda
-function verificarInactividad() {
-    const tiempoUltimaActividad = parseInt(localStorage.getItem('ultimaActividad'), 10);
-    const ahora = new Date().getTime();
-
-    if (tiempoUltimaActividad) {
-        const inactividad = ahora - tiempoUltimaActividad;
-        // Si ha pasado más de 1 minuto (60,000 ms) desde la última actividad
-        if (inactividad > 3600000) {
-            vaciarCarrito(); // Vaciar el carrito si ha pasado más de 1 minuto
-        }
-    }
-}
 
 // Función para vaciar el carrito
 function vaciarCarrito() {
@@ -84,8 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarTiempoUltimaActividad();
 });
 
-
-
 // Función para cargar el carrito desde localStorage
 function cargarCarrito() {
     const carritoGuardado = localStorage.getItem('carrito');
@@ -96,6 +80,61 @@ function cargarCarrito() {
     actualizarContadorCarrito(); // Asegúrate de que el contador se cargue correctamente
 
 }
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+        // Obtén los datos del producto desde los atributos data-* del botón
+        const productoId = event.target.dataset.id;
+        const nombreProducto = event.target.dataset.nombre;
+        const precioProducto = parseFloat(event.target.dataset.precio);
+        const descuento = parseFloat(event.target.getAttribute('data-descuento')) || 0; // Aseguramos que el descuento sea un número
+        const imagenProducto = event.target.dataset.imagen;
+
+        // Calcular el precio con descuento
+        const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
+
+        // Verifica si el producto ya está en el carrito
+        const productoExistente = carrito.find(producto => producto.id === productoId);
+
+        // Si el producto ya está en el carrito, incrementa la cantidad
+        if (productoExistente) {
+            productoExistente.cantidad += cantidadSeleccionada;
+        }
+        else {
+            // Si no está, lo añade al carrito con cantidad 1
+            carrito.push({
+                id: productoId,
+                nombre: nombreProducto,
+                precio: precioConDescuento, // Guardamos el precio con descuento
+                cantidad: 1,
+                precioOriginal: precioProducto, // Añadir el precio original
+                imagen: imagenProducto,
+                descuento: descuento,
+
+            });
+        }
+
+        // Guarda el carrito en localStorage
+        guardarCarrito();
+
+        // Actualiza el carrito en el modal (si es necesario)
+        actualizarCarrito();
+
+        // Mostrar la alerta con SweetAlert2
+        Swal.fire({
+            position: 'bottom-left',  // Ubicación de la alerta (abajo a la izquierda)
+            icon: 'success',  // Tipo de alerta (puede ser 'success', 'error', etc.)
+            title: '¡Agregado correctamente!',  // Mensaje de la alerta
+            showConfirmButton: false,  // No mostrar el botón de confirmación
+            timer: 4000,  // La alerta desaparecerá después de 4 segundos
+            toast: true,  // Activar la opción de "toast" para que sea una alerta pequeña
+            timerProgressBar: true,  // Mostrar barra de progreso en el timer
+        });
+
+        // Actualiza el contador en el icono
+        actualizarContadorCarrito();
+    });
+});
+
 // Llamar a cargarCarrito al cargar la página
 document.addEventListener('DOMContentLoaded', cargarCarrito);
 
@@ -181,13 +220,16 @@ function actualizarCarrito() {
                             </a>
                         </div>
                     </div>
-                    <div class="col-3">
-                        <div class="input-group flex-nowrap justify-content-center">
-                            <input type="button" value="-" class="button-minus form-control text-center" data-index="${index}">
-                            <input type="number" value="${producto.cantidad}" style="width: 60px;" min="1" class="quantity-field form-control text-center" data-index="${index}">
-                            <input type="button" value="+" class="button-plus form-control text-center" data-index="${index}" ${deshabilitarMas ? 'disabled' : ''}>
-                        </div>
-                    </div>
+                 <div class="col-3 d-flex justify-content-end">
+    <div class="d-flex align-items-center gap-1 flex-nowrap" style="margin-left: 3mm;">
+        <button type="button" class="button-minus btn btn-outline-secondary px-2 py-1" data-index="${index}">-</button>
+        <input type="number" value="${producto.cantidad}" min="1"
+            class="quantity-field text-center" style="width: 50px;" data-index="${index}">
+        <button type="button" class="button-plus btn btn-outline-secondary px-2 py-1" data-index="${index}" ${deshabilitarMas ? 'disabled' : ''}>+</button>
+    </div>
+</div>
+
+
                     <div class="col-2 text-end">
                         <span class="fw-bold">$${subtotal.toFixed(2)}</span>
                     </div>
@@ -211,18 +253,23 @@ function actualizarCarrito() {
     }
 
     asignarEventosCarrito();
+    document.querySelectorAll('.quantity-field').forEach(input => {
+        input.addEventListener('blur', (e) => {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            const nuevaCantidad = parseInt(e.target.value);
+
+            if (!isNaN(nuevaCantidad) && nuevaCantidad > 0) {
+                carrito[index].cantidad = nuevaCantidad;
+                actualizarCarrito(); // Vuelve a calcular todo
+            } else {
+                e.target.value = carrito[index].cantidad; // Restaura la cantidad anterior si se ingresó algo inválido
+            }
+        });
+    });
+
 }
 
-
-// Función para actualizar el contador del carrito
-function actualizarContadorCarrito() {
-    // Obtiene el número total de productos en el carrito
-    const totalProductos = carrito.reduce((total, producto) => total + producto.cantidad, 0);
-
-    // Actualiza el contador en el icono
-    cartCounter.textContent = totalProductos;
-}
-
+// Función para asignar eventos de clic a los botones de cantidad y eliminar
 function asignarEventosCarrito() {
     document.querySelectorAll('.button-minus').forEach(btn => {
         btn.addEventListener('click', function () {
@@ -267,10 +314,9 @@ function asignarEventosCarrito() {
     });
 }
 
-
 async function actualizarPuntos(usuarioId, puntos, accion) {
     try {
-        const response = await fetch('http://Milogar/Controllers/UsuarioController.php', {
+        const response = await fetch('http://localhost:8080/Milogar/Controllers/UsuarioController.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -293,6 +339,18 @@ async function actualizarPuntos(usuarioId, puntos, accion) {
         console.error('Error al actualizar puntos:', error);
     }
 }
+
+// Función para actualizar el contador del carrito
+function actualizarContadorCarrito() {
+    const totalProductos = carrito.reduce((total, producto) => total + producto.cantidad, 0);
+
+    // Actualiza todos los contadores del carrito (para PC y móvil)
+    document.querySelectorAll('.cart-counter').forEach(counter => {
+        counter.textContent = totalProductos;
+    });
+}
+
+
 
 function aumentarCantidad(event) {
     const index = event.target.dataset.index;
@@ -331,7 +389,6 @@ function aumentarCantidad(event) {
         actualizarCarrito();
     }
 }
-
 
 
 function disminuirCantidad(event) {
@@ -428,7 +485,7 @@ document.getElementById('checkout-button').addEventListener('click', function (e
     actualizarCarrito();
 
     // Redirigir a la página de checkout en la misma ventana
-    window.location.href = '/Milogar/shop-checkout';
+    window.location.href = 'http://localhost:8080/Milogar/shop-checkout.php';
 });
 
 function actualizarDetallePedido() {
@@ -437,8 +494,9 @@ function actualizarDetallePedido() {
     const descuentoElement = document.getElementById('descuento');
     const totalElement = document.getElementById('total');
     const totalPuntosElement = document.getElementById('total-puntos');
+    const puntosDescontarElement = document.getElementById('puntos-descontar'); // 🔸 NUEVO
 
-    if (!orderDetails || !subtotalElement || !descuentoElement || !totalElement) {
+    if (!orderDetails || !subtotalElement || !descuentoElement || !totalElement || !puntosDescontarElement) {
         console.error("Uno o más elementos no existen en el DOM.");
         return;
     }
@@ -448,12 +506,13 @@ function actualizarDetallePedido() {
 
     let subtotal = 0;
     let totalPuntos = 0;
-    let descuento = 0; // Iniciar el descuento
+    let descuento = 0;
+    let puntosADescontar = 0; // 🔸 NUEVO: acumulador de puntos a restar
 
     console.log("=== Detalles del carrito ===");
 
-    // Dentro del forEach donde se recorren los productos del carrito
     carrito.forEach((producto, index) => {
+
         const subtotalProducto = producto.precio * producto.cantidad;
         subtotal += subtotalProducto;
 
@@ -465,10 +524,10 @@ function actualizarDetallePedido() {
         console.log(`- Puntos necesarios: ${producto.puntos_necesarios}`);
         console.log(`- Puntos otorgados: ${producto.puntos_otorgados}`);
         console.log(`- Cantidad mínima para puntos: ${producto.cantidad_minima_para_puntos}`);
+        console.log(`- COSTO ENVIO: ${producto.cantidad_minima_para_puntos}`);
 
-        // 🔍 Detectar si es un cupón basado en el nombre
+        // Detectar cupones
         if (producto.nombre.startsWith('Cupon de descuento por un valor de')) {
-            // Extraer el valor del cupón desde el nombre
             const match = producto.nombre.match(/(\d+)(?:\$|\s*USD)?/i);
             if (match && match[1]) {
                 const valorCupon = parseFloat(match[1]);
@@ -487,53 +546,119 @@ function actualizarDetallePedido() {
             console.log(`-> Este producto NO otorga puntos.`);
         }
 
-        // Agregar al detalle del pedido
+        let mensajeCanjeado = '';
+        if (producto.puntos_necesarios && producto.puntos_necesarios > 0) {
+            const puntosPorProducto = producto.puntos_necesarios * producto.cantidad;
+            puntosADescontar += puntosPorProducto;
+            mensajeCanjeado = `<small class="text-primary d-block mt-1">Canjeado por ${producto.puntos_necesarios} puntos.</small>`;
+            console.log(`➡️ Canjeado por puntos: ${producto.cantidad}`);
+        }
+
+
         orderDetails.innerHTML += `
-        <li class="list-group-item px-4 py-3">
-            <div class="row align-items-center">
-                <div class="col-2 col-md-2">
-                    <img src="${producto.imagen}" alt="${producto.nombre}" class="img-fluid">
-                </div>
-                <div class="col-4 col-md-4">
-                    <h6 class="mb-0">${producto.nombre}</h6>
-                    ${mensajePuntos}
-                </div>
-                <div class="col-2 col-md-2 text-center">
-                    <button class="btn btn-sm btn-outline-danger" onclick="cambiarCantidad(${index}, -1)">-</button>
-                    <input type="number" id="cantidad-${index}" class="form-control d-inline text-center" value="${producto.cantidad}" min="1" style="width: 50px;" onchange="actualizarCantidad(${index})">
-                    <button class="btn btn-sm btn-outline-success" onclick="cambiarCantidad(${index}, 1)">+</button>
-                </div>
-                <div class="col-2 text-lg-end text-start text-md-end col-md-2">
-                    <span class="fw-bold">$${subtotalProducto.toFixed(2)}</span>
-                </div>
-                <div class="col-2 col-md-2 text-center">
-                    <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
-                </div>
-            </div>
-        </li>
+    <li class="list-group-item py-3 px-2">
+    <div class="row align-items-center gy-3 gx-2">
+
+        <!-- Imagen del producto -->
+        <div class="col-4 col-md-2 text-center">
+        <img src="${producto.imagen}" alt="${producto.nombre}" 
+            class="img-fluid rounded-3 border shadow-sm" style="max-width: 80px;">
+        </div>
+
+        <!-- Nombre y mensajes -->
+        <div class="col-8 col-md-4">
+        <h6 class="fw-semibold mb-1 text-break">${producto.nombre}</h6>
+        ${mensajeCanjeado ? `<div class="badge bg-warning text-dark small">${mensajeCanjeado}</div>` : ''}
+        ${mensajePuntos ? `<div class="text-muted small">${mensajePuntos}</div>` : ''}
+        </div>
+
+        <!-- Cantidad -->
+        <div class="col-12 col-md-3 text-center">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <button class="btn btn-outline-danger btn-sm" onclick="cambiarCantidad(${index}, -1)">−</button>
+            <input type="number" id="cantidad-${index}" class="form-control form-control-sm text-center" 
+                value="${producto.cantidad}" min="1" style="width: 60px;" onchange="actualizarCantidad(${index})">
+            <button class="btn btn-outline-success btn-sm" onclick="cambiarCantidad(${index}, 1)">+</button>
+        </div>
+        </div>
+
+        <!-- Subtotal -->
+        <div class="col-6 col-md-2 text-center text-md-end">
+        <span class="fw-bold text-success">$${subtotalProducto.toFixed(2)}</span>
+        </div>
+
+        <!-- Eliminar -->
+        <div class="col-6 col-md-1 text-center">
+        <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index})">
+            <i class="bi bi-trash-fill"></i>
+        </button>
+        </div>
+
+    </div>
+    </li>
     `;
+
     });
 
     console.log("Subtotal general: ", subtotal.toFixed(2));
     console.log("Total puntos otorgados: ", totalPuntos);
+    console.log("Puntos a descontar por canje: ", puntosADescontar);
+
+
 
     totalPuntosElement.textContent = totalPuntos;
+    puntosDescontarElement.textContent = puntosADescontar; // 🔸 NUEVO: actualiza el elemento
 
-    // Calculamos el total con el descuento
     const totalConDescuento = (subtotal - descuento).toFixed(2);
 
-    // Mostrar los resultados en el DOM
     subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-    descuentoElement.textContent = `-$${descuento.toFixed(2)}`; // Mostramos el descuento
+    descuentoElement.textContent = `-$${descuento.toFixed(2)}`;
     totalElement.textContent = `$${totalConDescuento}`;
 
     localStorage.setItem('carrito', JSON.stringify(carrito));
 
     actualizarContadorCarrito();
     actualizarCarrito();
+    calcularCostoEnvio();
 }
+const provinciaSelect = document.getElementById("provincia");
+const costoEnvioSpan = document.getElementById("costoEnvio");
+
+provinciaSelect.addEventListener("change", calcularCostoEnvio);
+
+function calcularCostoEnvio() {
+    let subtotal = parseFloat(document.getElementById("subtotal").textContent.replace('$', '')) || 0;
+    let descuento = parseFloat(document.getElementById("descuento").textContent.replace('-$', '')) || 0;
+    let total = subtotal - descuento;
+    let costoEnvio = 0;
+
+    const tipoEnvio = provinciaSelect.value;
+
+    if (tipoEnvio === "sectorEnvio" && total < 20) {
+        costoEnvio = 3;
+    }
+
+    // Guardar en localStorage
+    localStorage.setItem('costoEnvio', costoEnvio);
+
+    // Actualizar el costo de envío en pantalla
+    costoEnvioSpan.textContent = `$${costoEnvio.toFixed(2)}`;
+
+    // Recalcular el total incluyendo el envío
+    const totalConEnvio = total + costoEnvio;
+    document.getElementById("total").textContent = `$${totalConEnvio.toFixed(2)}`;
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    const costoEnvioGuardado = parseFloat(localStorage.getItem("costoEnvio")) || 0;
+    costoEnvioSpan.textContent = `$${costoEnvioGuardado.toFixed(2)}`;
+
+    let subtotal = parseFloat(document.getElementById("subtotal").textContent.replace('$', '')) || 0;
+    let descuento = parseFloat(document.getElementById("descuento").textContent.replace('-$', '')) || 0;
+    let total = subtotal - descuento + costoEnvioGuardado;
+
+    document.getElementById("total").textContent = `$${total.toFixed(2)}`;
+});
 
 function cambiarCantidad(index, delta) {
     const puntosUsuario = parseInt(document.getElementById('puntosUsuario').textContent);
@@ -630,9 +755,16 @@ document.getElementById("proceder").addEventListener("click", function (event) {
     event.preventDefault();
     // Verificar si el carrito tiene productos
     if (carrito.length === 0) {
-        alert("Tu carrito está vacío. Agrega al menos un producto para realizar un pedido.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Carrito vacío',
+            text: 'Tu carrito está vacío. Agrega al menos un producto para realizar un pedido.',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#3085d6'
+        });
         return; // Detiene la ejecución si el carrito está vacío
     }
+
     // Obtener la opción seleccionada en el radio button
     const opcionSeleccionada = document.querySelector("input[name='opcion']:checked");
     const metodoPago = opcionSeleccionada ? opcionSeleccionada.value : null; // El valor del método de pago seleccionado
@@ -643,8 +775,17 @@ document.getElementById("proceder").addEventListener("click", function (event) {
     // Obtener correo y teléfono si el usuario es invitado
     const email = document.getElementById("email-address")?.value.trim() || null;
     const telefono = document.getElementById("celular")?.value.trim() || null;
-    const direccion = document.getElementById("direccion").value.trim() || null;
+    const direccion = document.getElementById("calle").value.trim() || null;
     const nombreUsuario = document.getElementById('user_name').value;
+    //nuevos campos
+    const tipoEnvio = document.getElementById("provincia")?.value || null;
+    const empresaEnvio = document.getElementById("empresaEnvio")?.value || null;
+    const provinciaEnvio = document.getElementById("provinciaEnvio")?.value || null;
+    const ciudad = document.getElementById("ciudad")?.value.trim() || null;
+    const referencias = document.getElementById("referencias")?.value.trim() || null;
+    // Obtener el texto del span y convertirlo a número
+    const costoEnvioTexto = document.getElementById('costoEnvio').textContent || '$0.00';
+    const costoEnvio = parseFloat(costoEnvioTexto.replace('$', '')) || 0;
 
     // Obtener los datos del botón y del HTML
     const userId = parseInt(event.target.dataset.userId, 10);
@@ -661,6 +802,20 @@ document.getElementById("proceder").addEventListener("click", function (event) {
     // Obtener el total de productos en el carrito
     const totalProductos = carrito.reduce((total, producto) => total + producto.cantidad, 0);
     const puntosAcumulados = parseFloat(document.getElementById("total-puntos").textContent) || 0;
+    const opcionEntregaSeleccionada = document.querySelector('input[name="deliveryOption"]:checked');
+
+    if (!opcionEntregaSeleccionada) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Método de entrega requerido',
+            text: 'Por favor, selecciona una opción de entrega para continuar.',
+            confirmButtonText: 'Entendido',
+            timer: 4000,
+            timerProgressBar: true
+        });
+        return;
+    }
+
 
     // Crear un array de productos con los datos que vamos a enviar
     const productos = carrito.map(producto => {
@@ -707,7 +862,14 @@ document.getElementById("proceder").addEventListener("click", function (event) {
         email: email,
         telefono: telefono,
         direccion: direccion,
-        puntos: puntosAcumulados // <-- Aquí se envían los puntos acumulados
+        puntos: puntosAcumulados, // <-- Aquí se envían los puntos acumulados
+        // Campos adicionales que estás agregando ahora
+        tipoEnvio: tipoEnvio,                 // "sectorEnvio" o "otra"
+        empresaEnvio: empresaEnvio,           // "servientrega" o "favorcito"
+        provinciaEnvio: provinciaEnvio,       // Provincia seleccionada
+        ciudad: ciudad,                       // Ciudad ingresada
+        referencias: referencias,            // Referencias opcionales
+        costoEnvio: costoEnvio
 
     };
 
@@ -721,6 +883,37 @@ document.getElementById("proceder").addEventListener("click", function (event) {
             alert("Por favor, ingresa tu correo electrónico para recibir la información del pedido.");
             return;
         }
+        if (!telefono) {
+            alert("Por favor, ingresa tu número de celular.");
+            return;
+        }
+
+        if (!deliveryOption) {
+            alert("Por favor, selecciona un método de entrega.");
+            return;
+        }
+
+        // Si la opción es envío a domicilio, valida campos de envío
+        if (deliveryOption === "agregarDireccionEnvio") {
+            if (!tipoEnvio) {
+                alert("Tipo de envío no seleccionado.");
+                return;
+            }
+            if (!provinciaEnvio) {
+                alert("Provincia de envío no seleccionada.");
+                return;
+            }
+            if (!ciudad) {
+                alert("Ciudad de envío no seleccionada.");
+                return;
+            }
+            if (!direccion) {
+                alert("Dirección de envío no ingresada.");
+                return;
+            }
+        }
+
+
 
         fetch("http://localhost:8080/Milogar/Controllers/PedidosController.php?action=generarPDF", {
             method: "POST",
@@ -743,7 +936,7 @@ document.getElementById("proceder").addEventListener("click", function (event) {
                     actualizarCarrito();
 
                     // Redirigir a la página principal
-                    window.location.href = "/Milogar/index.php";
+                    window.location.href = "/index.php";
                 } else {
                     alert("Hubo un problema al generar el reporte.");
                 }
@@ -754,24 +947,27 @@ document.getElementById("proceder").addEventListener("click", function (event) {
             });
 
     } else {
-        // Validar campos obligatorios antes de enviar
-        if (!fecha || !numeroPedido || !estado || !metodoPago || !deliveryOption || !totalNeto || productos.length === 0) {
+        // Validar todos los campos obligatorios
+        if (
+            !email ||
+            !telefono ||
+            !tipoEnvio ||
+            !provinciaEnvio ||
+            !ciudad ||
+            !direccion ||
+            !fecha ||
+            !numeroPedido ||
+            !estado ||
+            !metodoPago ||
+            !deliveryOption ||
+            !totalNeto ||
+            productos.length === 0
+        ) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos incompletos',
-                text: 'Faltan datos obligatorios para realizar el pedido. Por favor, revisa los campos.',
+                text: 'Faltan datos obligatorios para realizar el pedido. Por favor, completa todos los campos.',
                 confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-
-        // Si el usuario es invitado, validar también email, teléfono y dirección
-        if (!userId && (!email || !telefono || !direccion)) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Datos requeridos',
-                text: 'Por favor, completa tu correo, teléfono y dirección para continuar con el pedido.',
-                confirmButtonText: 'Ok'
             });
             return;
         }
@@ -834,19 +1030,87 @@ document.getElementById("proceder").addEventListener("click", function (event) {
                                     confirmButtonText: 'Aceptar'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        // Vaciar el carrito
-                                        carrito = [];
-                                        localStorage.removeItem("carrito");
-                                
-                                        // Actualizar la interfaz del carrito
-                                        actualizarContadorCarrito();
-                                        actualizarCarrito();
-                                
-                                        // Redirigir a la página principal
-                                        window.location.href = "/Milogar/index.php";
+                                        // ✅ Descontar puntos después del Swal y antes de redirigir
+                                        if (userId) {
+                                            const puntosADescontar = parseInt(document.getElementById("puntos-descontar").textContent);
+                                            console.log("Puntos a descontar antes del fetch:", puntosADescontar);
+                                            console.log("USUARIO ID: ", userId);
+                                            if (puntosADescontar > 0) {
+                                                fetch('http://localhost:8080/Milogar/Controllers/UsuarioController.php?action=descontarPuntos', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({
+                                                        usuario_id: userId,
+                                                        puntos: puntosADescontar
+                                                    })
+                                                })
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                        console.log("Respuesta al descontar puntos:", data);
+                                                        if (data.success) {
+                                                            Swal.fire({
+                                                                icon: 'info',
+                                                                title: 'Puntos actualizados',
+                                                                text: data.message,
+                                                                confirmButtonText: 'Ok'
+                                                            }).then(() => {
+                                                                // Vaciar el carrito
+                                                                carrito = [];
+                                                                localStorage.removeItem("carrito");
+
+                                                                actualizarContadorCarrito();
+                                                                actualizarCarrito();
+
+                                                                // Redirigir
+                                                                window.location.href = "/Milogar/index.php";
+                                                            });
+                                                        } else {
+                                                            Swal.fire({
+                                                                icon: 'warning',
+                                                                title: 'Advertencia',
+                                                                text: data.message,
+                                                                confirmButtonText: 'Entendido'
+                                                            }).then(() => {
+                                                                window.location.href = "/Milogar/index.php";
+                                                            });
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error al descontar puntos:', error);
+                                                        Swal.fire({
+                                                            icon: 'error',
+                                                            title: 'Error',
+                                                            text: 'Ocurrió un error al intentar descontar los puntos.',
+                                                            confirmButtonText: 'Ok'
+                                                        }).then(() => {
+                                                            window.location.href = "/Milogar/index.php";
+                                                        });
+                                                    });
+                                            } else {
+                                                // Si no hay puntos a descontar, continuar normal
+                                                carrito = [];
+                                                localStorage.removeItem("carrito");
+
+                                                actualizarContadorCarrito();
+                                                actualizarCarrito();
+
+                                                window.location.href = "/Milogar/index.php";
+                                            }
+                                        } else {
+                                            // Invitado: solo redirigir
+                                            carrito = [];
+                                            localStorage.removeItem("carrito");
+
+                                            actualizarContadorCarrito();
+                                            actualizarCarrito();
+
+                                            window.location.href = "/Milogar/index.php";
+                                        }
                                     }
                                 });
-                                
+
                             } else {
                                 alert("Hubo un problema al generar el reporte.");
                             }
@@ -856,11 +1120,126 @@ document.getElementById("proceder").addEventListener("click", function (event) {
                             alert("Error al generar el reporte.");
                         });
                 } else {
-                    alert("Error al crear el pedido: " + result.message);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '¡Atención!',
+                        text: result.message, // Muestra el mensaje "No puedes realizar un nuevo pedido mientras el último esté pendiente."
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#3085d6'
+                    });
                 }
             })
             .catch(error => console.error("Error en la solicitud:", error));
     }
 });
+
+
+//Para el boton de payphone !
+document.addEventListener("DOMContentLoaded", function () {
+    const direccionContainer = document.getElementById("direccionContainer");
+    const recogerOption = document.getElementById("recogerEnTienda");
+    const enviarOption = document.getElementById("agregarDireccionEnvio");
+    const provinciaSelect = document.getElementById("provincia");
+    const camposAdicionales = document.getElementById("camposDireccionAdicionales");
+
+    function toggleDireccion() {
+        if (enviarOption.checked) {
+            direccionContainer.style.display = "block";
+        } else {
+            direccionContainer.style.display = "none";
+            provinciaSelect.value = "";
+            camposAdicionales.style.display = "none";
+        }
+    }
+
+    function toggleCamposAdicionales() {
+        if (provinciaSelect.value !== "") {
+            camposAdicionales.style.display = "block";
+        } else {
+            camposAdicionales.style.display = "none";
+        }
+    }
+
+    // Eventos
+    recogerOption.addEventListener("change", toggleDireccion);
+    enviarOption.addEventListener("change", toggleDireccion);
+    provinciaSelect.addEventListener("change", toggleCamposAdicionales);
+
+    // Inicialización
+    toggleDireccion();
+    toggleCamposAdicionales();
+});
+
+function generarPago() {
+    // Obtener el valor total desde la tienda virtual
+    let totalElement = document.getElementById("total").innerText;
+
+    // Convertirlo a número y asegurarse de que sea válido
+    let total = parseFloat(totalElement.replace(/[^0-9.]/g, '')) * 100;
+
+    if (isNaN(total) || total <= 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Total no válido',
+            text: 'El total del pedido no es válido. Verifica el monto antes de continuar.',
+            confirmButtonText: 'Aceptar',
+            timer: 4000,
+            timerProgressBar: true
+        });
+        return;
+    }
+
+
+    const redirectClientTraxID = Date.now();
+
+    // Preparar cabecera para la solicitud
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer bYrfxfYmTOu8sFy3hLe6w85G0VXkB97WgrBxCcVmRDh2Z6yrNo88wSvg12Q8l1UlYdXd2iCFB4q-DGllmKJBNTMGCvEF9sjKFAvdP6-qML-kRTlbfKyMTo1xmOWi3AJ0G1XwjRLOBfClgLDfGMd2wdrLA2lReu7iGV3DSjsoco1VbPIhBFVfbTBwZJMj01vjB3aLOce7aKf9VHcSRDqFqDqkrggqYHhwsKoUxaEes27SYLLZVI6_FokDKYDaiDoFFTJHmBHb8nPp-ZUXEmBkIdU36tSs0XQT9WasJyNRut4KnPxVFDmDwDuDNC7nDMmJ32LWWzM02K6NbLOzFg9JO6MKYhA", // Tu API Key
+    };
+
+    // Preparamos el objeto JSON para la solicitud
+    const bodyJSON = {
+        "amount": total,  // Monto total
+        "amountWithoutTax": total, // Monto sin impuestos
+        "amountWithTax": 0, // Monto con impuestos
+        "tax": 0, // Impuesto aplicado
+        "reference": "Prueba Boton fetch", // Referencia opcional
+        "currency": "USD", // Moneda
+        "clientTransactionId": redirectClientTraxID, // ID único de transacción
+        "storeId": "757a105c-7d02-4b21-b919-06667a9f4991",  //  Store ID
+        "ResponseUrl": "http://localhost:8080/Milogar/respuesta.php" // URL de respuesta
+    };
+
+    // URL de la API de PayPhone
+    const url = "https://pay.payphonetodoesposible.com/api/button/Prepare";
+
+    // Realizar la solicitud POST
+    fetch(url, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(bodyJSON)
+    })
+        .then(res => res.json())
+        .then(data => {
+            console.log("Respuesta de PayPhone:", data);
+
+            if (data.payWithPayPhone || data.payWithCard) {
+                // Redirigir al usuario a la URL de pago
+                if (data.payWithPayPhone) {
+                    window.location.href = data.payWithPayPhone;
+                } else if (data.payWithCard) {
+                    window.location.href = data.payWithCard;
+                }
+            } else {
+                alert("Error al procesar el pago. Inténtalo de nuevo.");
+            }
+        })
+        .catch(error => {
+            console.error("Error en la solicitud:", error);
+            alert("Hubo un problema con el pago. Inténtalo más tarde.");
+        });
+}
+
 
 

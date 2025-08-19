@@ -135,17 +135,103 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         .whatsapp-icon:hover .whatsapp-text {
             opacity: 1;
         }
+        .chatbot-container {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1001;
+}
 
-        /* Añadir un margen superior para que el contenido no se solape con el navbar fijo */
-        body {
-            margin-top: 0px;
-            /* Ajusta según la altura del navbar fijo */
-        }
+.chatbot-icon {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
 
-        /* También puedes aplicar el z-index si es necesario */
-        .navbar {
-            z-index: 1050;
-        }
+.chatbot-icon img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.chatbot-icon:hover img {
+  transform: scale(1.1);
+}
+
+.chatbot-text {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  background-color: #343a40;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-icon:hover .chatbot-text {
+  opacity: 1;
+}
+
+.chatbot-box {
+  display: none;
+  width: 300px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  overflow: hidden;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 10px;
+  font-weight: bold;
+  position: relative;
+}
+
+.chatbot-close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  cursor: pointer;
+}
+
+.chatbot-log {
+  height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #f9f9f9;
+}
+
+.chatbot-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+}
+
+.chatbot-input button {
+  background-color: #343a40;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
 
         /* Tamanio predeterminado de la imagen*/
     </style>
@@ -202,68 +288,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body p-6">
-                    <div class="d-flex justify-content-between align-items-start ">
-                        <div>
-                            <h5 class="mb-1" id="locationModalLabel">Choose your Delivery Location</h5>
-                            <p class="mb-0 small">Enter your address and we will specify the offer you area. </p>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="my-5">
-                        <input type="search" class="form-control" placeholder="Search your area">
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">Select Location</h6>
-                        <a href="#" class="btn btn-outline-gray-400 text-muted btn-sm">Clear All</a>
-                    </div>
-                    <div>
-                        <div data-simplebar style="height:300px;">
-                            <div class="list-group list-group-flush">
-
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action active">
-                                    <span>Alabama</span><span>Min:$20</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Alaska</span><span>Min:$30</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Arizona</span><span>Min:$50</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>California</span><span>Min:$29</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Colorado</span><span>Min:$80</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Florida</span><span>Min:$90</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Arizona</span><span>Min:$50</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>California</span><span>Min:$29</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Colorado</span><span>Min:$80</span></a>
-                                <a href="#"
-                                    class="list-group-item d-flex justify-content-between align-items-center px-2 py-3 list-group-item-action">
-                                    <span>Florida</span><span>Min:$90</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
+    
     <!-- section -->
     <section class=" mt-8 mb-lg-14 mb-8">
         <!-- container -->
@@ -273,49 +298,45 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
 
                 <div class="col-lg-12 col-md-2">
                     <!-- card -->
-                    <div class="card mb-4 bg-light border-0">
-                        <!-- card body -->
-                        <div class=" card-body p-9">
-                            <h1 class="mb-0">Canjear Puntos</h1>
-                        </div>
-                    </div>
+<div class="card mb-4 bg-light border-0">
+    <div class="card-body p-4 p-md-5">
+        <div class="row align-items-center">
+            <!-- Imagen promocional -->
+            <div class="col-md-6 text-center mb-4 mb-md-0">
+                <img src="https://milogar.wuaze.com/assets/imagenesMilogar/canjearPuntos.jpg"
+                    alt="Canjea tus puntos"
+                    class="img-fluid rounded shadow-sm"
+                    style="max-height: 320px;">
+            </div>
+
+            <!-- Texto promocional -->
+            <div class="col-md-6 text-center text-md-start">
+                <h2 class="fw-bold mb-3">🎁 ¡Haz que cada compra valga más!</h2>
+                <p class="fs-5 fw-semibold">
+                    Canjea tus puntos por descuentos, productos exclusivos y promociones especiales.
+                </p>
+                <p class="text-muted mb-3">
+                    Estás a solo un clic de disfrutar beneficios por tu fidelidad.<br>
+                    Mientras más compras haces, más recompensas obtienes.
+                </p>
+                <p class="text-muted fst-italic">
+                    No dejes que tus puntos se acumulen sin usarlos… ¡canjéalos hoy mismo y ahorra en tu próxima compra!
+                </p>
+                <a href="#productos-canjeables" class="btn btn-dark px-4 py-2 mt-3">Ver Productos Canjeables</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
                     <!-- list icon -->
                     <div class="d-md-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="mb-3 mb-md-0"> <span class="text-dark">24 </span> Products found </p>
-                        </div>
-                        <!-- icon -->
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="shop-list.html" class="text-muted me-3"><i class="bi bi-list-ul"></i></a>
-                            <a href="shop-grid.html" class=" me-3 active"><i class="bi bi-grid"></i></a>
-                            <a href="shop-grid-3-column.html" class="me-3 text-muted"><i class="bi bi-grid-3x3-gap"></i></a>
-                            <div class="me-2">
-                                <!-- select option -->
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Show: 50</option>
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="30">30</option>
-                                </select>
-                            </div>
-                            <div>
-                                <!-- select option -->
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Sort by: Featured</option>
-                                    <option value="Low to High">Price: Low to High</option>
-                                    <option value="High to Low"> Price: High to Low</option>
-                                    <option value="Release Date"> Release Date</option>
-                                    <option value="Avg. Rating"> Avg. Rating</option>
 
-                                </select>
-                            </div>
-                        </div>
                         <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
                         <p id="resultadoPuntos" style="font-weight: bold; margin-top: 10px;">
-    Puntos restantes: 0
-</p>
+                            Puntos restantes: 0
+                        </p>
                     </div>
                     <h1>Usa tus puntos de canje para obtener recompensas </h1>
 
@@ -366,6 +387,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             </div>
         </div>
     </section>
+    
     <!-- Modal -->
     <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -463,8 +485,27 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             </div>
         </div>
     </div>
+    <!-- Chatbot Bubble Container -->
+<div class="chatbot-container">
+  <div class="chatbot-icon" onclick="toggleChatbot()">
+    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712104.png" alt="Chatbot">
+    <span class="chatbot-text">¿Necesitas ayuda?</span>
+  </div>
+
+  <div id="chatbot-box" class="chatbot-box">
+    <div class="chatbot-header">
+      Chat Milogar
+      <span class="chatbot-close" onclick="toggleChatbot()">✖</span>
+    </div>
+    <div id="chatlog" class="chatbot-log"></div>
+    <div class="chatbot-input">
+      <input id="userInput" type="text" placeholder="Escribe tu mensaje...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+</div>
     <div class="whatsapp-container">
-        <a href="https://wa.me/593989082073" target="_blank" class="whatsapp-icon">
+        <a href="https://wa.me/593967342065" target="_blank" class="whatsapp-icon">
             <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
             <span class="whatsapp-text">¿Cómo podemos ayudarte?</span>
         </a>
@@ -489,15 +530,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
     <script src="assets/libs/dropzone/dist/min/dropzone.min.js"></script>
     <script src="assets/libs/flatpickr/dist/flatpickr.min.js"></script>
     <!-- Theme JS -->
-    <!-- choose one -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Mantener el carrito de compras en todas las ventanas del navegador, agregar el script donde 
+        <!-- Mantener el carrito de compras en todas las ventanas del navegador, agregar el script donde 
         esta toda la logica -->
 
     <script src="assets/js/cart.js"></script>
     <script src="assets/js/login.js"></script>
     <script src="assets/js/BusquedaDinamica.js"></script>
-    <script src="assets/js/theme.min.js"></script>
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.min.css">
     <script src="assets/js/canjes.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -515,6 +554,106 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             }
         });
     </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById('userModal');
+
+    // 🔁 Si existe una capa negra abierta pero el modal no está visible
+    const backdrop = document.querySelector('.modal-backdrop');
+    const isModalHidden = !modal.classList.contains('show');
+
+    if (backdrop && isModalHidden) {
+        console.warn("Detectado modal mal cerrado. Corrigiendo...");
+
+        // Elimina la capa negra del fondo
+        backdrop.remove();
+
+        // Elimina la clase que bloquea el scroll del body
+        document.body.classList.remove('modal-open');
+
+        // Limpia padding automático
+        document.body.style.paddingRight = '';
+
+        // También elimina cualquier modal abierto por error
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => modal.classList.remove('show'));
+    }
+
+    // Por si necesitas cerrar el modal manualmente con JS en algún momento:
+    function cerrarModalLogin() {
+        const bsModal = bootstrap.Modal.getInstance(modal);
+        if (bsModal) {
+            bsModal.hide();
+        }
+    }
+
+    // Opcional: botón que cierre el modal por código
+    const cerrarBtn = document.getElementById('btnCerrarLogin');
+    if (cerrarBtn) {
+        cerrarBtn.addEventListener('click', cerrarModalLogin);
+    }
+});
+</script>
+<script>
+  const respuestas = {
+    hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
+    envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
+    precios: "Puedes ver los precios actualizados directamente en cada producto.",
+    ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
+    
+    puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
+    canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
+    ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
+    contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
+    mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
+    pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
+    
+    pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
+    devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
+    
+    default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
+  };
+
+  function toggleChatbot() {
+    const box = document.getElementById('chatbot-box');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
+
+    appendMessage("Tú", userMessage);
+    input.value = "";
+
+    const lowerMsg = userMessage.toLowerCase();
+    let respuesta = respuestas.default;
+
+    for (const key in respuestas) {
+      if (lowerMsg.includes(key)) {
+        respuesta = respuestas[key];
+        break;
+      }
+    }
+
+    setTimeout(() => {
+      appendMessage("MILOGAR", respuesta);
+    }, 600);
+  }
+
+  function appendMessage(sender, text) {
+    const chatlog = document.getElementById("chatlog");
+    const newMsg = document.createElement("div");
+    newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    newMsg.style.marginBottom = "10px";
+    chatlog.appendChild(newMsg);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+</script>
+
 
 
 </body>

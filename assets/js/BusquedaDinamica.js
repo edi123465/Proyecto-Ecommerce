@@ -1,10 +1,11 @@
+
 document.addEventListener("DOMContentLoaded", function () {
     const formularioBusqueda = document.getElementById("searchForm");
     const campoBusqueda = document.getElementById("busqueda");
     const resultadosDiv = document.getElementById("resultados-busqueda-container");
     const productosContainer = document.getElementById("productos-container");
     const productosPopularesContainer = document.getElementById("productos-populares-container");
-    const BASE_URL = window.location.origin + "";
+    const BASE_URL = window.location.origin + "/Milogar";
     const estaEnShopGrid = window.location.pathname.includes("/shop-grid");
     
     document.getElementById("searchForm").addEventListener("submit", function(event) {
@@ -56,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     const userRole = document.getElementById('role').getAttribute('data-role');
                 const isAdmin = userRole === 'Administrador';
                     data.productos.forEach(producto => {
-                        const rutaImagen = `/assets/imagenesMilogar/productos/${producto.imagen}`;
+                        const rutaImagen = `/Milogar/assets/imagenesMilogar/productos/${producto.imagen}`;
                         productosHTML += `
                             <div class="col">
                         <div class="card card-product">
