@@ -1,13 +1,10 @@
 <?php
-session_start(); // Iniciar sesión para acceder a las variables de sesión
-// Cargar la conexión usando ruta absoluta
-require_once __DIR__ . '/../../Config/db.php';           // Cargar la conexión a la base de datos
-require_once __DIR__ . '/../../Controllers/CanjeController.php'; // Cargar el controlador de roles
-// Crear una instancia de la conexión
-$db = new Database1();
-$connection = $db->getConnection();
-
-
+session_start();
+// Instanciar el controlador
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /index.php");
+    exit();
+}
 ?>
 
 
@@ -21,12 +18,12 @@ $connection = $db->getConnection();
     <!-- Favicon icon-->
     <link rel="shortcut icon" type="image/x-icon" href="../../assets/imagenesMilogar/logomilo.jpg">
 
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-   <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/css/adminlte.min.css" rel="stylesheet">
+    <!-- CSS de AdminLTE desde CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- CSS de FontAwesome desde CDN (opcional, si lo necesitas) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <style>
         .pagination .page-link {
             color: black;
@@ -93,12 +90,11 @@ $connection = $db->getConnection();
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">Gestión de productos a canjear</h1>
+                            <h1 class="m-0">Gestión de comentarios - Tienda</h1>
                         </div>
                     </div>
                 </div>
             </div>
-            <button class="btn btn-success" data-toggle="modal" data-target="#modalCanjeable">Agregar Canjeable</button>
             <a href="#" class="btn btn-secondary" onclick="window.open('../../menu', '_self')">Regresar al menú</a>
             <!-- Botón para abrir el modal -->
             <br><br>
@@ -178,8 +174,6 @@ $connection = $db->getConnection();
 
                                 <!-- Botón para enviar el formulario -->
                                 <button type="submit" class="btn btn-primary">Crear Canjeable</button>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-
                             </form>
                         </div>
                     </div>
@@ -246,8 +240,6 @@ $connection = $db->getConnection();
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-
                                 </div>
                             </form>
                         </div>
@@ -261,22 +253,18 @@ $connection = $db->getConnection();
                         <table id="tabla_canjes" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>Id canje</th>
-                                    <th>Id Producto</th>
-                                    <th>Nombre</th>
-                                    <th>Descripcion</th>
-                                    <th>Tipo</th>
-                                    <th>Valor de descuento</th>
-                                    <th>Puntos Necesarios</th>
+                                    <th>ID</th>
+                                    <th>ID usuario</th>
+                                    <th>Nombre de usuario</th>
+                                    <th>Descripción</th>
+                                    <th>Valoración</th>
+                                    <th>Fecha</th>
                                     <th>Estado</th>
-                                    <th>Imagen</th>
-                                    <th>Fecha de creacion</th>
                                     <th>Acciones</th>
 
                                 </tr>
                             </thead>
-                            <tbody>
-
+                            <tbody id="comentariosGeneral-tbody">
                             </tbody>
                         </table>
                     </div>
@@ -299,13 +287,23 @@ $connection = $db->getConnection();
                     </div>
             </div>
         </div>
-  
+        <!-- Preloader -->
+        <div class="preloader flex-column justify-content-center align-items-center">
+            <img class="animation__wobble" src="../../Recursos/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
+        </div>
+
         <!-- Navbar -->
         <nav class="main-header navbar navbar-expand navbar-dark">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                </li>
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="../menu.php" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="../login/logout.php" class="nav-link">Cerrar Sesión</a>
                 </li>
 
             </ul>
@@ -334,22 +332,101 @@ $connection = $db->getConnection();
                     </div>
                 </li>
 
-
-
-                <!-- Fullscreen -->
+                <!-- Messages Dropdown Menu -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <i class="far fa-comments"></i>
+                        <span class="badge badge-danger navbar-badge">3</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                        <a href="#" class="dropdown-item">
+                            <!-- Message Start -->
+                            <div class="media">
+                                <img src="dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
+                                <div class="media-body">
+                                    <h3 class="dropdown-item-title">
+                                        Brad Diesel
+                                        <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
+                                    </h3>
+                                    <p class="text-sm">Call me whenever you can...</p>
+                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
+                                </div>
+                            </div>
+                            <!-- Message End -->
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <!-- Message Start -->
+                            <div class="media">
+                                <img src="dist/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
+                                <div class="media-body">
+                                    <h3 class="dropdown-item-title">
+                                        John Pierce
+                                        <span class="float-right text-sm text-muted"><i class="fas fa-star"></i></span>
+                                    </h3>
+                                    <p class="text-sm">I got your message bro</p>
+                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
+                                </div>
+                            </div>
+                            <!-- Message End -->
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <!-- Message Start -->
+                            <div class="media">
+                                <img src="dist/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
+                                <div class="media-body">
+                                    <h3 class="dropdown-item-title">
+                                        Nora Silvester
+                                        <span class="float-right text-sm text-warning"><i class="fas fa-star"></i></span>
+                                    </h3>
+                                    <p class="text-sm">The subject goes here</p>
+                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
+                                </div>
+                            </div>
+                            <!-- Message End -->
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
+                    </div>
+                </li>
+                <!-- Notifications Dropdown Menu -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <i class="far fa-bell"></i>
+                        <span class="badge badge-warning navbar-badge">15</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                        <span class="dropdown-item dropdown-header">15 Notifications</span>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-envelope mr-2"></i> 4 new messages
+                            <span class="float-right text-muted text-sm">3 mins</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-users mr-2"></i> 8 friend requests
+                            <span class="float-right text-muted text-sm">12 hours</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-file mr-2"></i> 3 new reports
+                            <span class="float-right text-muted text-sm">2 days</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+                    </div>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" data-widget="fullscreen" href="#" role="button">
                         <i class="fas fa-expand-arrows-alt"></i>
                     </a>
                 </li>
-
-                <!-- Logout Icon -->
                 <li class="nav-item">
-                    <a class="nav-link" href="#" id="logoutBtn" title="Cerrar sesión">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
+                        <i class="fas fa-th-large"></i>
                     </a>
                 </li>
-
             </ul>
         </nav>
         <!-- /.navbar -->
@@ -368,37 +445,72 @@ $connection = $db->getConnection();
 
     </div>
     <!-- ./wrapper -->
+    <!-- Modal para editar estado -->
+<div class="modal fade" id="modalEditarComentario" tabindex="-1" role="dialog" aria-labelledby="modalEditarComentarioLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="formEditarComentario">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditarComentarioLabel">Editar Estado del Comentario</h5>
+          <!-- Bootstrap 4 usa btn-close como "close" con span -->
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="comentario_id" name="comentario_id" />
 
+          <div class="form-group">
+            <label>ID Producto</label>
+            <input type="text" id="producto_id" class="form-control" readonly />
+          </div>
 
- <!-- JS de AdminLTE y dependencias desde CDN -->
+          <div class="form-group">
+            <label>Nombre Producto</label>
+            <input type="text" id="nombreProducto" class="form-control" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" id="nombreUsuario" class="form-control" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Comentario</label>
+            <textarea id="comentarioTexto" class="form-control" rows="3" readonly></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="text" id="fechaComentario" class="form-control" readonly />
+          </div>
+
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <select id="estado" name="estado" class="form-control" required>
+              <option value="1">Autorizado</option>
+              <option value="0">Rechazado</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-document.getElementById("logoutBtn").addEventListener("click", function(e) {
-    e.preventDefault(); // Evita que el enlace se ejecute inmediatamente
-
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¿Deseas cerrar sesión?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, cerrar sesión',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-            // Redirige al logout
-            window.location.href = "../../Views/login/logout.php";
-        }
-    });
-});
-</script>
     <!-- AdminLTE for demo purposes -->
+    <script src="../../Recursos/dist/js/demo.js"></script>
     <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
     <script src="js/read.js"></script>
 </body>

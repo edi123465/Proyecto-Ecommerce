@@ -1,8 +1,8 @@
 <?php
 session_start();
 $userId = $_SESSION['user_id'] ?? null;
-//trae informacion del carrito de compras
-echo $userId . "   " . $userId;
+
+
 ?>
 
 <!DOCTYPE html>
@@ -13,7 +13,7 @@ echo $userId . "   " . $userId;
 
 <head>
 
-  <title>MILOGAR - Account Settings</title>
+  <title>MILOGAR - Términos y Condiciones</title>
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -39,6 +39,146 @@ echo $userId . "   " . $userId;
 
   <!-- Theme CSS -->
   <link rel="stylesheet" href="assets/css/theme.min.css">
+  <style>
+    .whatsapp-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .whatsapp-icon {
+            position: relative;
+            display: inline-block;
+        }
+
+        .whatsapp-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .whatsapp-icon:hover img {
+            transform: scale(1.1);
+        }
+
+        .whatsapp-text {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background-color: #25D366;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .whatsapp-icon:hover .whatsapp-text {
+            opacity: 1;
+        }
+        .chatbot-container {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1001;
+}
+
+.chatbot-icon {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.chatbot-icon img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.chatbot-icon:hover img {
+  transform: scale(1.1);
+}
+
+.chatbot-text {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  background-color: #343a40;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-icon:hover .chatbot-text {
+  opacity: 1;
+}
+
+.chatbot-box {
+  display: none;
+  width: 300px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  overflow: hidden;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 10px;
+  font-weight: bold;
+  position: relative;
+}
+
+.chatbot-close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  cursor: pointer;
+}
+
+.chatbot-log {
+  height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #f9f9f9;
+}
+
+.chatbot-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+}
+
+.chatbot-input button {
+  background-color: #343a40;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+  </style>
 </head>
 
 <body>
@@ -88,6 +228,7 @@ echo $userId . "   " . $userId;
   }
 
   ?>
+<?php $sessionActiva = (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'Administrador' || $_SESSION['user_role'] === 'Cliente')); ?>
 
   <!-- Modal de Bootstrap para editar los datos -->
   <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -128,7 +269,7 @@ echo $userId . "   " . $userId;
         <div class="col-12">
           <div class="p-6 d-flex justify-content-between align-items-center d-md-none">
             <!-- heading -->
-            <h3 class="fs-5 mb-0">Account Setting</h3>
+            <h3 class="fs-5 mb-0">Configuración de la cuenta</h3>
             <!-- btn -->
             <button class="btn btn-outline-gray-400 text-muted d-md-none" type="button" data-bs-toggle="offcanvas"
               data-bs-target="#offcanvasAccount" aria-controls="offcanvasAccount">
@@ -154,10 +295,13 @@ echo $userId . "   " . $userId;
               <li class="nav-item">
                 <hr>
               </li>
-              <!-- nav item -->
-              <li class="nav-item">
-                <a class="nav-link " href="Views/login/logout.php"><i class="feather-icon icon-log-out me-2"></i>Log out</a>
-              </li>
+                <!-- nav item -->
+                <li class="nav-item">
+                <a href="#" class="nav-link logout-link" data-url="Views/login/logout.php">
+                    <i class="feather-icon icon-log-out me-2"></i>Cerrar Sesión
+                </a>
+                </li>
+
             </ul>
           </div>
         </div>
@@ -225,15 +369,6 @@ echo $userId . "   " . $userId;
               <div id="mensaje"></div> <!-- Aquí mostraremos la respuesta -->
             </div>
             <hr class="my-10">
-            <div class="mb-6">
-              <!-- heading -->
-              <h1 class="mb-0">Puntos de canje</h1><br>
-              <h3>Tienes <span id="puntosUsuario"">0</span> puntos acumulados 🎁</h3>
-
-              <a href=" canje.html">Ir a Canjear Puntos</a><br>
-                  <a href="historial.html">Ver Historial de Canjes</a>
-            </div>
-            <br><br>
             <div>
               <!-- heading -->
               <h5 class="mb-4">Eliminar Cuenta</h5>
@@ -262,48 +397,58 @@ echo $userId . "   " . $userId;
       <ul class="nav flex-column nav-pills nav-pills-dark">
         <!-- nav item -->
         <li class="nav-item">
-          <a class="nav-link " aria-current="page" href="account-orders.html"><i
-              class="feather-icon icon-shopping-bag me-2"></i>Your Orders</a>
+          <a class="nav-link " aria-current="page" href="account-orders"><i
+              class="feather-icon icon-shopping-bag me-2"></i>Tus pedidos</a>
         </li>
         <!-- nav item -->
 
         <li class="nav-item">
-          <a class="nav-link active" href="account-settings.html"><i
-              class="feather-icon icon-settings me-2"></i>Settings</a>
+          <a class="nav-link active" href="account-settings"><i
+              class="feather-icon icon-settings me-2"></i>Configuración</a>
         </li>
-        <!-- nav item -->
-
-        <li class="nav-item">
-          <a class="nav-link" href="account-address.html"><i class="feather-icon icon-map-pin me-2"></i>Address</a>
-        </li>
-        <!-- nav item -->
-
-        <li class="nav-item">
-          <a class="nav-link" href="account-payment-method.html"><i
-              class="feather-icon icon-credit-card me-2"></i>Payment Method</a>
-        </li>
-        <!-- nav item -->
-
-        <li class="nav-item">
-          <a class="nav-link" href="account-notification.html"><i
-              class="feather-icon icon-bell me-2"></i>Notification</a>
-        </li>
+       
       </ul>
       <hr class="my-6">
       <div>
         <!-- navs -->
         <ul class="nav flex-column nav-pills nav-pills-dark">
-          <!-- nav item -->
-          <li class="nav-item">
-            <a class="nav-link " href="Views/login/logout.php"><i class="feather-icon icon-log-out me-2"></i>Log out</a>
-          </li>
+                <!-- nav item -->
+                <li class="nav-item">
+                <a href="#" class="nav-link logout-link" data-url="Views/login/logout.php">
+                    <i class="feather-icon icon-log-out me-2"></i>Cerrar Sesión
+                </a>
+                </li>
         </ul>
       </div>
     </div>
   </div>
 
   <?php require_once "Views/Navigation/footer.php"; ?>
+<!-- Chatbot Bubble Container -->
+<div class="chatbot-container">
+  <div class="chatbot-icon" onclick="toggleChatbot()">
+    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712104.png" alt="Chatbot">
+    <span class="chatbot-text">¿Necesitas ayuda?</span>
+  </div>
 
+  <div id="chatbot-box" class="chatbot-box">
+    <div class="chatbot-header">
+      Chat Milogar
+      <span class="chatbot-close" onclick="toggleChatbot()">✖</span>
+    </div>
+    <div id="chatlog" class="chatbot-log"></div>
+    <div class="chatbot-input">
+      <input id="userInput" type="text" placeholder="Escribe tu mensaje...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+</div>
+    <div class="whatsapp-container">
+        <a href="https://wa.me/593967342065" target="_blank" class="whatsapp-icon">
+            <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
+            <span class="whatsapp-text">¿Cómo podemos ayudarte?</span>
+        </a>
+    </div>
 
   <!-- Javascript-->
   <!-- Libs JS -->
@@ -333,21 +478,96 @@ echo $userId . "   " . $userId;
   <script src="assets/js/BusquedaDinamica.js"></script>
   <script src="assets/js/actualizarInformacion.js"></script>
   <script>
-                    const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
+  document.addEventListener('DOMContentLoaded', () => {
+      const logoutLinks = document.querySelectorAll('.logout-link');
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const usuarioId = document.getElementById("user_id").value;
-      fetch(`http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=obtenerPuntos&usuario_id=${usuarioId}`)
-        .then((response) => response.json())
-        .then((data) => {
-          document.getElementById("puntosUsuario").textContent = data.puntos;
-        })
-        .catch((error) => {
-          console.error("Error al obtener puntos:", error);
-          document.getElementById("puntosUsuario").textContent = "Error";
-        });
-    });
-  </script>
+      logoutLinks.forEach(link => {
+          link.addEventListener('click', function (e) {
+              e.preventDefault();
+
+              Swal.fire({
+                  title: '¿Cerrar sesión?',
+                  text: 'Se cerrará tu sesión actual. ¿Deseas continuar?',
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#d33',
+                  cancelButtonColor: '#3085d6',
+                  confirmButtonText: 'Sí, cerrar sesión',
+                  cancelButtonText: 'Cancelar'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Eliminar carrito del localStorage si existe
+                      localStorage.removeItem('carrito');
+                      localStorage.removeItem('ultimaActividad');
+
+                      // Redireccionar a la URL de logout
+                      const logoutUrl = link.dataset.url;
+                      window.location.href = logoutUrl;
+                  }
+              });
+          });
+      });
+  });
+</script>
+<script>
+  const respuestas = {
+    hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
+    envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
+    precios: "Puedes ver los precios actualizados directamente en cada producto.",
+    ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
+    
+    puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
+    canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
+    ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
+    contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
+    mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
+    pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
+    
+    pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
+    devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
+    
+    default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
+  };
+
+  function toggleChatbot() {
+    const box = document.getElementById('chatbot-box');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
+
+    appendMessage("Tú", userMessage);
+    input.value = "";
+
+    const lowerMsg = userMessage.toLowerCase();
+    let respuesta = respuestas.default;
+
+    for (const key in respuestas) {
+      if (lowerMsg.includes(key)) {
+        respuesta = respuestas[key];
+        break;
+      }
+    }
+
+    setTimeout(() => {
+      appendMessage("MILOGAR", respuesta);
+    }, 600);
+  }
+
+  function appendMessage(sender, text) {
+    const chatlog = document.getElementById("chatlog");
+    const newMsg = document.createElement("div");
+    newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    newMsg.style.marginBottom = "10px";
+    chatlog.appendChild(newMsg);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+</script>
+
 </body>
 
 

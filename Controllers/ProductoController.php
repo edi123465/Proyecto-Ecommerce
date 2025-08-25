@@ -325,6 +325,50 @@ class ProductoController
         }
     }
 
+    public function obtenerProductosConTallas()
+    {
+        header('Content-Type: application/json');
+
+        // Obtener parámetros de búsqueda y paginación
+        $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
+        // Obtener los productos con tallas
+        $resultado = $this->model->getProductosConTallas($search, $limit, $offset);
+
+        // Contar total de resultados para la paginación
+        $total = $this->model->countProductosConTallas($search);
+
+        // Calcular el total de páginas
+        $totalPaginas = $limit > 0 ? ceil($total / $limit) : 1;
+
+        // Registrar en log
+        error_log("Total de registros encontrados: $total");
+        error_log("Límite por página: $limit");
+        error_log("Total de páginas: $totalPaginas");
+
+        if ($resultado && !empty($resultado)) {
+            echo json_encode([
+                'status' => 'success',
+                'data' => $resultado,
+                'total' => $total,
+                'limit' => $limit,
+                'offset' => $offset,
+                'totalPages' => $totalPaginas
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'No se encontraron productos con tallas',
+                'total' => 0,
+                'totalPages' => 0
+            ]);
+        }
+
+        exit;
+    }
+
     // Método para obtener todos los productos con categorías y subcategorías
     public function getAllProductosConCategorias()
     {
@@ -481,11 +525,221 @@ class ProductoController
 
         echo json_encode($productos); // Devuelve en formato JSON
     }
+
+    public function asignarTalla()
+    {
+        header('Content-Type: application/json');
+
+        $json = file_get_contents('php://input');
+        error_log("JSON recibido: " . $json); // 👈 Log del JSON crudo
+
+        $data = json_decode($json, true);
+        error_log("Datos decodificados: " . print_r($data, true)); // 👈 Log del array asociativo
+
+        if (!isset($data['producto_id'], $data['talla_id'], $data['stock'])) {
+            error_log("❌ Datos incompletos.");
+            echo json_encode(['status' => 'error', 'message' => 'Datos incompletos']);
+            return;
+        }
+
+        $producto_id = intval($data['producto_id']);
+        $talla_id = intval($data['talla_id']);
+        $stock = intval($data['stock']);
+
+        error_log("✅ producto_id: $producto_id, talla_id: $talla_id, stock: $stock"); // 👈 Log valores individuales
+
+        // Verificamos si ya existe esta combinación producto-talla
+        $existe = $this->model->validarExistenciaProductoTalla($producto_id, $talla_id);
+
+        if ($existe) {
+            error_log("❌ La talla ya está asignada a este producto.");
+            echo json_encode(['status' => 'error', 'message' => 'El producto ya tiene asignada esta talla']);
+            return;
+        }
+
+        // Si no existe, asignamos la talla
+        $resultado = $this->model->asignarTalla($producto_id, $talla_id, $stock);
+
+        if ($resultado) {
+            echo json_encode(['status' => 'success', 'message' => 'Talla asignada correctamente']);
+        } else {
+            error_log("❌ Error al insertar en la base de datos");
+            echo json_encode(['status' => 'error', 'message' => 'Error al asignar la talla']);
+        }
+        exit;
+    }
+
+    public function editarTallaYStock()
+    {
+        // Leer JSON del cuerpo de la solicitud
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        // Verificar los datos recibidos
+        error_log("Datos recibidos en editarTallaYStock: " . print_r($data, true));
+
+        // Validar si los datos son correctos
+        if (isset($data['producto_id'], $data['talla_id'], $data['stock'])) {
+            $producto_talla_id = $data['producto_id']; // OJO: este es el ID de la tabla producto_talla
+            $talla_id = $data['talla_id'];
+            $stock = $data['stock'];
+
+            // Necesitamos también el producto_id real (relacional)
+            // Si lo tienes por separado, extraelo del JSON. Si no, debes obtenerlo desde la DB.
+            $producto_id = $this->model->obtenerProductoIdPorProductoTallaId($producto_talla_id);
+
+            // Verificar duplicados
+            if ($this->model->verificarDuplicadoTalla($producto_talla_id, $producto_id, $talla_id)) {
+                echo json_encode(['status' => 'error', 'message' => 'Este producto ya tiene esa talla registrada.']);
+                return;
+            }
+
+            // Llamar al modelo para actualizar la talla y stock
+            $resultado = $this->model->actualizarTallaYStock($producto_talla_id, $talla_id, $stock);
+
+            // Devolver la respuesta
+            header('Content-Type: application/json');
+            echo json_encode($resultado);
+        } else {
+            error_log("Datos inválidos para editar talla y stock");
+            echo json_encode(['status' => 'error', 'message' => 'Datos inválidos o incompletos']);
+        }
+    }
+
+    public function eliminarTalla() {
+    if (isset($_POST['producto_talla_id'])) {
+        $producto_talla_id = $_POST['producto_talla_id'];
+
+        // Puedes hacer un log por si quieres asegurarte
+        error_log("ID de talla recibido (POST): " . $producto_talla_id);
+
+        $resultado = $this->model->eliminarTalla($producto_talla_id);
+
+        if ($resultado) {
+            echo json_encode(['status' => 'success', 'message' => 'Talla eliminada correctamente']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar la talla']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'ID de talla no proporcionado']);
+    }
+}
+    
+    public function obtenerProductoPorIdConTalla()
+{
+    if (isset($_GET['id'])) {
+        $productoId = intval($_GET['id']);
+        $database = new Database1();
+        $db = $database->getConnection();
+        require_once '../Models/ProductoModel.php';
+        $productoModel = new ProductoModel($db);
+
+        $producto = $productoModel->getProductoPorIdConTalla($productoId);
+
+        if ($producto) {
+            echo json_encode([
+                'status' => 'success',
+                'data' => $producto
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Producto no encontrado'
+            ]);
+        }
+    } else {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'ID de producto no especificado'
+        ]);
+    }
+}
 }
 
 
 // Depuración: Imprimir los datos recibidos
 error_log("Parámetros GET recibidos: " . print_r($_GET, true));
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Leer JSON del cuerpo
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    error_log("JSON recibido en router: " . $json);
+    error_log("Datos decodificados en router: " . print_r($data, true));
+
+    // Caso: Asignar talla
+    if (isset($_GET['action']) && $_GET['action'] === 'asignarTalla') {
+        require_once '../Models/ProductoModel.php';
+        $database = new Database1();
+        $db = $database->getConnection();
+        $controller = new ProductoController($db);
+        $controller->asignarTalla(); // ✅ este ya lee su propio JSON
+        exit;
+    }
+
+    // Caso: Editar talla y stock de producto
+    if (isset($_GET['action']) && $_GET['action'] === 'editarTallaYStock') {
+        require_once '../Models/ProductoModel.php';
+        $database = new Database1();
+        $db = $database->getConnection();
+        $controller = new ProductoController($db);
+        $controller->editarTallaYStock(); // Método para editar talla y stock
+        exit;
+    }
+    // Caso: Eliminar talla de producto
+    if (isset($_GET['action']) && $_GET['action'] === 'eliminarTalla') {
+        require_once '../Models/ProductoModel.php';
+        $database = new Database1();
+        $db = $database->getConnection();
+        $controller = new ProductoController($db);
+        $controller->eliminarTalla(); // Método para eliminar talla
+        exit;
+    }
+
+    // Caso: Buscar productos (sigue usando $_POST tradicional)
+    if (isset($_POST['action']) && $_POST['action'] === 'searchProducts') {
+        $database = new Database1();
+        $db = $database->getConnection();
+        $productoModel = new ProductoModel($db);
+
+        $termino = trim($_POST['termino'] ?? '');
+        $resultados = $productoModel->searchProductoTalla($termino);
+        header('Content-Type: application/json');
+        echo json_encode($resultados);
+        exit;
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // Caso: Obtener productos con tallas
+    if (isset($_GET['action']) && $_GET['action'] === 'obtenerProductosConTallas') {
+        require_once '../Models/ProductoModel.php';
+        $database = new Database1();
+        $db = $database->getConnection();
+        $controller = new ProductoController($db);
+        $controller->obtenerProductosConTallas();
+        exit;
+    }
+
+    // ✅ Nuevo caso: Obtener producto por ID con talla
+    if (isset($_GET['action']) && $_GET['action'] === 'obtenerProductoPorIdConTalla') {
+        require_once '../Models/ProductoModel.php';
+        $database = new Database1();
+        $db = $database->getConnection();
+        $controller = new ProductoController($db);
+        $controller->obtenerProductoPorIdConTalla();
+        exit;
+    }
+
+    // ✅ Mueve aquí esta parte:
+    if (isset($_GET['action']) && $_GET['action'] === 'obtenerTallasPorProducto' && isset($_GET['producto_id'])) {
+        require_once '../Models/ProductoModel.php';
+        $database = new Database1();
+        $db = $database->getConnection();
+        $productoModel = new ProductoModel($db); // 👈 esto faltaba también
+        $productoId = $_GET['producto_id'];
+        $tallas = $productoModel->obtenerTallasPorProducto($productoId);
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success', 'data' => $tallas]);
+        exit;
+    }
+}
 
 if (isset($_GET['action'])) {
     $action = isset($_GET['action']) ? $_GET['action'] : 'default'; // Valor por defecto si no se pasa acción

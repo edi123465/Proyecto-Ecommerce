@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <button onclick="enviarComentarioss(${producto.id})" class="btn btn-outline-primary btn-sm">Enviar comentario</button>
 
                                     <!-- Contenedor de comentarios DEBAJO del formulario -->
-                                    <div id="comentarios-${producto.id}" class="comentarios mt-3"></div>
+                                    <div id="comentarios-lista-${producto.id}" class="comentarios mt-3"></div>
                                 </div>
 
                             </div>
@@ -265,60 +265,60 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         function cargarComentariosActivos(productoId) {
-    console.log(`Iniciando carga de comentarios para producto ID: ${productoId}`);
+            console.log(`Iniciando carga de comentarios para producto ID: ${productoId}`);
 
-    fetch(`http://localhost:8080/Milogar/Controllers/TiendaController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            const contenedorComentarios = document.querySelector(`#comentarios-${productoId}`);
+            fetch(`http://localhost:8080/Milogar/Controllers/TiendaController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    const contenedorComentarios = document.querySelector(`#comentarios-lista-${productoId}`);
 
-            if (!contenedorComentarios) {
-                console.warn(`No se encontró el contenedor para comentarios con ID: comentarios-${productoId}`);
-                return;
-            }
+                    if (!contenedorComentarios) {
+                        console.warn(`No se encontró el contenedor para comentarios con ID: comentarios-${productoId}`);
+                        return;
+                    }
 
-            contenedorComentarios.innerHTML = ''; // Limpiar antes de insertar
+                    contenedorComentarios.innerHTML = ''; // Limpiar antes de insertar
 
-            if (data.success) {
-                const comentarios = data.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // ordenar más recientes primero
+                    if (data.success) {
+                        const comentarios = data.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // ordenar más recientes primero
 
-                if (comentarios.length > 0) {
-                    // Mostrar el comentario más reciente
-                    const ultimoComentario = comentarios[0];
-                    const divComentario = document.createElement('div');
-                    divComentario.className = 'comentario border rounded p-2 mb-2';
-                    divComentario.innerHTML = `
+                        if (comentarios.length > 0) {
+                            // Mostrar el comentario más reciente
+                            const ultimoComentario = comentarios[0];
+                            const divComentario = document.createElement('div');
+                            divComentario.className = 'comentario border rounded p-2 mb-2';
+                            divComentario.innerHTML = `
                         <p><strong>${ultimoComentario.nombreUsuario}</strong> <small class="text-muted">(${new Date(ultimoComentario.fecha).toLocaleString()})</small></p>
                         <p>${ultimoComentario.comentario}</p>
                         <p>Calificación: ${'⭐️'.repeat(ultimoComentario.calificacion)} (${ultimoComentario.calificacion}/5)</p>
                     `;
-                    contenedorComentarios.appendChild(divComentario);
+                            contenedorComentarios.appendChild(divComentario);
 
-                    // Mostrar el botón solo si hay más de un comentario y no existe
-                    if (comentarios.length > 1 && !contenedorComentarios.querySelector('.btn-ver-comentarios')) {
-                        const boton = document.createElement('button');
-                        boton.className = 'btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1 mt-2 btn-ver-comentarios';
-                        boton.setAttribute('onclick', `mostrarModalTodosComentarios(${productoId})`);
-                        boton.innerHTML = '<i class="bi bi-chat-dots"></i> Ver todos los comentarios';
-                        contenedorComentarios.appendChild(boton);
+                            if (comentarios.length >= 1 && !contenedorComentarios.querySelector('.btn-ver-comentarios')) {
+                                const boton = document.createElement('button');
+                                boton.className = 'btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1 mt-2 btn-ver-comentarios';
+                                boton.setAttribute('onclick', `mostrarModalTodosComentarios(${productoId})`);
+                                boton.innerHTML = '<i class="bi bi-chat-dots"></i> Ver todos los comentarios';
+                                contenedorComentarios.appendChild(boton);
+                            }
+
+
+                        } else {
+                            contenedorComentarios.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
+                        }
+
+                    } else {
+                        contenedorComentarios.innerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
+                        console.error("Error al cargar comentarios:", data.message);
                     }
-
-                } else {
-                    contenedorComentarios.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
-                }
-
-            } else {
-                contenedorComentarios.innerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
-                console.error("Error al cargar comentarios:", data.message);
-            }
-        })
-        .catch(error => {
-            console.error("Error en la petición de comentarios:", error);
-        });
-}
+                })
+                .catch(error => {
+                    console.error("Error en la petición de comentarios:", error);
+                });
+        }
 
 
 
@@ -341,9 +341,7 @@ function guardarEdicionComentario(event) {
 
     fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=update`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             id: idComentario,
             comentario: nuevoComentario,
@@ -358,15 +356,24 @@ function guardarEdicionComentario(event) {
                     title: 'Comentario actualizado',
                     confirmButtonText: 'Aceptar'
                 }).then(() => {
-                    // ✅ Cerrar ambos modales
+                    // Cerrar el modal de edición
                     const modalEditar = bootstrap.Modal.getInstance(document.getElementById('modalEditarComentario'));
                     if (modalEditar) modalEditar.hide();
 
+                    // Buscar el div del comentario editado
+                    const divComentario = document.getElementById(`comentario-${idComentario}`);
+                    if (divComentario) {
+                        divComentario.innerHTML = `
+                        <p><strong>${data.actualizadoPor || 'Usuario'}</strong> 
+                           <small class="text-muted">(${new Date().toLocaleString()})</small></p>
+                        <p>${nuevoComentario}</p>
+                        <p>Calificación: ${'⭐️'.repeat(parseInt(nuevaCalificacion))} (${nuevaCalificacion}/5)</p>
+                    `;
+                    }
+
+                    // Cerrar modal de todos los comentarios si estaba abierto
                     const modalMostrar = bootstrap.Modal.getInstance(document.getElementById('modalMostrarComentarios'));
                     if (modalMostrar) modalMostrar.hide();
-
-                    // ✅ Opcional: recargar contenido de comentarios si lo necesitas
-                    cargarComentariosActivos(productoId);
                 });
             } else {
                 Swal.fire('Error', data.message || 'No se pudo actualizar el comentario.', 'error');
@@ -377,6 +384,7 @@ function guardarEdicionComentario(event) {
             Swal.fire('Error', 'Ocurrió un error al intentar actualizar el comentario.', 'error');
         });
 }
+
 function enviarComentarioss(productoId, event) {
     if (event) event.preventDefault();
 
@@ -475,16 +483,16 @@ function enviarComentarioss(productoId, event) {
     `;
                     contenedor.prepend(div); // lo coloca arriba del resto
                     // Después de prepend del nuevo comentario
-if (contenedor.querySelectorAll('.comentario').length > 1) {
-    // Verificar si ya existe el botón
-    if (!contenedor.querySelector('.btn-ver-comentarios')) {
-        const boton = document.createElement('button');
-        boton.className = 'btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1 mt-2 btn-ver-comentarios';
-        boton.setAttribute('onclick', `mostrarModalTodosComentarios(${productoId})`);
-        boton.innerHTML = '<i class="bi bi-chat-dots"></i> Ver todos los comentarios';
-        contenedor.appendChild(boton);
-    }
-}
+                    if (contenedor.querySelectorAll('.comentario').length > 1) {
+                        // Verificar si ya existe el botón
+                        if (!contenedor.querySelector('.btn-ver-comentarios')) {
+                            const boton = document.createElement('button');
+                            boton.className = 'btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1 mt-2 btn-ver-comentarios';
+                            boton.setAttribute('onclick', `mostrarModalTodosComentarios(${productoId})`);
+                            boton.innerHTML = '<i class="bi bi-chat-dots"></i> Ver todos los comentarios';
+                            contenedor.appendChild(boton);
+                        }
+                    }
                 }
 
 

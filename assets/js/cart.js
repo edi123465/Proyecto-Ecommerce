@@ -173,10 +173,10 @@ function actualizarCarrito() {
 
         let mensajePuntos = '';
 
-        if (producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
+        // Solo mostrar si hay sesión activa
+        if (usuarioSesion && producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
             mensajePuntos = `¡Ganas ${producto.puntos_otorgados} puntos de canje!`;
         }
-
         const puntosUsadosActuales = producto.cantidad * producto.puntos_necesarios;
         const puntosUsadosProximos = (producto.cantidad + 1) * producto.puntos_necesarios;
 
@@ -539,7 +539,7 @@ function actualizarDetallePedido() {
 
         // Verificar si gana puntos
         let mensajePuntos = '';
-        if (producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
+        if (usuarioSesion && producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
             mensajePuntos = `<small class="text-success d-block mt-1">¡Ganas ${producto.puntos_otorgados} puntos de canje!</small>`;
             totalPuntos += producto.puntos_otorgados;
         } else {
@@ -565,12 +565,14 @@ function actualizarDetallePedido() {
             class="img-fluid rounded-3 border shadow-sm" style="max-width: 80px;">
         </div>
 
-        <!-- Nombre y mensajes -->
-        <div class="col-8 col-md-4">
-        <h6 class="fw-semibold mb-1 text-break">${producto.nombre}</h6>
-        ${mensajeCanjeado ? `<div class="badge bg-warning text-dark small">${mensajeCanjeado}</div>` : ''}
-        ${mensajePuntos ? `<div class="text-muted small">${mensajePuntos}</div>` : ''}
-        </div>
+<!-- Nombre y mensajes -->
+<div class="col-8 col-md-4">
+    <h6 class="fw-semibold mb-1 text-break">${producto.nombre}</h6>
+    <div class="text-muted small">Precio unitario: $${producto.precio.toFixed(2)}</div>
+    ${mensajeCanjeado ? `<div class="badge bg-warning text-dark small">${mensajeCanjeado}</div>` : ''}
+    ${mensajePuntos ? `<div class="text-muted small">${mensajePuntos}</div>` : ''}
+</div>
+
 
         <!-- Cantidad -->
         <div class="col-12 col-md-3 text-center">

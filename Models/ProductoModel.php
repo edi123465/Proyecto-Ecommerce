@@ -104,6 +104,8 @@ class ProductoModel
             p.descuento,
             p.puntos_otorgados,
             p.cantidad_minima_para_puntos,
+                    p.is_talla,
+
             c.nombreCategoria AS nombreCategoria, 
             s.nombrSubcategoria AS nombreSubcategoria
         FROM productos p
@@ -152,10 +154,10 @@ class ProductoModel
 
 
     // MÉTODO PARA OBTENER LOS PRODUCTOS EN PROMOCIÓN CON PAGINACIÓN
-public function read($limit = 10, $offset = 0)
-{
-    try {
-        $sql = "SELECT p.id, 
+    public function read($limit = 10, $offset = 0)
+    {
+        try {
+            $sql = "SELECT p.id, 
                        p.nombreProducto, 
                        p.descripcionProducto, 
                        p.precio, 
@@ -182,19 +184,20 @@ public function read($limit = 10, $offset = 0)
                 ORDER BY p.fechaCreacion DESC
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-        $stmt->execute();
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
 
-        $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $productos;
-    } catch (Exception $e) {
-        return false;
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $productos;
+        } catch (Exception $e) {
+            return false;
+        }
     }
-}
-public function obtenerComentariosActivosPorProducto($producto_id) {
-    $sql = "SELECT 
+    public function obtenerComentariosActivosPorProducto($producto_id)
+    {
+        $sql = "SELECT 
                 c.id,
                 c.usuario_id AS usuario_id,  -- 👈 asegúrate que sea 'usuario_id'
                 u.nombreUsuario,
@@ -208,31 +211,93 @@ public function obtenerComentariosActivosPorProducto($producto_id) {
               AND c.producto_id = :producto_id
             ORDER BY c.fecha DESC";
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindParam(':producto_id', $producto_id, PDO::PARAM_INT);
-    $stmt->execute();
-
-    $comentarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // 💡 Agrega aquí un log temporal
-    error_log("SQL ejecutado con usuario_id:");
-    error_log(print_r($comentarios, true));
-    
-    return $comentarios;
-}
-public function contarTotalPromociones()
-{
-    try {
-        $sql = "SELECT COUNT(*) as total FROM productos WHERE is_promocion = 1";
         $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':producto_id', $producto_id, PDO::PARAM_INT);
         $stmt->execute();
-        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $resultado['total'];
-    } catch (Exception $e) {
-        error_log("Error al contar productos en promoción: " . $e->getMessage());
-        return 0;
+
+        $comentarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 💡 Agrega aquí un log temporal
+        error_log("SQL ejecutado con usuario_id:");
+        error_log(print_r($comentarios, true));
+
+        return $comentarios;
     }
-}
+
+    public function getProductosConTallas($search = '', $limit = 10, $offset = 0)
+    {
+        try {
+            $query = "
+            SELECT 
+                pt.id AS ID, 
+                p.nombreProducto AS nombreProducto, 
+                p.descripcionProducto AS descripcion, 
+                t.talla AS talla, 
+                pt.stock AS stock, 
+                p.precio_1 AS precio, 
+                p.imagen AS imagen 
+            FROM producto_talla pt 
+            JOIN productos p ON pt.producto_id = p.id 
+            JOIN tallas t ON pt.talla_id = t.id
+            WHERE p.nombreProducto LIKE :search 
+            OR p.descripcionProducto LIKE :search 
+            OR p.codigo_barras LIKE :search  -- Aquí se añadió el filtro para el código de barras
+            ORDER BY p.nombreProducto ASC
+            LIMIT :limit OFFSET :offset
+        ";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Resultados obtenidos con paginación: " . print_r($resultados, true));
+
+            return $resultados;
+        } catch (Exception $e) {
+            error_log("Error en getProductosConTallas(): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function countProductosConTallas($search = '')
+    {
+        try {
+            $query = "
+                SELECT COUNT(*) AS total
+                FROM producto_talla pt
+                JOIN productos p ON pt.producto_id = p.id
+                JOIN tallas t ON pt.talla_id = t.id
+                WHERE p.nombreProducto LIKE :search OR p.descripcionProducto LIKE :search
+            ";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+            $stmt->execute();
+
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $resultado['total'] ?? 0;
+        } catch (Exception $e) {
+            error_log("Error en countProductosConTallas(): " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function contarTotalPromociones()
+    {
+        try {
+            $sql = "SELECT COUNT(*) as total FROM productos WHERE is_promocion = 1";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $resultado['total'];
+        } catch (Exception $e) {
+            error_log("Error al contar productos en promoción: " . $e->getMessage());
+            return 0;
+        }
+    }
 
     public function obtenerProductosPaginados($pagina = 1, $productosPorPagina = 5)
     {
@@ -254,6 +319,185 @@ public function contarTotalPromociones()
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Modelo ProductoModel.php
+    public function validarExistenciaProductoTalla($producto_id, $talla_id)
+    {
+        $query = "SELECT COUNT(*) FROM producto_talla WHERE producto_id = :producto_id AND talla_id = :talla_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':producto_id', $producto_id, PDO::PARAM_INT);
+        $stmt->bindParam(':talla_id', $talla_id, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        // Verificamos si ya existe la asignación
+        $count = $stmt->fetchColumn();
+
+        return $count > 0; // Devuelve true si ya existe, de lo contrario, false
+    }
+    //para asignar tallas a un producto
+    public function asignarTalla($producto_id, $talla_id, $stock)
+    {
+        $query = "INSERT INTO producto_talla (producto_id, talla_id, stock) VALUES (:producto_id, :talla_id, :stock)";
+        $stmt = $this->conn->prepare($query);
+
+        try {
+            $stmt->bindParam(':producto_id', $producto_id, PDO::PARAM_INT);
+            $stmt->bindParam(':talla_id', $talla_id, PDO::PARAM_INT);
+            $stmt->bindParam(':stock', $stock, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                return true;
+            }
+            return false;
+        } catch (Exception $e) {
+            error_log("Error en asignarTalla: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function obtenerProductoIdPorProductoTallaId($producto_talla_id)
+    {
+        try {
+            $query = "SELECT producto_id FROM producto_talla WHERE id = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $producto_talla_id);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? $row['producto_id'] : null;
+        } catch (Exception $e) {
+            error_log("Error en obtenerProductoIdPorProductoTallaId: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Verificar si ya existe la combinación producto + talla (excluyendo el mismo ID)
+    public function verificarDuplicadoTalla($producto_talla_id, $producto_id, $talla_id)
+    {
+        try {
+            $query = "SELECT COUNT(*) as total FROM producto_talla 
+                  WHERE producto_id = :producto_id 
+                  AND talla_id = :talla_id 
+                  AND id != :producto_talla_id";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':producto_id', $producto_id);
+            $stmt->bindParam(':talla_id', $talla_id);
+            $stmt->bindParam(':producto_talla_id', $producto_talla_id);
+            $stmt->execute();
+
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $resultado['total'] > 0; // true si hay duplicado
+        } catch (Exception $e) {
+            error_log("Error en verificarDuplicadoTalla: " . $e->getMessage());
+            return true; // Para prevenir que se actualice en caso de error
+        }
+    }
+
+    // Método para actualizar talla y stock de un producto
+    public function actualizarTallaYStock($producto_id, $talla_id, $stock)
+    {
+        try {
+            $query = "UPDATE producto_talla SET talla_id = :talla_id, stock = :stock WHERE id = :producto_talla_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':producto_talla_id', $producto_id); // que en realidad es el id de producto_talla
+            $stmt->bindParam(':talla_id', $talla_id);
+            $stmt->bindParam(':stock', $stock);
+
+            if ($stmt->execute()) {
+                $affectedRows = $stmt->rowCount();  // Verifica cuántas filas fueron afectadas
+                error_log("Filas afectadas: " . $affectedRows);  // Log para saber cuántas filas se actualizaron
+
+                if ($affectedRows > 0) {
+                    return ['status' => 'success'];
+                } else {
+                    return ['status' => 'warning', 'message' => 'No se encontraron cambios en el producto'];
+                }
+            } else {
+                return ['status' => 'error', 'message' => 'Error al actualizar el producto'];
+            }
+        } catch (Exception $e) {
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+
+    // Método para eliminar una talla de producto
+    public function eliminarTalla($productoTallaId)
+    {
+        try {
+            $query = "DELETE FROM producto_talla WHERE id = :producto_talla_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':producto_talla_id', $productoTallaId);
+
+            // Ejecutar la eliminación
+            if ($stmt->execute()) {
+                return true;  // Si se eliminó correctamente
+            }
+            return false;  // Si hubo un error en la eliminación
+        } catch (Exception $e) {
+            // Si hay un error, lo registramos y retornamos false
+            error_log('Error al eliminar la talla: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+        public function searchProductoTalla($query)
+    {
+        // Asegúrate de que $query no esté vacío o sea nulo
+        if (empty($query)) {
+            return [];  // Retorna un arreglo vacío si no se proporciona una consulta
+        }
+
+        // Agregar los comodines de búsqueda al término de búsqueda
+        $searchTerm = '%' . $query . '%';
+
+        // Consulta optimizada, solo buscando en los productos y las categorías/subcategorías
+        $sql = "
+    SELECT p.id, p.nombreProducto, p.descripcionProducto, p.codigo_barras, 
+           p.imagen, p.subcategoria_id, c.nombreCategoria, s.nombrSubcategoria
+    FROM productos p
+    LEFT JOIN subcategorias s ON p.subcategoria_id = s.id
+    LEFT JOIN categorias c ON s.categoria_id = c.id
+    WHERE (
+        p.nombreProducto COLLATE utf8mb4_general_ci LIKE :queryProducto
+        OR c.nombreCategoria COLLATE utf8mb4_general_ci LIKE :queryCategoria
+        OR s.nombrSubcategoria COLLATE utf8mb4_general_ci LIKE :querySubcategoria
+        OR p.codigo_barras COLLATE utf8mb4_general_ci LIKE :queryCodigoBarras
+    )
+    ";
+
+        try {
+            // Preparamos la sentencia
+            $stmt = $this->conn->prepare($sql);
+
+            // Preparamos los parámetros de búsqueda
+            $params = [
+                ':queryProducto' => $searchTerm,
+                ':queryCategoria' => $searchTerm,
+                ':querySubcategoria' => $searchTerm,
+                ':queryCodigoBarras' => $searchTerm // Agregado el parámetro para buscar por código de barras
+            ];
+
+            // Ejecutamos la consulta pasando los parámetros
+            $stmt->execute($params);
+
+            // Obtenemos los resultados
+            $resultados = $stmt->fetchAll();
+
+            // Si no hay resultados, retornamos un arreglo vacío
+            if (empty($resultados)) {
+                return [];
+            }
+
+            return $resultados;  // Devolvemos los productos encontrados
+        } catch (PDOException $e) {
+            // Loguea el error si ocurre algún problema con la consulta
+            error_log("Error en la consulta: " . $e->getMessage());
+            return [];  // En caso de error, devolvemos un arreglo vacío
+        }
+    }
+
+
     public function obtenerTotalProductos()
     {
         $sql = "SELECT COUNT(*) FROM Productos";
@@ -264,8 +508,43 @@ public function contarTotalPromociones()
         return $stmt->fetchColumn();
     }
 
-
-
+    //para traer las tallas asociadas a cada producto
+        public function getProductoPorIdConTalla($productoTallaId)
+    {
+        $query = "SELECT pt.id AS ID, 
+                         p.nombreProducto AS nombreProducto, 
+                         p.descripcionProducto AS descripcion, 
+                         t.talla AS talla, 
+                         pt.stock AS stock, 
+                         p.precio_1 AS precio, 
+                         p.imagen AS imagen 
+                  FROM producto_talla pt 
+                  JOIN productos p ON pt.producto_id = p.id 
+                  JOIN tallas t ON pt.talla_id = t.id 
+                  WHERE pt.id = :productoTallaId";  // <- Cambiar aquí
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':productoTallaId', $productoTallaId, PDO::PARAM_INT);
+    
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("Resultados obtenidos: " . print_r($resultados, true));
+    
+        return $resultados;
+    }
+    public function obtenerTallasPorProducto($productoId)
+    {
+        $sql = "SELECT t.talla AS talla, pt.stock 
+                FROM producto_talla pt 
+                INNER JOIN tallas t ON pt.talla_id = t.id 
+                WHERE pt.producto_id = :producto_id";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':producto_id', $productoId, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // Obtener un producto por su ID
     public function getById($id)
@@ -274,7 +553,7 @@ public function contarTotalPromociones()
         p.id, p.nombreProducto, p.descripcionProducto, p.codigo_barras, p.precio,
         p.precio_1, p.precio_2, p.precio_3, p.precio_4, p.imagen, 
         p.descuento, p.stock, p.categoria_id, p.subcategoria_id, 
-        p.isActive, p.is_promocion, p.puntos_otorgados, p.cantidad_minima_para_puntos,
+        p.isActive, p.is_promocion, p.puntos_otorgados, p.cantidad_minima_para_puntos,p.is_talla,
         c.nombreCategoria AS categoria_nombre, s.nombrSubcategoria AS subcategoria_nombre
     FROM productos p
     LEFT JOIN categorias c ON p.categoria_id = c.id

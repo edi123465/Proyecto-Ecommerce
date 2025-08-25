@@ -4,133 +4,118 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Milogar/index.php");
     exit();
 }
+
+// Crear una instancia de la conexión
+//$db = new Database1();
+//$connection = $db->getConnection();
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MILOGAR | Gestión Perfiles</title>
-
+    <title>MILOGAR | Tallas de productos</title>
+    <!-- Favicon icon-->
+    <link rel="shortcut icon" type="image/x-icon" href="../../assets/imagenesMilogar/logomilo.jpg">
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- CSS de AdminLTE desde CDN -->
+    <!-- CSS de AdminLTE desde CDN -->
     <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- CSS de FontAwesome desde CDN (opcional, si lo necesitas) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
     <div class="wrapper">
- <div class="content-wrapper">
+
+        <div class="content-wrapper">
             <div class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">Gestión de Roles de Usuarios</h1>
+                            <h1 class="m-0">Gestión Tallas de ropa</h1>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Modal para Crear rol -->
-            <div class="modal fade" id="createRoleModal" tabindex="-1" role="dialog" aria-labelledby="createRoleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="createRoleModalLabel">Crear Nuevo Rol</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Formulario para agregar subcategoría -->
-                            <form id="createRoleForm">
-                                <div class="form-group">
-                                    <label for="RolName">Nombre del Rol</label>
-                                    <input type="text" class="form-control" id="rolName" name="rolName" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="RolDescription">Descripción</label>
-                                    <textarea class="form-control" id="RolDescription" name="RolDescription" required></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="isActive">Estado</label>
-                                    <select class="form-control" id="IsActive" name="IsActive">
-                                        <option value="1">Activo</option>
-                                        <option value="0">Inactivo</option>
-                                    </select>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                            <button type="submit" class="btn btn-primary">Crear Subcategoría</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Modal para Editar Rol -->
-<div class="modal fade" id="editRoleModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <h5 class="modal-title">Editar Rol</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editRoleForm">
-                    <div class="form-group">
-                        <label for="roleName">Nombre del Rol</label>
-                        <input type="text" class="form-control" id="roleName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="roleDescription">Descripción</label>
-                        <textarea class="form-control" id="roleDescription" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="roleIsActive">Estado</label>
-                        <select class="form-control select2bs4" id="roleIsActive">
-                            <option value="1">Activo</option>
-                            <option value="0">Inactivo</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 
             <div class="content">
                 <div class="container-fluid">
+                    <!-- Enlace para crear categorías -->
+                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#createTallaModal">Crear Talla</a>
 
+                    <!-- Enlace para regresar a la consulta -->
                     <a href="../../menu" class="btn btn-secondary">Regresar al menú</a>
 
+                    <!-- Modal para la creación de una talla -->
+                    <div class="modal fade" id="createTallaModal" tabindex="-1" role="dialog" aria-labelledby="createTallaModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="createTallaModalLabel">Crear Nueva Talla</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Formulario para crear talla -->
+                                    <form id="createTallaForm" method="post" enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label for="tallaNombre">Nombre de la Talla</label>
+                                            <input type="text" class="form-control" id="talla" name="talla" required>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary">Crear Talla</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal para editar talla -->
+                    <div id="modalEditarTalla" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalEditarTallaLabel">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalEditarTallaLabel">Editar Talla</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="formEditarTalla" data-id="">
+                                        <div class="form-group">
+                                            <label for="tallaNombre">Nombre de la Talla</label>
+                                            <input type="text" class="form-control" id="tallaNombre" name="tallaNombre" required>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" onclick="guardarCambiosTalla()">Guardar cambios</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="table-responsive">
-                        <br><table class="table table-bordered table-striped">
+                        <br>
+                        <table class="table table-bordered table-striped" id="tablaTallas">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Nombre Rol</th>
-                                    <th>Descripción</th>
-                                    <th>Estado</th>
-                                    <th>Fecha de Creación</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="rolesTableBody">
-
-                            </tbody>
-
+                            <tbody id="tablaTallasBody">
 
                             </tbody>
                         </table>
@@ -138,8 +123,9 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
         </div>
+
         
-        <!-- Navbar -->
+<!-- Navbar -->
         <nav class="main-header navbar navbar-expand navbar-dark">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
@@ -191,10 +177,9 @@ if (!isset($_SESSION['user_id'])) {
 
             </ul>
         </nav>
+        <!-- IMPORTAMOS EL ARCHIVO QUE TIENE LA BARRA DE NAVEGACION -->
 
-        <!-- /.navbar -->
-        <?php require_once "../Navigation/navigationAdmin.php"; ?>
-        
+        <?php require_once "../Navigation/navigationAdmin.php" ?>
         <!-- Content Wrapper. Contains page content -->
 
 
@@ -214,23 +199,11 @@ if (!isset($_SESSION['user_id'])) {
         </footer>
     </div>
     <!-- ./wrapper -->
-
-    <!-- REQUIRED SCRIPTS -->
-         <!--Libreria para dar estilos a las alertas -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
  <!-- JS de AdminLTE y dependencias desde CDN -->
-     <!-- JS de AdminLTE y dependencias desde CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-    <script src="../../Recursos/dist/js/pages/dashboard2.js"></script>
-    <script src="js/create.js"></script>
-    <script src="js/read.js"></script>
-    <script src="js/delete.js"></script>
 
 <script>
 document.getElementById("logoutBtn").addEventListener("click", function(e) {
@@ -253,6 +226,11 @@ document.getElementById("logoutBtn").addEventListener("click", function(e) {
     });
 });
 </script>
+
+
+    <script src="js/read.js"></script>
+    <scrip src="js/create.js">
+        </script>
 </body>
 
 </html>

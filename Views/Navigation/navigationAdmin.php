@@ -4,7 +4,7 @@ require_once __DIR__ . "/../../Config/config.php";
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="../menu.php" class="brand-link">
+    <a href="../../menu.php" class="brand-link">
         <img src="../../assets/imagenesMilogar/logomilo.jpg" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
         <span class="brand-text font-weight-light">MILOGAR </span>
     </a>
@@ -96,6 +96,46 @@ require_once __DIR__ . "/../../Config/config.php";
                         <i class="nav-icon fas fa-receipt"></i>
                         <p>
                             Productos Canjeables
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo BASE_URL; ?>/Views/Tallas/index" class="nav-link">
+                        <i class="nav-icon fas fa-receipt"></i>
+                        <p>
+                            Tallas Productos
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo BASE_URL; ?>/Views/OtrosProductos/index" class="nav-link">
+                        <i class="nav-icon fas fa-shopping-bag"></i>
+                        <p>
+                            Otros Productos
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo BASE_URL; ?>/Views/ComentariosProductos/index" class="nav-link">
+                        <i class="nav-icon fas fa-shopping-bag"></i>
+                        <p>
+                            Comentarios por Producto
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo BASE_URL; ?>/Views/ComentariosGeneral/index" class="nav-link">
+                        <i class="nav-icon fas fa-shopping-bag"></i>
+                        <p>
+                            Comentarios - tienda
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo BASE_URL; ?>/Views/Facturacion/index" class="nav-link">
+                        <i class="nav-icon fas fa-shopping-bag"></i>
+                        <p>
+                            Facturación electrónica - 
                         </p>
                     </a>
                 </li>

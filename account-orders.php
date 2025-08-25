@@ -34,6 +34,146 @@ session_start();
 
   <!-- Theme CSS -->
   <link rel="stylesheet" href="assets/css/theme.min.css">
+  <style>
+            .whatsapp-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .whatsapp-icon {
+            position: relative;
+            display: inline-block;
+        }
+
+        .whatsapp-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .whatsapp-icon:hover img {
+            transform: scale(1.1);
+        }
+
+        .whatsapp-text {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background-color: #25D366;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .whatsapp-icon:hover .whatsapp-text {
+            opacity: 1;
+        }
+        .chatbot-container {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1001;
+}
+
+.chatbot-icon {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.chatbot-icon img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.chatbot-icon:hover img {
+  transform: scale(1.1);
+}
+
+.chatbot-text {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  background-color: #343a40;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-icon:hover .chatbot-text {
+  opacity: 1;
+}
+
+.chatbot-box {
+  display: none;
+  width: 300px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  overflow: hidden;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 10px;
+  font-weight: bold;
+  position: relative;
+}
+
+.chatbot-close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  cursor: pointer;
+}
+
+.chatbot-log {
+  height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #f9f9f9;
+}
+
+.chatbot-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+}
+
+.chatbot-input button {
+  background-color: #343a40;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+  </style>
 </head>
 
 <body>
@@ -84,10 +224,12 @@ session_start();
   </div>
 
 
+
   <script>
             const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
     const userId = <?php echo json_encode($_SESSION['user_id']); ?>;
   </script>
+    <input type="hidden" id="user_id" value="<?php echo isset($_SESSION['user_id']) ? $_SESSION['user_id'] : ''; ?>">
 
   <!-- Modal para mostrar los detalles del pedido -->
   <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
@@ -212,7 +354,7 @@ session_start();
         <div class="col-12">
           <div class="p-6 d-flex justify-content-between align-items-center d-md-none">
             <!-- heading -->
-            <h3 class="fs-5 mb-0">Account Setting</h3>
+            <h3 class="fs-5 mb-0">Configuración de la cuenta</h3>
             <!-- button -->
             <button class="btn btn-outline-gray-400 text-muted d-md-none btn-icon " type="button"
               data-bs-toggle="offcanvas" data-bs-target="#offcanvasAccount" aria-controls="offcanvasAccount">
@@ -240,10 +382,11 @@ session_start();
               <li class="nav-item">
                 <hr>
               </li>
-              <!-- nav item -->
-              <li class="nav-item">
-                <a class="nav-link " href="Views/login/logout.php"><i class="feather-icon icon-log-out me-2"></i>Log out</a>
-              </li>
+            <!-- nav item -->
+                <li class="nav-item">
+                <a href="#" class="nav-link logout-link" data-url="Views/login/logout.php">
+                    <i class="feather-icon icon-log-out me-2"></i>Cerrar Sesión
+                </a>
             </ul>
           </div>
         </div>
@@ -268,6 +411,8 @@ session_start();
                     <th class="border-0">Estado</th>
                     <th class="border-0">Subtotal</th>
                     <th class="border-0">IVA(15%)</th>
+                    <th class="border-0">Descuento aplicado</th>
+
                     <th class="border-0">Total</th>
                     <th class="border-0">Acción</th>
                   </tr>
@@ -313,16 +458,42 @@ session_start();
       <div>
         <!-- nav  -->
         <ul class="nav flex-column nav-pills nav-pills-dark">
-          <!-- nav item -->
-          <li class="nav-item">
-            <a class="nav-link " href="../index.html"><i class="feather-icon icon-log-out me-2"></i>Log out</a>
-          </li>
+                <!-- nav item -->
+                <li class="nav-item">
+                <a href="#" class="nav-link logout-link" data-url="Views/login/logout.php">
+                    <i class="feather-icon icon-log-out me-2"></i>Cerrar Sesión
+                </a>
+                </li>
 
         </ul>
       </div>
     </div>
   </div>
+  <!-- Chatbot Bubble Container -->
+<div class="chatbot-container">
+  <div class="chatbot-icon" onclick="toggleChatbot()">
+    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712104.png" alt="Chatbot">
+    <span class="chatbot-text">¿Necesitas ayuda?</span>
+  </div>
 
+  <div id="chatbot-box" class="chatbot-box">
+    <div class="chatbot-header">
+      Chat Milogar
+      <span class="chatbot-close" onclick="toggleChatbot()">✖</span>
+    </div>
+    <div id="chatlog" class="chatbot-log"></div>
+    <div class="chatbot-input">
+      <input id="userInput" type="text" placeholder="Escribe tu mensaje...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+</div>
+    <div class="whatsapp-container">
+        <a href="https://wa.me/593967342065" target="_blank" class="whatsapp-icon">
+            <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
+            <span class="whatsapp-text">¿Cómo podemos ayudarte?</span>
+        </a>
+    </div>
   <?php require_once "Views/Navigation/footer.php"; ?>
   <!-- Javascript-->
   <!-- Libs JS -->
@@ -341,6 +512,7 @@ session_start();
   <script src="assets/libs/tiny-slider/dist/min/tiny-slider.js"></script>
   <script src="assets/libs/dropzone/dist/min/dropzone.min.js"></script>
   <script src="assets/libs/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- Theme JS -->
   <script src="assets/js/theme.min.js"></script>
@@ -348,6 +520,98 @@ session_start();
   <script src="assets/js/mostrarpedidos.js"></script>
 <script src="assets/js/login.js"></script>
 <script src="assets/js/BusquedaDinamica.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+      const logoutLinks = document.querySelectorAll('.logout-link');
+
+      logoutLinks.forEach(link => {
+          link.addEventListener('click', function (e) {
+              e.preventDefault();
+
+              Swal.fire({
+                  title: '¿Cerrar sesión?',
+                  text: 'Se cerrará tu sesión actual. ¿Deseas continuar?',
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#d33',
+                  cancelButtonColor: '#3085d6',
+                  confirmButtonText: 'Sí, cerrar sesión',
+                  cancelButtonText: 'Cancelar'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Eliminar carrito del localStorage si existe
+                      localStorage.removeItem('carrito');
+                      localStorage.removeItem('ultimaActividad');
+
+                      // Redireccionar a la URL de logout
+                      const logoutUrl = link.dataset.url;
+                      window.location.href = logoutUrl;
+                  }
+              });
+          });
+      });
+  });
+</script>
+<script>
+  const respuestas = {
+    hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
+    envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
+    precios: "Puedes ver los precios actualizados directamente en cada producto.",
+    ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
+    
+    puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
+    canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
+    ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
+    contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
+    mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
+    pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
+    
+    pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
+    devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
+    
+    default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
+  };
+
+  function toggleChatbot() {
+    const box = document.getElementById('chatbot-box');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
+
+    appendMessage("Tú", userMessage);
+    input.value = "";
+
+    const lowerMsg = userMessage.toLowerCase();
+    let respuesta = respuestas.default;
+
+    for (const key in respuestas) {
+      if (lowerMsg.includes(key)) {
+        respuesta = respuestas[key];
+        break;
+      }
+    }
+
+    setTimeout(() => {
+      appendMessage("MILOGAR", respuesta);
+    }, 600);
+  }
+
+  function appendMessage(sender, text) {
+    const chatlog = document.getElementById("chatlog");
+    const newMsg = document.createElement("div");
+    newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    newMsg.style.marginBottom = "10px";
+    chatlog.appendChild(newMsg);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+</script>
+
+
   <!-- choose one -->
 </body>
 <!-- Mirrored from freshcart.codescandy.com/pages/account-orders.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 12 Aug 2022 17:47:04 GMT -->

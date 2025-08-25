@@ -163,8 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <!-- Mostrar Comentarios -->
                                 <div class="mt-4">
                                     <h6>Comentarios:</h6>
-                                    <div id="comentarioSearch-${producto.id}">
-                                        <p class="text-muted">Cargando comentarios...</p>
+                                    <div id="comentarios-lista-${producto.id}" class="comentarios mt-3"></div>
                                     </div>
                                 </div>
                             </div>
@@ -176,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     resultadosDiv.innerHTML = productosHTML;
                                         // ✅ Ahora que los elementos están en el DOM, cargamos los comentarios:
                     data.productos.forEach(producto => {
-                        const testContenedor = document.getElementById(`comentarios-${producto.id}`);
+                        const testContenedor = document.getElementById(`comentarios-lista-${producto.id}`);
                         console.log(`Contenedor de comentarios para producto ${producto.id}:`, testContenedor);
                         cargarComentariosActivos(producto.id);
                     });
@@ -226,7 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 }
 
                                     if (producto.is_talla == 1) {
-                                    fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&id=' + productoId, {
+                                    fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&producto_id=' + productoId, {
                                         method: 'GET',
                                         headers: { 'Content-Type': 'application/json' }
                                     })
@@ -433,7 +432,7 @@ function cargarComentariosActivos(productoId) {
             return response.json();
         })
         .then(data => {
-            const contenedorComentarios = document.querySelector(`#comentarioSearch-${productoId}`);
+            const contenedorComentarios = document.querySelector(`#comentarios-lista-${productoId}`);
 
             if (!contenedorComentarios) {
                 console.warn(`No se encontró el contenedor para comentarios con ID: comentarios-${productoId}`);
@@ -456,7 +455,7 @@ function cargarComentariosActivos(productoId) {
                         </div>
                     `;
 
-                    if (comentarios.length > 1) {
+                    if (comentarios.length >= 1) {
                         contenedorComentarios.innerHTML += `
                             <button class="btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1"
                                     onclick="mostrarModalTodosComentarios(${productoId})">
@@ -571,7 +570,7 @@ function enviarComentarioSearch(productoId, event) {
                     calificacion: parseInt(calificacion)
                 };
 
-                const contenedor = document.getElementById(`comentarioSearch-${productoId}`);
+                const contenedor = document.getElementById(`comentarios-lista-${productoId}`);
                 if (contenedor) {
                     // Elimina el mensaje "Aún no hay comentarios" si existe
                     const mensajeVacio = contenedor.querySelector('p.text-muted');
@@ -588,6 +587,8 @@ function enviarComentarioSearch(productoId, event) {
                     `;
                     contenedor.prepend(div); // lo coloca arriba del resto
                 }
+
+                
 
 
             } else {

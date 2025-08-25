@@ -146,6 +146,103 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         .navbar {
             z-index: 1050;
         }
+.chatbot-container {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .chatbot-icon {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .chatbot-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .chatbot-icon:hover img {
+            transform: scale(1.1);
+        }
+
+        .chatbot-text {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background-color: #343a40;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .chatbot-icon:hover .chatbot-text {
+            opacity: 1;
+        }
+
+        .chatbot-box {
+            display: none;
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+        }
+
+        .chatbot-header {
+            background-color: #343a40;
+            color: #fff;
+            padding: 10px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .chatbot-close {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            cursor: pointer;
+        }
+
+        .chatbot-log {
+            height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+
+        .chatbot-input {
+            display: flex;
+            border-top: 1px solid #ccc;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+        }
+
+        .chatbot-input button {
+            background-color: #343a40;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
 
         /* Tamanio predeterminado de la imagen*/
         .card-product img {
@@ -442,6 +539,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                     <span><small class="fs-6 ms-2 text-danger" id="discount-percent"></small></span> <!-- Descuento en porcentaje -->
                                 </div>
                                 <hr class="my-6">
+                                                             <div id="product-sizes" class="mt-3"></div>
 
                                 <div class="mt-5 d-flex justify-content-start">
                                     <div class="col-2">
@@ -497,7 +595,25 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             <span class="whatsapp-text">¿Cómo podemos ayudarte?</span>
         </a>
     </div>
+    <!-- Chatbot Bubble Container -->
+    <div class="chatbot-container">
+        <div class="chatbot-icon" onclick="toggleChatbot()">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712104.png" alt="Chatbot">
+            <span class="chatbot-text">¿Necesitas ayuda?</span>
+        </div>
 
+        <div id="chatbot-box" class="chatbot-box">
+            <div class="chatbot-header">
+                Chat Milogar
+                <span class="chatbot-close" onclick="toggleChatbot()">✖</span>
+            </div>
+            <div id="chatlog" class="chatbot-log"></div>
+            <div class="chatbot-input">
+                <input id="userInput" type="text" placeholder="Escribe tu mensaje...">
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
     <?php require_once "Views/Navigation/footer.php"; ?>
     <!-- Javascript-->
     <!-- Libs JS -->
@@ -746,7 +862,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                             }
 
                             if (producto.is_talla == 1) {
-                                fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&id=' + productoId, {
+                                fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&producto_id=' + productoId, {
                                         method: 'GET',
                                         headers: {
                                             'Content-Type': 'application/json'

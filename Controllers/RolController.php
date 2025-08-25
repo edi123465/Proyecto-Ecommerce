@@ -213,17 +213,17 @@ class RolController
     }
 }
 
-if (isset($_GET['action'])) {
-    
-    $action = $_GET['action'];  // Obtener la acción de la URL
-    // Dependiendo de la acción, ejecutamos diferentes métodos para manejar los roles
-    switch ($action) {
-        case 'read':
-            $db = new Database1(); // O como sea que estés instanciando tu conexión
-            // Si la acción es 'read', llama al método que obtiene todos los roles
-            $controller = new RolController($db); // Suponiendo que $db es la conexión a la base de datos
-            $controller->read();  // Método para obtener todos los roles
-            break;
+    if (isset($_GET['action'])) {
+        
+        $action = $_GET['action'];  // Obtener la acción de la URL
+        // Dependiendo de la acción, ejecutamos diferentes métodos para manejar los roles
+        switch ($action) {
+            case 'read':
+                $db = new Database1(); // O como sea que estés instanciando tu conexión
+                // Si la acción es 'read', llama al método que obtiene todos los roles
+                $controller = new RolController($db); // Suponiendo que $db es la conexión a la base de datos
+                $controller->read();  // Método para obtener todos los roles
+                break;
         case 'getRoles':
             $db = new Database1(); // Instancia de la base de datos
             $controller = new RolController($db);

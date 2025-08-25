@@ -58,6 +58,7 @@ function cargarProductos(page = 1, search = '') {
                             <td>${producto.stock || '0'}</td>
                             <td>${producto.cantidad_minima_para_puntos || 0}</td>
                             <td>${producto.puntos_otorgados || 0}</td>
+                            <td>${producto.is_talla || 0}</td>
 
                             <td>
                                 <button class="btn btn-info btn-sm">

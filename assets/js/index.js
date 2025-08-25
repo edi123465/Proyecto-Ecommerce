@@ -6,6 +6,7 @@ function cargarProductosPromocion(pagina = 1) {
     fetch(`http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerProductosPromocion&page=${pagina}&limit=${productosPorPagina}`)
         .then(response => response.json())
         .then(data => {
+            console.log('Datos de productos en promoción:', data);
             const productosPromocionContainer = document.getElementById('productos-promocion-container');
             productosPromocionContainer.innerHTML = ''; // Limpiar productos anteriores
 
@@ -15,18 +16,22 @@ function cargarProductosPromocion(pagina = 1) {
 
                 data.data.forEach(producto => {
                     const imagenUrl = producto.imagen.startsWith('http') ? producto.imagen : 'http://localhost:8080/Milogar/assets/imagenesMilogar/productos/' + producto.imagen;
+                    const precioUnitario = Number(producto.precio_1);
+                    const precioDescuento = precioUnitario - (precioUnitario * Number(producto.descuento) / 100);
 
                     const productHTML = `
                     <div class="col-12 col-md-6 col-lg-3">
                         <div class="card card-product">
                             <div class="card-body">
                                 <div class="text-center position-relative">
-                                    ${producto.descuento > 0 ? `
-                                        <div class="position-absolute top-0 start-0 p-2">
-                                            <span class="badge bg-warning"> ${producto.descuento}% Desc.</span>
+                               ${producto.descuento > 0 ? `
+                                                                  <div class="position-absolute top-0 start-0 p-2">
+                                            <span class="badge bg-danger rounded-circle d-flex justify-content-center align-items-center text-white"
+                                                style="width: 60px; height: 60px; font-size: 0.8rem;">
+                                                ${producto.descuento}%<br>Desc.
+                                            </span>
                                         </div>
                                     ` : ''}
-
                                     ${isAdmin ? `
                                         <div class="position-absolute top-0 end-0 p-2">
                                             <a href="#" class="text-decoration-none text-primary" onclick="editarProducto(${producto.id})">
@@ -59,9 +64,13 @@ function cargarProductosPromocion(pagina = 1) {
                                 ` : ''}
 
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <div>
-                                        <span class="text-dark">$${producto.precio_1 - (producto.precio_1 * producto.descuento / 100)}</span>
-                                        <span class="text-decoration-line-through text-muted">$${producto.precio_1}</span>
+                                    <div class="d-flex flex-column gap-1 mt-2 align-items-start">
+                                        <span class="fw-bold text-success fs-4">
+                                            $${precioDescuento.toFixed(2)}
+                                        </span>
+                                        <span class="text-muted text-decoration-line-through fs-6">
+                                            $${precioUnitario.toFixed(2)}
+                                        </span>
                                     </div>
 
                                     ${producto.is_talla == 0 ? `
@@ -150,7 +159,7 @@ function cargarProductosPromocion(pagina = 1) {
                                     }
 
                                     if (producto.is_talla == 1) {
-                                        fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&id=' + productoId, {
+                                        fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&producto_id=' + productoId, {
                                             method: 'GET',
                                             headers: { 'Content-Type': 'application/json' }
                                         })

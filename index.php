@@ -804,6 +804,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                     <span><small class="fs-6 ms-2 text-danger" id="discount-percent"></small></span> <!-- Descuento en porcentaje -->
                                 </div>
                                 <hr class="my-6">
+                                                             <div id="product-sizes" class="mt-3"></div>
 
                                 <div class="mt-5 d-flex justify-content-start">
                                     <div class="col-2">
@@ -1082,6 +1083,66 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             }
         });
     </script>
+    <script>
+  const respuestas = {
+    hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
+    horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
+    envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
+    precios: "Puedes ver los precios actualizados directamente en cada producto.",
+    ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
+    
+    puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
+    canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
+    ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
+    contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
+    mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
+    pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
+    
+    pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
+    devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
+    
+    default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
+  };
+
+  function toggleChatbot() {
+    const box = document.getElementById('chatbot-box');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
+
+    appendMessage("Tú", userMessage);
+    input.value = "";
+
+    const lowerMsg = userMessage.toLowerCase();
+    let respuesta = respuestas.default;
+
+    for (const key in respuestas) {
+      if (lowerMsg.includes(key)) {
+        respuesta = respuestas[key];
+        break;
+      }
+    }
+
+    setTimeout(() => {
+      appendMessage("MILOGAR", respuesta);
+    }, 600);
+  }
+
+  function appendMessage(sender, text) {
+    const chatlog = document.getElementById("chatlog");
+    const newMsg = document.createElement("div");
+    newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    newMsg.style.marginBottom = "10px";
+    chatlog.appendChild(newMsg);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+</script>
+
+
 </body>
 
 </html>
