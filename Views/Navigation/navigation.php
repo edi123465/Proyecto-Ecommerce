@@ -18,6 +18,7 @@ if (
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <style>
         body {
             padding-top: 160px;
@@ -88,13 +89,13 @@ if (
                 <div class="row w-100 align-items-center g-3">
                     <div class="col-xxl-2 col-lg-3">
                         <a class="navbar-brand d-none d-lg-flex align-items-center" href="index.php" style="text-decoration: none;">
-                            <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 50px; height: 50px; margin-right: 10px;">
+                            <img src="<?php echo BASE_URL; ?>/assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 50px; height: 50px; margin-right: 10px;">
                             <span style="font-size: 1.5rem; font-weight: bold; color: #333;">MILOGAR</span>
                         </a>
 
                         <div class="d-flex justify-content-between w-100 d-lg-none">
                             <a class="navbar-brand d-flex align-items-center" href="<?php echo BASE_URL; ?>index.php" style="text-decoration: none;">
-                                <img src="<?php echo BASE_URL; ?>assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 35px; height: 35px; margin-right: 8px;">
+                                <img src="<?php echo BASE_URL; ?>/assets/imagenesMilogar/logomilo.jpg" alt="eCommerce HTML Template" style="width: 35px; height: 35px; margin-right: 8px;">
                                 <span style="font-size: 1.25rem; font-weight: bold; color: #333;">MILOGAR</span>
                             </a>
 
@@ -205,7 +206,21 @@ if (
 
                     <!-- Espacio entre el input de buscar y los iconos de user y shop -->
                     <div class="col-md-2 col-xxl-3 d-none d-lg-block">
+                        <div class="d-flex justify-content-end align-items-center gap-3">
+                            <!-- Iniciar sesión -->
+                            <a class="text-decoration-none fw-bold fs-6 text-dark d-flex align-items-center"
+                                href="#" data-bs-toggle="modal" data-bs-target="#userModal">
+                                <i class="feather-icon icon-log-in me-2 fs-5"></i> Iniciar sesión
+                            </a>
+
+                            <!-- Suscríbete -->
+                            <a class="text-decoration-none fw-bold fs-6 text-dark d-flex align-items-center"
+                                href="<?php echo BASE_URL; ?>/signup.php">
+                                <i class="feather-icon icon-user-plus me-2 fs-5"></i> Suscríbete
+                            </a>
+                        </div>
                     </div>
+
                     <div class="col-md-2 col-xxl-1 text-end d-none d-lg-block">
                         <!-- CONTENEDOR PARA LOS ICONOS DE CORAZON, USER Y SHOP -->
                         <div class="list-inline">
@@ -289,14 +304,16 @@ if (
                             </ul>
                         </li> -->
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>/index.php">
+                                <a class="nav-link d-flex align-items-center" href="<?php echo BASE_URL; ?>/index.php">
+                                    <i class="fas fa-home me-2"></i>
                                     Inicio
                                 </a>
                             </li>
 
+
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Categorías
+                                    <i class="bi bi-folder me-1"></i>Categorías
                                 </a>
                                 <ul class="dropdown-menu" id="menu-categorias-desktop">
                                     <!-- JS insertará aquí los elementos -->
@@ -306,44 +323,13 @@ if (
 
                             <li class="nav-item">
                                 <a class="nav-link" href="<?php echo BASE_URL; ?>/shop-checkout.php">
-                                    Ver Carrito
+                                    <i class="feather-icon icon-shopping-cart me-2"></i>Ver Carrito
                                 </a>
                             </li>
 
                             <li class="nav-item">
                                 <a class="nav-link" href="<?php echo BASE_URL; ?>/sobreNosotros.php">
-                                    Acerca de nosotros
-                                </a>
-                            </li>
-
-                            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'Administrador' || $_SESSION['user_role'] === 'Cliente')): ?>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="feather-icon icon-user me-2"></i>Cuenta
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-orders.php">
-                                                <i class="feather-icon icon-package me-2"></i>Pedidos
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-settings.php">
-                                                <i class="feather-icon icon-settings me-2"></i>Configuración
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item logout-link text-danger" href="#" data-url="<?php echo BASE_URL; ?>/Views/login/logout.php">
-                                                <i class="feather-icon icon-log-out me-2"></i>Cerrar Sesión
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            <?php endif; ?>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>/signup.php">
-                                    <i class="feather-icon icon-user-plus me-2"></i>Suscríbete
+                                    <i class="feather-icon icon-users me-2"></i>Acerca de nosotros
                                 </a>
                             </li>
 
@@ -353,11 +339,6 @@ if (
                                 </a>
                             </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#userModal">
-                                    <i class="feather-icon icon-log-in me-2"></i>Iniciar sesión
-                                </a>
-                            </li>
 
                             <?php
                             if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
@@ -394,15 +375,40 @@ if (
         </ul>
     </li>';
                             }
+
+                            
                             ?>
 
-
+                            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'Administrador' || $_SESSION['user_role'] === 'Cliente')): ?>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="feather-icon icon-user me-2"></i>Cuenta
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-orders.php">
+                                                <i class="feather-icon icon-package me-2"></i>Pedidos
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-settings.php">
+                                                <i class="feather-icon icon-settings me-2"></i>Configuración
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item logout-link text-danger" href="#" data-url="<?php echo BASE_URL; ?>/Views/login/logout.php">
+                                                <i class="feather-icon icon-log-out me-2"></i>Cerrar Sesión
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            <?php endif; ?>
                     </div>
                     <div class="d-block d-lg-none">
                         <ul class="navbar-nav ">
                             <li class="nav-item">
                                 <a class="nav-link" href="<?php echo BASE_URL; ?>index">
-                                    <i class="feather-icon icon-home me-2"></i>Inicio
+                                    <i class="fas fa-home me-2"></i>Inicio
                                 </a>
                             </li>
 

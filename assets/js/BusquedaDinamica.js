@@ -1,222 +1,233 @@
 
-document.addEventListener("DOMContentLoaded", function () {
-    const formularioBusqueda = document.getElementById("searchForm");
-    const campoBusqueda = document.getElementById("busqueda");
-    const resultadosDiv = document.getElementById("resultados-busqueda-container");
-    const productosContainer = document.getElementById("productos-container");
-    const productosPopularesContainer = document.getElementById("productos-populares-container");
-    const BASE_URL = window.location.origin + "/Milogar";
-    const estaEnShopGrid = window.location.pathname.includes("/shop-grid");
-    
-    document.getElementById("searchForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-        const query = document.getElementById("busqueda").value.trim();
-        
-        if (query !== "") {
-            // Si ya estamos en shop-grid.php, solo actualizamos la URL
-            if (estaEnShopGrid) {
+    document.addEventListener("DOMContentLoaded", function () {
+        const formularioBusqueda = document.getElementById("searchForm");
+        const campoBusqueda = document.getElementById("busqueda");
+        const resultadosDiv = document.getElementById("resultados-busqueda-container");
+        const productosContainer = document.getElementById("productos-container");
+        const productosPopularesContainer = document.getElementById("productos-populares-container");
+        const BASE_URL = window.location.origin + "/Milogar";
+        const estaEnShopGrid = window.location.pathname.includes("/busquedaClientes");
+
+        document.getElementById("searchForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const query = document.getElementById("busqueda").value.trim();
+
+            if (query !== "") {
+                // Si ya estamos en shop-grid.php, solo actualizamos la URL
+                if (estaEnShopGrid) {
+                    window.location.search = `search=${encodeURIComponent(query)}`;
+                } else {
+                    // Si estamos en otra página, redirigimos a Views/shop-grid.php con la búsqueda
+                    window.location.href = `${BASE_URL}/busquedaClientes?search=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+
+        // Función para realizar la búsqueda
+        const realizarBusqueda = async (query) => {
+                const searchText = document.getElementById("search-text"); // span del encabezado
+
+            if (query === "") {
+                resultadosDiv.innerHTML = "<h1 class='text-muted'>Escribe algo para buscar.</h1>";
+                        searchText.textContent = ""; // Limpiar encabezado si está vacío
+
+                return;
+            }
+    // Actualizar encabezado dinámicamente
+    searchText.textContent = query;
+
+            if (window.location.pathname.includes("/busquedaClientes")) {
                 window.location.search = `search=${encodeURIComponent(query)}`;
             } else {
-                // Si estamos en otra página, redirigimos a Views/shop-grid.php con la búsqueda
-                window.location.href = `${BASE_URL}/shop-grid?search=${encodeURIComponent(query)}`;
+                window.location.href = `${BASE_URL}/busquedaClientes?search=${encodeURIComponent(query)}`;
             }
-        }
-    });
-    
-    // Función para realizar la búsqueda
-    const realizarBusqueda = async (query) => {
-        if (query === "") {
-            resultadosDiv.innerHTML = "<h1 class='text-muted'>Escribe algo para buscar.</h1>";
-            return;
-        }
 
-        // Si no estamos en shop-grid.php, redirigir la búsqueda a esa página
-        if (!estaEnShopGrid) {
-            window.location.href = `${BASE_URL}/shop-grid?search=${encodeURIComponent(query)}`;
-            return;
-        }
+            // Ocultar productos generales y populares
+            if (productosContainer) productosContainer.style.display = "none";
+            if (productosPopularesContainer) productosPopularesContainer.style.display = "none";
 
-        // Ocultar productos generales y populares
-        if (productosContainer) productosContainer.style.display = "none";
-        if (productosPopularesContainer) productosPopularesContainer.style.display = "none";
+            // Mostrar el contenedor de resultados
+            resultadosDiv.style.display = "flex";
 
-        // Mostrar el contenedor de resultados
-        resultadosDiv.style.display = "flex";
+            try {
 
-        try {
-            
-            const response = await fetch(`${BASE_URL}/Controllers/ProductoController.php?action=search&q=${encodeURIComponent(query)}`);
+                const response = await fetch(`${BASE_URL}/Controllers/ProductoController.php?action=search&q=${encodeURIComponent(query)}`);
 
-            if (response.ok) {
-                const data = await response.json();
+                if (response.ok) {
+                    const data = await response.json();
 
-                if (data.error) {
-                    resultadosDiv.innerHTML = `<h1 class='text-danger'>${data.error}</h1>`;
-                } else {
-                    let productosHTML = "";
-                                    const userRole = document.getElementById('role').getAttribute('data-role');
-                const isAdmin = userRole === 'Administrador';
-                    data.productos.forEach(producto => {
-                        const rutaImagen = `/Milogar/assets/imagenesMilogar/productos/${producto.imagen}`;
-                        productosHTML += `
-                            <div class="col">
-                        <div class="card card-product">
-                            <div class="card-body">
-                                <div class="text-center position-relative">
-                                    <!-- Badge de descuento redondo dentro de la tarjeta -->
-                                    ${producto.descuento > 0 ? `
-                                        <div class="position-absolute top-0 start-0 p-2">
-                                            <span class="badge bg-danger rounded-circle d-flex justify-content-center align-items-center text-white"
-                                                style="width: 60px; height: 60px; font-size: 0.8rem;">
-                                                ${producto.descuento}%<br>Desc.
-                                            </span>
-                                        </div>
-                                    ` : ''}
-                
-                                    ${isAdmin ? `
-                                        <div class="position-absolute top-0 end-0 p-2">
-                                            <a href="#!" class="text-decoration-none text-primary" onclick="editarProducto(${producto.id})">
-                                                <i class="bi bi-pencil-square" style="font-size: 1.5rem;"></i>
-                                            </a>
-                                        </div>
-                                    ` : ''}
-                
-                                    <a href="#!">
-                                        <img src="${rutaImagen}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
-                                    </a>
-                                    <br><br><br>
-                                    <!-- Salto de línea antes del botón -->
-                                    <a href="#!" class="btn btn-success btn-sm w-100 position-absolute bottom-0 start-0 mb-3" data-bs-toggle="modal" data-bs-target="#quickViewModal"                                               data-id="${producto.id}" style="border-radius: 12px;">
-                                        Ver Detalle
-                                    </a>
-                                </div>
-                
-                                <div class="text-small mb-1">
-                                    <a href="#!" class="text-decoration-none text-muted">
-                                        <small>${producto.nombreSubcategoria}</small>
-                                    </a>
-                                </div>
-                
-                                <h2 class="fs-6">
-                                    <a href="#!" class="text-inherit text-decoration-none">${producto.nombreProducto}</a>
-                                </h2>
-                
-                                ${(usuarioSesion && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0) ? `
-                                    <p class="text-success fw-bold">
-                                        Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
-                                    </p>
-                                ` : ''}
-                
-                                <div>
-                                    <small class="text-warning"> 
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-half"></i>
-                                    </small> 
-                                    <span class="text-muted small">4.5(149)</span>
-                                </div>
-                
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <div>
-                                        <span class="text-dark">$${producto.precio_1 - (producto.precio_1 * producto.descuento / 100)}</span>
-                                        <span class="text-decoration-line-through text-muted">$${producto.precio_1}</span>
+                    if (data.error) {
+                        resultadosDiv.innerHTML = `<h1 class='text-danger'>${data.error}</h1>`;
+                    } else {
+                        let productosHTML = "";
+                        const userRole = document.getElementById('role').getAttribute('data-role');
+                        const isAdmin = userRole === 'Administrador';
+                        data.productos.forEach(producto => {
+                            const rutaImagen = `/Milogar/assets/imagenesMilogar/productos/${producto.imagen}`;
+                            productosHTML += `
+                                <div class="col">
+                            <div class="card card-product">
+                                <div class="card-body">
+                                    <div class="text-center position-relative">
+                                        <!-- Badge de descuento redondo dentro de la tarjeta -->
+                                        ${producto.descuento > 0 ? `
+                                            <div class="position-absolute top-0 start-0 p-2">
+                                                <span class="badge bg-danger rounded-circle d-flex justify-content-center align-items-center text-white"
+                                                    style="width: 60px; height: 60px; font-size: 0.8rem;">
+                                                    ${producto.descuento}%<br>Desc.
+                                                </span>
+                                            </div>
+                                        ` : ''}
+                    
+                                        ${isAdmin ? `
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <a href="#!" class="text-decoration-none text-primary" onclick="editarProducto(${producto.id})">
+                                                    <i class="bi bi-pencil-square" style="font-size: 1.5rem;"></i>
+                                                </a>
+                                            </div>
+                                        ` : ''}
+                    
+                                        <a href="#!">
+                                            <img src="${rutaImagen}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
+                                        </a>
+                                        <br><br><br>
+                                        <!-- Salto de línea antes del botón -->
+                                        <a href="#!" class="btn btn-success btn-sm w-100 position-absolute bottom-0 start-0 mb-3" data-bs-toggle="modal" data-bs-target="#quickViewModal"                                               data-id="${producto.id}" style="border-radius: 12px;">
+                                            Ver Detalle
+                                        </a>
                                     </div>
-                
-                                    ${producto.is_talla == 0 ? `
-                                        <div>
-                                            <a href="#!" class="btn btn-primary btn-sm add-to-cart" 
-                                                data-id="${producto.id}" 
-                                                data-nombre="${producto.nombreProducto}"
-                                                data-precio="${producto.precio_1}"
-                                                data-descuento="${producto.descuento}"
-                                                data-imagen="${rutaImagen}"
-                                                data-puntos="${producto.puntos_otorgados}"
-                                                data-minimo="${producto.cantidad_minima_para_puntos}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                    class="feather feather-plus">
-                                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                                </svg>
-                                                Add
-                                            </a>
-                                        </div>
+                    
+                                    <div class="text-small mb-1">
+                                        <a href="#!" class="text-decoration-none text-muted">
+                                            <small>${producto.nombreSubcategoria}</small>
+                                        </a>
+                                    </div>
+                    
+                                    <h2 class="fs-6">
+                                        <a href="#!" class="text-inherit text-decoration-none">${producto.nombreProducto}</a>
+                                    </h2>
+                    
+                                    ${(usuarioSesion && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0) ? `
+                                        <p class="text-success fw-bold">
+                                            Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
+                                        </p>
                                     ` : ''}
-                                    
-                                </div>
+                    
+                                    <div>
+                                        <small class="text-warning"> 
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-half"></i>
+                                        </small> 
+                                        <span class="text-muted small">4.5(149)</span>
+                                    </div>
+                    
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="d-flex align-items-baseline gap-2">
+                                        <span class="fw-bold text-success fs-4">
+                                            $${(producto.precio_1 - (producto.precio_1 * producto.descuento / 100)).toFixed(2)}
+                                        </span>
+                                        <span class="text-muted text-decoration-line-through fs-6">
+                                            $${producto.precio_1}
+                                        </span>
+                                    </div>
 
-                                                 <!-- Comentario (formulario) -->
-                                <div class="mt-3">
-                                    <h6>Deja tu comentario:</h6>
-                                    <textarea id="comentarioSS-${producto.id}" class="form-control mb-2" rows="2" placeholder="Escribe tu comentario..."></textarea>
-                                    <select id="calificacionSearch-${producto.id}" class="form-select mb-2">
-                                        <option value="5">⭐️⭐️⭐️⭐️⭐️</option>
-                                        <option value="4">⭐️⭐️⭐️⭐️</option>
-                                        <option value="3">⭐️⭐️⭐️</option>
-                                        <option value="2">⭐️⭐️</option>
-                                        <option value="1">⭐️</option>
-                                    </select>
-                                    <button onclick="enviarComentarioSearch(${producto.id})" class="btn btn-outline-primary btn-sm">Enviar comentario</button>
-                                </div>
-                                <!-- Mostrar Comentarios -->
-                                <div class="mt-4">
-                                    <h6>Comentarios:</h6>
-                                    <div id="comentarios-lista-${producto.id}" class="comentarios mt-3"></div>
+                    
+                                        ${producto.is_talla == 0 ? `
+                                            <div>
+                                                <a href="#!" class="btn btn-primary btn-sm add-to-cart" 
+                                                    data-id="${producto.id}" 
+                                                    data-nombre="${producto.nombreProducto}"
+                                                    data-precio="${producto.precio_1}"
+                                                    data-descuento="${producto.descuento}"
+                                                    data-imagen="${rutaImagen}"
+                                                    data-puntos="${producto.puntos_otorgados}"
+                                                    data-minimo="${producto.cantidad_minima_para_puntos}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                        class="feather feather-plus">
+                                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                    </svg>
+                                                    Add
+                                                </a>
+                                            </div>
+                                        ` : ''}
+                                        
+                                    </div>
+
+                                                    <!-- Comentario (formulario) -->
+                                    <div class="mt-3">
+                                        <h6>Deja tu comentario:</h6>
+                                        <textarea id="comentarioSS-${producto.id}" class="form-control mb-2" rows="2" placeholder="Escribe tu comentario..."></textarea>
+                                        <select id="calificacionSearch-${producto.id}" class="form-select mb-2">
+                                            <option value="5">⭐️⭐️⭐️⭐️⭐️</option>
+                                            <option value="4">⭐️⭐️⭐️⭐️</option>
+                                            <option value="3">⭐️⭐️⭐️</option>
+                                            <option value="2">⭐️⭐️</option>
+                                            <option value="1">⭐️</option>
+                                        </select>
+                                        <button onclick="enviarComentarioSearch(${producto.id})" class="btn btn-outline-primary btn-sm">Enviar comentario</button>
+                                    </div>
+                                    <!-- Mostrar Comentarios -->
+                                    <div class="mt-4">
+                                        <h6>Comentarios:</h6>
+                                        <div id="comentarios-lista-${producto.id}" class="comentarios mt-3"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                        `;
-                    });
+                            `;
+                        });
 
-                    resultadosDiv.innerHTML = productosHTML;
-                                        // ✅ Ahora que los elementos están en el DOM, cargamos los comentarios:
-                    data.productos.forEach(producto => {
-                        const testContenedor = document.getElementById(`comentarios-lista-${producto.id}`);
-                        console.log(`Contenedor de comentarios para producto ${producto.id}:`, testContenedor);
-                        cargarComentariosActivos(producto.id);
-                    });
-                }
+                        resultadosDiv.innerHTML = productosHTML;
+                        // ✅ Ahora que los elementos están en el DOM, cargamos los comentarios:
+                        data.productos.forEach(producto => {
+                            const testContenedor = document.getElementById(`comentarios-lista-${producto.id}`);
+                            console.log(`Contenedor de comentarios para producto ${producto.id}:`, testContenedor);
+                            cargarComentariosActivos(producto.id);
+                        });
+                    }
 
-// Escucha el evento cuando el modal se abre
-                        $('#quickViewModal').off('show.bs.modal').on('show.bs.modal', function (event) {
-                        var button = $(event.relatedTarget);
-                        var productoId = button.data('id');
-                        var modal = $(this);
-                        const imagenProducto = "imagenesMilogar/productos/" + $(this).data('imagen');
+                // Escucha el evento cuando el modal se abre
+                $('#quickViewModal').off('show.bs.modal').on('show.bs.modal', function (event) {
+                    var button = $(event.relatedTarget);
+                    var productoId = button.data('id');
+                    var modal = $(this);
+                    const imagenProducto = "imagenesMilogar/productos/" + $(this).data('imagen');
 
-                        // Hacer la solicitud fetch
-                        fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=verDetalle&id=' + productoId, {
-                            method: 'GET',
-                            headers: { 'Content-Type': 'application/json' }
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                console.log('Datos recibidos:', data);
-                                if (data.status === 'success') {
-                                    var producto = data.data;
+                    // Hacer la solicitud fetch
+                    fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=verDetalle&id=' + productoId, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Datos recibidos:', data);
+                            if (data.status === 'success') {
+                                var producto = data.data;
 
-                                    // Actualizar la información del producto en el modal
-                                    modal.find('#product-name').text(producto.nombreProducto);
-                                    modal.find('#product-description').text(producto.descripcionProducto);
+                                // Actualizar la información del producto en el modal
+                                modal.find('#product-name').text(producto.nombreProducto);
+                                modal.find('#product-description').text(producto.descripcionProducto);
 
-                                    var precioOriginal = producto.precio_1;
-                                    var descuento = producto.descuento || 0;
-                                    var precioConDescuento = (precioOriginal - (precioOriginal * descuento / 100)).toFixed(2);
+                                var precioOriginal = producto.precio_1;
+                                var descuento = producto.descuento || 0;
+                                var precioConDescuento = (precioOriginal - (precioOriginal * descuento / 100)).toFixed(2);
 
-                                    modal.find('#product-price').text(`$${precioConDescuento}`);
-                                    modal.find('#original-price').text(`$${precioOriginal}`);
-                                    modal.find('#discount-percent').text(`${descuento}% Off`);
-                                    modal.find('#product-code').text(producto.codigo_barras);
-                                    modal.find('#availability').text(producto.stock > 0 ? 'In Stock' : 'Out of Stock');
-                                    modal.find('#Category').text(producto.categoria_nombre || 'Unknown Category');
-                                    modal.find('#Subcategory').text(producto.subcategoria_nombre || 'Unknown Subcategory');
-                                    modal.find('#product-image').attr('src', 'http://localhost:8080/Milogar/assets/imagenesMilogar/productos/' + producto.imagen);
-                            
-                            // Buscar si el producto ya está en el carrito
+                                modal.find('#product-price').text(`$${precioConDescuento}`);
+                                modal.find('#original-price').text(`$${precioOriginal}`);
+                                modal.find('#discount-percent').text(`${descuento}% Off`);
+                                modal.find('#product-code').text(producto.codigo_barras);
+                                modal.find('#availability').text(producto.stock > 0 ? 'In Stock' : 'Out of Stock');
+                                modal.find('#Category').text(producto.categoria_nombre || 'Unknown Category');
+                                modal.find('#Subcategory').text(producto.subcategoria_nombre || 'Unknown Subcategory');
+                                modal.find('#product-image').attr('src', 'http://localhost:8080/Milogar/assets/imagenesMilogar/productos/' + producto.imagen);
+
+                                // Buscar si el producto ya está en el carrito
                                 const productoEnCarrito = carrito.find(item => item.id === producto.id);
                                 if (productoEnCarrito) {
                                     modal.find('.quantity-field').val(productoEnCarrito.cantidad);
@@ -224,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     modal.find('.quantity-field').val(1);
                                 }
 
-                                    if (producto.is_talla == 1) {
+                                if (producto.is_talla == 1) {
                                     fetch('http://localhost:8080/Milogar/Controllers/ProductoController.php?action=obtenerTallasPorProducto&producto_id=' + productoId, {
                                         method: 'GET',
                                         headers: { 'Content-Type': 'application/json' }
@@ -277,8 +288,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                         ? modal.find('input[name="select-talla"]:checked').val()
                                         : null;
 
-                                    const nombreProducto = tallaSeleccionada 
-                                        ? `${nombreProductoBase} - Talla ${tallaSeleccionada}` 
+                                    const nombreProducto = tallaSeleccionada
+                                        ? `${nombreProductoBase} - Talla ${tallaSeleccionada}`
                                         : nombreProductoBase;
 
                                     // Buscar si el producto ya está en el carrito
@@ -324,15 +335,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-                                }
-                            })
-                            .catch(error => console.error("Error al obtener datos:", error));
-                    });
-                    
+                            }
+                        })
+                        .catch(error => console.error("Error al obtener datos:", error));
+                });
+
 
                 document.querySelectorAll('.add-to-cart').forEach(btn => {
                     btn.addEventListener('click', (event) => {
-                                event.preventDefault(); // ✅ Evita que el <a href="#"> recargue la página
+                        event.preventDefault(); // ✅ Evita que el <a href="#"> recargue la página
 
                         // Obtén los datos del producto desde los atributos data-* del botón
                         const productoId = parseInt(event.target.dataset.id);
@@ -361,9 +372,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         const precioConDescuento = precioProducto - (precioProducto * descuento / 100);
 
                         // Verifica si el producto ya está en el carrito
-const productoExistente = carrito.find(producto =>
-    producto.id === productoId && (producto.talla ?? null) === null
-);
+                        const productoExistente = carrito.find(producto =>
+                            producto.id === productoId && (producto.talla ?? null) === null
+                        );
 
                         // Si el producto ya está en el carrito, incrementa la cantidad
                         if (productoExistente) {
@@ -392,23 +403,23 @@ const productoExistente = carrito.find(producto =>
                         actualizarCarrito();
 
                         // Mostrar la alerta con SweetAlert2
-                           Swal.fire({
-                                        position: 'bottom-left',
-                                        icon: 'success',
-                                        title: `¡${nombreProducto} agregado al carrito!`,
-                                        html: `<a href="#" id="ver-carrito" class="btn btn-sm btn-outline-dark mt-2">Ver carrito de compras</a>`,
-                                        showConfirmButton: false,
-                                        timer: 4000,
-                                        toast: true,
-                                        timerProgressBar: true,
-                                        didOpen: () => {
-                                            document.getElementById('ver-carrito').addEventListener('click', function (e) {
-                                                e.preventDefault();
-                                                const carrito = new bootstrap.Offcanvas(document.getElementById('offcanvasRight'));
-                                                carrito.show();
-                                            });
-                                        }
-                                    });
+                        Swal.fire({
+                            position: 'bottom-left',
+                            icon: 'success',
+                            title: `¡${nombreProducto} agregado al carrito!`,
+                            html: `<a href="#" id="ver-carrito" class="btn btn-sm btn-outline-dark mt-2">Ver carrito de compras</a>`,
+                            showConfirmButton: false,
+                            timer: 4000,
+                            toast: true,
+                            timerProgressBar: true,
+                            didOpen: () => {
+                                document.getElementById('ver-carrito').addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    const carrito = new bootstrap.Offcanvas(document.getElementById('offcanvasRight'));
+                                    carrito.show();
+                                });
+                            }
+                        });
 
                         // Actualiza el contador en el icono
                         actualizarContadorCarrito();
@@ -421,33 +432,33 @@ const productoExistente = carrito.find(producto =>
             resultadosDiv.innerHTML = `<h1 class='text-danger'>Hubo un problema al buscar productos.</h1>`;
         }
     };
-function cargarComentariosActivos(productoId) {
-    console.log(`Iniciando carga de comentarios para producto ID: ${productoId}`);
+    function cargarComentariosActivos(productoId) {
+        console.log(`Iniciando carga de comentarios para producto ID: ${productoId}`);
 
-    fetch(`http://localhost:8080/Milogar/Controllers/TiendaController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            const contenedorComentarios = document.querySelector(`#comentarios-lista-${productoId}`);
+        fetch(`http://localhost:8080/Milogar/Controllers/TiendaController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const contenedorComentarios = document.querySelector(`#comentarios-lista-${productoId}`);
 
-            if (!contenedorComentarios) {
-                console.warn(`No se encontró el contenedor para comentarios con ID: comentarios-${productoId}`);
-                return;
-            }
+                if (!contenedorComentarios) {
+                    console.warn(`No se encontró el contenedor para comentarios con ID: comentarios-${productoId}`);
+                    return;
+                }
 
-            contenedorComentarios.innerHTML = ''; // Limpiar antes de insertar
+                contenedorComentarios.innerHTML = ''; // Limpiar antes de insertar
 
-            if (data.success) {
-                const comentarios = data.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // ✅ ordenar más nuevos primero
+                if (data.success) {
+                    const comentarios = data.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // ✅ ordenar más nuevos primero
 
-                if (comentarios.length > 0) {
-                    const comentario = comentarios[0]; // ✅ ahora sí el más reciente
+                    if (comentarios.length > 0) {
+                        const comentario = comentarios[0]; // ✅ ahora sí el más reciente
 
-                    contenedorComentarios.innerHTML += `
+                        contenedorComentarios.innerHTML += `
                         <div class="comentario border rounded p-2 mb-2">
                             <p><strong>${comentario.nombreUsuario}</strong> <small class="text-muted">(${new Date(comentario.fecha).toLocaleString()})</small></p>
                             <p>${comentario.comentario}</p>
@@ -455,28 +466,28 @@ function cargarComentariosActivos(productoId) {
                         </div>
                     `;
 
-                    if (comentarios.length >= 1) {
-                        contenedorComentarios.innerHTML += `
+                        if (comentarios.length >= 1) {
+                            contenedorComentarios.innerHTML += `
                             <button class="btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1"
                                     onclick="mostrarModalTodosComentarios(${productoId})">
                                 <i class="bi bi-chat-dots"></i> Ver todos los comentarios
                             </button>
                         `;
+                        }
+
+                    } else {
+                        contenedorComentarios.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
                     }
 
                 } else {
-                    contenedorComentarios.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
+                    contenedorComentarios.innerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
+                    console.error("Error al cargar comentarios:", data.message);
                 }
-
-            } else {
-                contenedorComentarios.innerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
-                console.error("Error al cargar comentarios:", data.message);
-            }
-        })
-        .catch(error => {
-            console.error("Error en la petición de comentarios:", error);
-        });
-}
+            })
+            .catch(error => {
+                console.error("Error en la petición de comentarios:", error);
+            });
+    }
 
     // Capturar la búsqueda desde el formulario
     formularioBusqueda.addEventListener("submit", function (event) {
@@ -587,10 +598,6 @@ function enviarComentarioSearch(productoId, event) {
                     `;
                     contenedor.prepend(div); // lo coloca arriba del resto
                 }
-
-                
-
-
             } else {
                 alert('Error al enviar comentario: ' + data.message);
             }

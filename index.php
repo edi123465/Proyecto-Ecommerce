@@ -271,17 +271,91 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             cursor: pointer;
         }
 
-        .card-product img {
-            width: 100%;
-            /* Ajusta el ancho al contenedor */
-            height: 200px;
-            /* Define una altura fija */
-            object-fit: cover;
-            /* Recorta la imagen sin deformarla */
-            border-radius: 5px;
-            /* Opcional: bordes redondeados */
+.card-product {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
 
-        }
+.card-product:hover {
+    transform: translateY(-5px);
+}
+
+.card-product img {
+    width: 200%;
+    height: 300px; /* o ajusta según quieras */
+    object-fit: contain; /* ahora se ve completa sin recorte */
+    border-radius: 5px;
+    background-color: #f8f9fa; /* opcional, para el espacio vacío */
+}
+
+/* Contenedor general de categorías */
+.categoria-card {
+  border: none;
+  border-radius: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  padding: 1.5rem 1rem;
+}
+
+.categoria-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* Imagen circular de la categoría */
+.categoria-img {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f1f1f1;
+  transition: transform 0.3s ease, border 0.3s ease;
+}
+
+.categoria-card:hover .categoria-img {
+  transform: scale(1.08);
+  border: 3px solid #7be986ff; /* cambia a color primario al hover */
+}
+
+/* Título */
+.categoria-card h6 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #222;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+/* Botón */
+.categoria-card .btn {
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.6rem 1.2rem;
+  background: linear-gradient(90deg, #45e848ff, #76f02fff);
+  border: none;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.categoria-card .btn:hover {
+  background: linear-gradient(90deg, #75ca68ff, #7ddf64ff);
+  transform: scale(1.03);
+}
+
+/* Descripción elegante para categorías */
+.categoria-desc {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.4;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+
     </style>
     <script>
         const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
@@ -381,35 +455,47 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     </div>
 
     <section class="mt-8">
-        <!-- contianer -->
         <div class="container">
             <div class="row">
-                <!-- col -->
                 <div class="col-12">
-                    <!-- cta -->
-                    <div
-                        class="bg-light d-lg-flex justify-content-between align-items-center py-6 py-lg-3 px-8 rounded-3 text-center text-lg-start">
-                        <!-- img -->
-                        <div class="d-lg-flex align-items-center">
-                            <img src="assets/imagenesMilogar/logomilo.jpg" alt="" width="200px;" height="200px;" style="border-radius: 20px;" class="img-fluid">
-                            <!-- text -->
+                    <div class="bg-light d-lg-flex justify-content-between align-items-center py-4 px-4 rounded-3 text-center text-lg-start"
+                        data-aos="fade-up">
 
-                            <div class="ms-lg-4">
-                                <h1 class="fs-2 mb-1">Bienvenidos a MILOGAR</h1>
+                        <!-- Imagen + saludo -->
+                        <div class="d-lg-flex align-items-center mb-4 mb-lg-0" data-aos="fade-right">
+                            <img src="assets/imagenesMilogar/logomilo.jpg" alt="" width="200" height="200"
+                                style="border-radius: 20px;" class="img-fluid">
+                            <div class="ms-lg-4 mt-3 mt-lg-0">
+                                <h1 class="fs-2 mb-1">
+                                    <?php
+                                    if (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in'] === true && isset($_SESSION['user_name']) && $_SESSION['user_name'] !== 'Invitado') {
+                                        echo 'Hola, ' . htmlspecialchars($_SESSION['user_name']);
+                                    } else {
+                                        echo 'Bienvenidos a MILOGAR';
+                                    }
+                                    ?>
+                                </h1>
                                 <span>Todo lo que necesitas en un solo lugar a los mejores precios</span>
-
                             </div>
+                        </div>
 
+                        <!-- Botón y texto debajo -->
+                        <div class="d-flex flex-column align-items-center align-items-lg-start ms-lg-n3" data-aos="fade-left">
+                            <a href="signup" class="btn btn-dark mb-3 px-4 py-2 fs-6">
+                                Suscríbete para acceder a promociones y más.
+                            </a>
+                            <div class="text-muted small" style="max-width: 220px;">
+                                Para una atención personalizada comunícate al número:<br>
+                                <a href="tel:+593967342065" class="text-decoration-none fw-semibold fs-5">096 734 2065</a>
+                            </div>
                         </div>
-                        <div class="mt-3 mt-lg-0">
-                            <!-- btn -->
-                            <a href="#" class="btn btn-dark">Inicia sessión para aceder a promociones y más.</a>
-                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
     <!-- section -->
     <section class="mt-8">
         <div class="container">
@@ -447,7 +533,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <h2 class="text-white display-5 fw-bold mb-3">Plásticos Desechables para Alimentos</h2>
                                 <p class="fs-5 text-white">¡Equipa tu negocio o evento! Encuentra precios increíbles en productos de calidad.</p>
                                 <!-- btn -->
-                                <a href="/Milogar/shop-grid?search=desechables" class="btn btn-primary">Explorar Descuentos <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/busquedaClientes?search=desechables" class="btn btn-primary">Explorar Descuentos <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                         <div class=" "
@@ -481,7 +567,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <p class="fs-5 text-white">Organiza tu espacio con productos duraderos y de alta calidad.</p>
 
                                 <!-- btn -->
-                                <a href="/Milogar/shop-grid?search=Hogar" class="btn btn-primary text-light">Explora la Colección
+                                <a href="/Milogar/busquedaClientes?search=Hogar" class="btn btn-primary text-light">Explora la Colección
                                     <i class="feather-icon icon-arrow-right ms-1"></i>
                                 </a>
                             </div>
@@ -518,7 +604,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <!-- para -->
                                 <p class="fs-5 text-light">Equipa tu hogar con productos esenciales que garantizan bienestar y satisfacción para toda la familia.</p>
                                 <!-- btn -->
-                                <a href="/Milogar/shop-grid?search=Primera" class="btn btn-primary text-dark">Explorar Ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/busquedaClientes?search=Primera" class="btn btn-primary text-dark">Explorar Ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                         <div class=""
@@ -551,7 +637,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <!-- para -->
                                 <p class="fs-5 text-white">Descubre nuestra colección de cristal y porcelana, perfecta para realzar la belleza de tu mesa.</p>
                                 <!-- btn -->
-                                <a href="/Milogar/shop-grid?search=cristaleria" class="btn btn-primary text-white">Explorar Colección <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/busquedaClientes?search=cristaleria" class="btn btn-primary text-white">Explorar Colección <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                         <div class=""
@@ -562,18 +648,18 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
            height: 550px;">
                             <div class="ps-lg-12 py-lg-16 col-md-7 py-14 ps-8 text-xs-center"
                                 style="background-color: rgba(0, 0, 0, 0.6); 
-               border-radius: .5rem; 
-               position: absolute; 
-               top: 0; 
-               left: 0; 
-               width: 100%; 
-               height: 100%; 
-               color: #fff; 
-               display: flex; 
-               flex-direction: column; 
-               justify-content: center; 
-               align-items: center; 
-               padding: 20px;">
+                                    border-radius: .5rem; 
+                                    position: absolute; 
+                                    top: 0; 
+                                    left: 0; 
+                                    width: 100%; 
+                                    height: 100%; 
+                                    color: #fff; 
+                                    display: flex; 
+                                    flex-direction: column; 
+                                    justify-content: center; 
+                                    align-items: center; 
+                                    padding: 20px;">
                                 <!-- badge -->
                                 <div class="d-flex align-items-center mb-4">
                                     <span style="color: #fff;">Oferta Exclusiva</span>
@@ -584,7 +670,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <!-- para -->
                                 <p class="fs-5 text-white">Encuentra el equilibrio perfecto entre diseño, comodidad y funcionalidad para tu hogar.</p>
                                 <!-- btn -->
-                                <a href="/Milogar/shop-grid?search=muebles" class="btn btn-light text-dark">Explorar Muebles <i class="feather-icon icon-arrow-right ms-1"></i></a>
+                                <a href="/Milogar/busquedaClientes?search=muebles" class="btn btn-light text-dark">Explorar Muebles <i class="feather-icon icon-arrow-right ms-1"></i></a>
                             </div>
                         </div>
 
@@ -605,7 +691,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 <div class="my-2" style="font-size: 1rem;">
                                     <span style="color: white; font-weight: 600;">Lo mejor en bebidas alcoholicas para eventos.</span>
                                 </div>
-                                <a href="/Milogar/shop-grid?search=bebidas" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 25px;">Shop Now</a>
+                                <a href="/Milogar/busquedaClientes?search=bebidas" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 25px;">Shop Now</a>
                             </div>
                         </div>
                     </div>
@@ -619,7 +705,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                 padding: 20px; border-radius: .5rem; width: 100%; height: 100%;">
                                 <h3 class="fs-4 fw-bold lh-1 mb-2">¡Limieza y aseo personal!</h3>
                                 <p class="fs-6">Descubre productos de limpieza y aseo personal que te brindan frescura y confianza todos los días.</p>
-                                <a href="/Milogar/shop-grid?search=aseo" class="btn btn-primary mt-2">Explora las Ofertas</a>
+                                <a href="/Milogar/busquedaClientes?search=aseo" class="btn btn-primary mt-2">Explora las Ofertas</a>
                             </div>
                         </div>
                     </div>
@@ -804,7 +890,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
                                     <span><small class="fs-6 ms-2 text-danger" id="discount-percent"></small></span> <!-- Descuento en porcentaje -->
                                 </div>
                                 <hr class="my-6">
-                                                             <div id="product-sizes" class="mt-3"></div>
+                                <div id="product-sizes" class="mt-3"></div>
 
                                 <div class="mt-5 d-flex justify-content-start">
                                     <div class="col-2">
@@ -969,20 +1055,20 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </div>
         </div>
     </section>
-<!--modal para traer todos los comentarios por producto-->
-<div class="modal fade" id="modalTodosComentarios" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Todos los comentarios</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="contenedor-todos-comentarios">
-        <p class="text-muted">Cargando comentarios...</p>
-      </div>
+    <!--modal para traer todos los comentarios por producto-->
+    <div class="modal fade" id="modalTodosComentarios" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Todos los comentarios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenedor-todos-comentarios">
+                    <p class="text-muted">Cargando comentarios...</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
     <div class="modal fade" id="modalEditarComentario" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -1084,63 +1170,63 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
         });
     </script>
     <script>
-  const respuestas = {
-    hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
-    horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
-    envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
-    precios: "Puedes ver los precios actualizados directamente en cada producto.",
-    ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
-    
-    puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
-    canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
-    ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
-    contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
-    mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
-    pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
-    
-    pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
-    devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
-    
-    default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
-  };
+        const respuestas = {
+            hola: "¡Hola! ¿En qué puedo ayudarte hoy?",
+            horario: "Atendemos de lunes a domingo de 07:15 a 21:00.",
+            envio: "Realizamos envíos a Quito (24–48h) y a provincias (2–5 días hábiles).",
+            precios: "Puedes ver los precios actualizados directamente en cada producto.",
+            ayuda: "Estoy aquí para ayudarte. ¿Sobre qué necesitas información?",
 
-  function toggleChatbot() {
-    const box = document.getElementById('chatbot-box');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
-  }
+            puntos: "Puedes ganar puntos con cada compra registrada en tu cuenta. Estos puntos pueden canjearse por premios o descuentos especiales.",
+            canje: "Para canjear tus puntos, ve a tu perfil y entra en la sección 'Mis puntos'. Ahí verás las opciones disponibles de canje.",
+            ganar: "Ganas puntos por cada compra registrada. También puedes ganar puntos adicionales en promociones o campañas especiales.",
+            contraseña: "Para recuperar tu contraseña, haz clic en '¿Olvidaste tu contraseña?' en la página de inicio de sesión y sigue las instrucciones que se envían a tu correo.",
+            mayor: "Para compras al por mayor, realiza tu pedido seleccionando pago por transferencia. Se generará un PDF con el resumen que debes validar.",
+            pdf: "El PDF del pedido se genera automáticamente y será revisado por nuestro equipo. Recibirás el precio final validado por WhatsApp en breve.",
 
-  function sendMessage() {
-    const input = document.getElementById("userInput");
-    const userMessage = input.value.trim();
-    if (!userMessage) return;
+            pago: "Aceptamos pagos con tarjeta, transferencia bancaria y depósitos. Elige tu método preferido en el proceso de compra.",
+            devolucion: "Aceptamos devoluciones por productos dañados o errores en el envío. Contáctanos dentro de las 48 horas de haber recibido tu pedido.",
 
-    appendMessage("Tú", userMessage);
-    input.value = "";
+            default: "Lo siento, aún no entiendo esa pregunta. ¿Puedes intentar con otra más específica?"
+        };
 
-    const lowerMsg = userMessage.toLowerCase();
-    let respuesta = respuestas.default;
+        function toggleChatbot() {
+            const box = document.getElementById('chatbot-box');
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
 
-    for (const key in respuestas) {
-      if (lowerMsg.includes(key)) {
-        respuesta = respuestas[key];
-        break;
-      }
-    }
+        function sendMessage() {
+            const input = document.getElementById("userInput");
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
 
-    setTimeout(() => {
-      appendMessage("MILOGAR", respuesta);
-    }, 600);
-  }
+            appendMessage("Tú", userMessage);
+            input.value = "";
 
-  function appendMessage(sender, text) {
-    const chatlog = document.getElementById("chatlog");
-    const newMsg = document.createElement("div");
-    newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
-    newMsg.style.marginBottom = "10px";
-    chatlog.appendChild(newMsg);
-    chatlog.scrollTop = chatlog.scrollHeight;
-  }
-</script>
+            const lowerMsg = userMessage.toLowerCase();
+            let respuesta = respuestas.default;
+
+            for (const key in respuestas) {
+                if (lowerMsg.includes(key)) {
+                    respuesta = respuestas[key];
+                    break;
+                }
+            }
+
+            setTimeout(() => {
+                appendMessage("MILOGAR", respuesta);
+            }, 600);
+        }
+
+        function appendMessage(sender, text) {
+            const chatlog = document.getElementById("chatlog");
+            const newMsg = document.createElement("div");
+            newMsg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            newMsg.style.marginBottom = "10px";
+            chatlog.appendChild(newMsg);
+            chatlog.scrollTop = chatlog.scrollHeight;
+        }
+    </script>
 
 
 </body>

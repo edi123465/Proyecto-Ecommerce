@@ -12,43 +12,61 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Usuario no es Administrador.");
     }
 
-    function obtenerCategorias() {
-        fetch('http://localhost:8080/Milogar/Controllers/TiendaController.php?action=obtenerCategorias')
-            .then(response => response.json())
-            .then(result => {
-                if (result.status === 'success') {
-                    // Si la respuesta es exitosa, llenamos el contenedor con las categorías
-                    const contenedor = document.querySelector('.product-carousel'); // El contenedor donde se mostrarán las categorías
-                    contenedor.innerHTML = ''; // Limpiamos el contenido del contenedor
+function obtenerCategorias() {
+    fetch('http://localhost:8080/Milogar/Controllers/TiendaController.php?action=obtenerCategorias')
+        .then(response => {
+            console.log("✅ Respuesta cruda del fetch:", response);
+            return response.json();
+        })
+        .then(result => {
+            console.log("📦 Resultado parseado (JSON):", result);
 
-                    result.data.forEach(categoria => {
-                        // Comprobamos si la imagen está vacía y asignamos una imagen predeterminada si es necesario
-                        const imagen = categoria.imagen ? `assets/imagenesMilogar/Categorias/${categoria.imagen}` : 'assets/imagenesMilogar/Categorias/default-category.jpg';
-                        let itemHTML = `
-                        <div class="swiper-slide">
-                            <div class="card card-product text-center">
-                                <div class="card-body py-4">
-                                    <img src="${imagen}" alt="${categoria.nombreCategoria}" class="mb-3" height="100px" width="100px">
-                                    <div>${categoria.nombreCategoria}</div>
-                                    ${isAdmin ? '' : `<button class="btn btn-primary" onclick="window.location.href='./shop-grid.php'">Visitar la tienda</button>`}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                        contenedor.innerHTML += itemHTML; // Insertamos el nuevo HTML en el contenedor
-                    });
+            if (result.status === 'success') {
+                // Si la respuesta es exitosa, llenamos el contenedor con las categorías
+                const contenedor = document.querySelector('.product-carousel'); 
+                contenedor.innerHTML = ''; 
 
-                    // Iniciar el carrusel con slick después de insertar las categorías
-                    iniciarCarrusel();
-                } else {
-                    alert("Resultado". result.message); // Si hay algún error
-                }
-            })
-            .catch(error => {
-                console.error('Error al obtener las categorías:', error);
-                alert('Hubo un error al obtener las categorías.');
-            });
-    }
+                console.log("🔎 Categorías recibidas:", result.data);
+
+                result.data.forEach((categoria, index) => {
+                    console.log(`➡️ Categoría [${index}]:`, categoria);
+
+                    // Comprobamos si la imagen está vacía y asignamos una imagen predeterminada si es necesario
+                    const imagen = categoria.imagen 
+                        ? `assets/imagenesMilogar/Categorias/${categoria.imagen}` 
+                        : 'assets/imagenesMilogar/Categorias/default-category.jpg';
+
+                    console.log(`🖼️ Imagen usada para ${categoria.nombreCategoria}: ${imagen}`);
+let itemHTML = `
+    <div class="swiper-slide">
+        <div class="card categoria-card h-100 text-center p-4">
+            <img src="${imagen}" 
+                alt="${categoria.nombreCategoria}" 
+                class="categoria-img mx-auto mb-3">
+            <h6 class="fw-bold mb-2">${categoria.nombreCategoria}</h6>
+            <p class="categoria-desc text-muted small">
+                ${categoria.descripcionCategoria || "Sin descripción disponible"}
+            </p>
+        </div>
+    </div>
+`;
+
+                    contenedor.innerHTML += itemHTML;
+                });
+
+                // Iniciar el carrusel después de insertar las categorías
+                iniciarCarrusel();
+            } else {
+                console.warn("⚠️ Error en la respuesta del backend:", result.message);
+                alert("Error: " + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error al obtener las categorías:', error);
+            alert('Hubo un error al obtener las categorías.');
+        });
+}
+
 
     // Función para iniciar el carrusel con Slick
     function iniciarCarrusel() {

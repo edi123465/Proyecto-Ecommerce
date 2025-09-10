@@ -9,25 +9,27 @@ class TiendaModel
         $this->conn = $db;
     }
 
-    public function getCategorias()
-    {
-        $query = "SELECT id, nombreCategoria, imagen 
+public function getCategorias()
+{
+    $query = "SELECT id, nombreCategoria, imagen, descripcionCategoria 
               FROM Categorias 
               WHERE isActive = 1"; // Solo categorías activas
-        $stmt = $this->conn->prepare($query);
+    $stmt = $this->conn->prepare($query);
 
-        if ($stmt->execute()) {
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($stmt->execute()) {
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Logueamos los resultados obtenidos
-            error_log(print_r($result, true)); // Esto imprimirá los resultados obtenidos de la base de datos en el log
+        // Logueamos los resultados obtenidos
+        error_log("✅ Categorías obtenidas:");
+        error_log(print_r($result, true)); // Esto imprimirá los resultados en el log
 
-            return $result;  // Devuelve los resultados, solo id y nombre
-        } else {
-            error_log("Error en la consulta: " . print_r($stmt->errorInfo(), true)); // Log de errores de la consulta
-            return null;  // Si falla, devuelve null
-        }
+        return $result;  // Devuelve los resultados, ahora con descripcionCategoria también
+    } else {
+        error_log("❌ Error en la consulta: " . print_r($stmt->errorInfo(), true)); // Log de errores
+        return null;  // Si falla, devuelve null
     }
+}
+
 
 
     public function getProductosPorCategoriaOSubcategoria($categoriaId = null, $subcategoriaId = null)

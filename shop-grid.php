@@ -146,7 +146,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         .navbar {
             z-index: 1050;
         }
-.chatbot-container {
+
+        .chatbot-container {
             position: fixed;
             bottom: 100px;
             right: 20px;
@@ -244,16 +245,15 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             cursor: pointer;
         }
 
-        /* Tamanio predeterminado de la imagen*/
         .card-product img {
-            width: 100%;
-            /* Ajusta el ancho al contenedor */
-            height: 200px;
-            /* Define una altura fija */
-            object-fit: cover;
-            /* Recorta la imagen sin deformarla */
+            width: 200%;
+            height: 300px;
+            /* o ajusta según quieras */
+            object-fit: contain;
+            /* ahora se ve completa sin recorte */
             border-radius: 5px;
-            /* Opcional: bordes redondeados */
+            background-color: #f8f9fa;
+            /* opcional, para el espacio vacío */
         }
     </style>
     <script>
@@ -310,20 +310,20 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             </div>
         </div>
     </div>
-<!--modal para traer todos los comentarios por producto-->
-<div class="modal fade" id="modalTodosComentarios" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Todos los comentarios</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="contenedor-todos-comentarios">
-        <p class="text-muted">Cargando comentarios...</p>
-      </div>
+    <!--modal para traer todos los comentarios por producto-->
+    <div class="modal fade" id="modalTodosComentarios" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Todos los comentarios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenedor-todos-comentarios">
+                    <p class="text-muted">Cargando comentarios...</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
     <div class="modal fade" id="modalEditarComentario" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -366,48 +366,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
         <div class="container">
             <!-- row -->
             <div class="row gx-10">
-              <!-- col -->
-                <div class="col-lg-3 col-md-4 mb-6 mb-md-0">
-                    <div class="py-4">
-                        <div class="categorias-wrapper">
-                            <!-- Encabezado visible solo en móviles -->
-                            <div class="p-4 d-flex justify-content-between align-items-center d-md-none">
-                                <h5 class="mb-0">Todas las categorías</h5>
-                                <button class="btn btn-outline-gray-400 text-muted btn-icon" id="toggleCategorias">
-                                    <i class="feather-icon icon-menu fs-4"></i>
-                                </button>
-                            </div>
-                            <span id="puntosUsuario" style="display:none;">100</span>
+                <span id="puntosUsuario" style="display:none;">100</span>
 
-
-                            <!-- Menú lateral de categorías (Escritorio) -->
-                            <div class="border-end pt-4 pe-lg-4 d-none d-md-block">
-                                <ul class="nav flex-column nav-pills nav-pills-dark" id="categoryMenuDesktop">
-                                    <!-- Categorías para escritorio -->
-                                </ul>
-                            </div>
-
-                            <!-- Menú desplegable en móviles -->
-                            <div class="d-md-none px-3">
-                                <ul class="nav flex-column nav-pills nav-pills-dark mt-2 d-none" id="categoryMenuMobile">
-                                    <!-- Categorías para móvil -->
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Modal para mostrar los productos -->
-                        <div id="productosModal" class="modal" style="display: none;">
-                            <div class="modal-content">
-                                <span id="closeModal" style="cursor:pointer;">&times;</span>
-                                <h5 id="subcategoriaTitulo"></h5>
-                                <div id="listaProductos"></div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <!-- Banner Design -->
-                </div>
-                <div class="col-lg-9 col-md-8">
+                <div class="col-12">
                     <!-- card -->
                     <div class="card mb-4 bg-light border-0">
                         <!-- card body -->
@@ -451,16 +412,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                     </div>
 
                     <!-- Contenedor de productos populares -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-populares-container">
+                    <div class="row g-4 row-cols-2 row-cols-md-3 row-cols-lg-4 mt-2" id="productos-populares-container">
                     </div>
 
                     <!-- Contenedor de productos generales -->
                     <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="productos-container">
                     </div>
 
-                    <!-- Contenedor de resultados de búsqueda -->
-                    <div class="row g-4 row-cols-xl-4 row-cols-lg-3 row-cols-2 row-cols-md-2 mt-2" id="resultados-busqueda-container">
-                    </div>
 
 
                     <div class="row mt-8">
@@ -539,7 +497,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                     <span><small class="fs-6 ms-2 text-danger" id="discount-percent"></small></span> <!-- Descuento en porcentaje -->
                                 </div>
                                 <hr class="my-6">
-                                                             <div id="product-sizes" class="mt-3"></div>
+                                <div id="product-sizes" class="mt-3"></div>
 
                                 <div class="mt-5 d-flex justify-content-start">
                                     <div class="col-2">
@@ -550,7 +508,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                         </div>
                                     </div>
                                     <div class="ms-2 col-4 d-grid">
-                                        <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Add to cart</button>
+                                        <button type="button" id="add-to-cart2" class="btn btn-primary"><i class="feather-icon icon-shopping-bag me-2"></i>Agregar al carrito</button>
                                     </div>
 
                                 </div>
@@ -642,7 +600,6 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
     <script src="assets/js/login.js"></script>
     <script src="assets/js/mostrarProductosLista.js"></script>
     <script src="assets/js/BusquedaDinamica.js"></script>
-
     <script src="assets/js/theme.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -681,6 +638,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Datos recibidos:', data); // Verificar los datos recibidos
                     const container = document.getElementById('productos-container');
                     container.innerHTML = ''; // limpiar
 
@@ -695,9 +653,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                         const userRole = document.getElementById('role').getAttribute('data-role');
                         const isAdmin = userRole === 'Administrador';
                         const productHTML = `
-                <div class="col">
-                    <div class="card card-product">
-                        <div class="card-body">
+<div class="col">
+  <div class="card card-product h-100 shadow-sm border-0 rounded-3">
+    <div class="card-body d-flex flex-column">
                             <div class="text-center position-relative">
                                 ${producto.descuento > 0 ? `
                                                                   <div class="position-absolute top-0 start-0 p-2">
@@ -719,14 +677,12 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                                     <img src="${imagenUrl}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
                                 </a>
                                 <br><br><br>
-                                <a href="#!" class="btn btn-success btn-sm w-100 position-absolute bottom-0 start-0 mb-3" data-bs-toggle="modal" data-bs-target="#quickViewModal" data-id="${producto.id}" style="border-radius: 12px;">
-                                    Ver Detalle
-                                </a>
+
                             </div>
 
                             <div class="text-small mb-1">
                                 <a href="#!" class="text-decoration-none text-muted">
-                                    <small>${producto.nombreSubcategoria}</small>
+                                    <small>${producto.categoria_nombre}</small>
                                 </a>
                             </div>
 
@@ -751,32 +707,37 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mt-3">
-                                <div>
-                                    <span class="text-dark">$${precioFinal.toFixed(2)}</span>
-                                    <span class="text-decoration-line-through text-muted">$${producto.precio_1}</span>
+                                <div class="d-flex align-items-baseline gap-2">
+                                <span class="fw-bold text-success fs-3">
+                                    $${precioFinal.toFixed(2)}
+                                </span>
+                                <span class="text-muted text-decoration-line-through fs-6">
+                                    $${producto.precio_1}
+                                </span>
                                 </div>
 
-                                ${producto.is_talla == 0 ? `
-                                    <div>
-                                        <a href="#!" class="btn btn-primary btn-sm add-to-cart" 
-                                            data-id="${producto.id}" 
-                                            data-nombre="${producto.nombreProducto}"
-                                            data-precio="${producto.precio_1}"
-                                            data-descuento="${producto.descuento}"
-                                            data-imagen="${imagenUrl}"
-                                            data-puntos="${producto.puntos_otorgados}"
-                                            data-minimo="${producto.cantidad_minima_para_puntos}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-plus">
-                                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                            </svg>
-                                            Add
-                                        </a>
-                                    </div>` : ''}
                             </div>
+                            <div class="d-grid gap-2 mt-2">
+                                ${producto.is_talla == 0 ? `
+                                    <a href="#!" class="btn btn-danger btn-sm add-to-cart text-center py-3 fs-5"
+                                        data-id="${producto.id}" 
+                                        data-nombre="${producto.nombreProducto}"
+                                        data-precio="${producto.precio_1}"
+                                        data-descuento="${producto.descuento}"
+                                        data-imagen="${imagenUrl}"
+                                        data-puntos="${producto.puntos_otorgados}"
+                                        data-minimo="${producto.cantidad_minima_para_puntos}"
+                                        style="border-radius: 12px;">
+                                        <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
+                                    </a>
+                                ` : ''}
 
+                                <a href="#!" class="btn btn-success btn-sm w-100 py-3 fs-5"
+                                    data-bs-toggle="modal" data-bs-target="#quickViewModal" 
+                                    data-id="${producto.id}" style="border-radius: 12px;">
+                                    Ver Detalle
+                                </a>
+                            </div>
                             <div class="mt-3">
                                 <h6>Deja tu comentario:</h6>
                                 <textarea id="comentario-${producto.id}" class="form-control mb-2" rows="2" placeholder="Escribe tu comentario..."></textarea>

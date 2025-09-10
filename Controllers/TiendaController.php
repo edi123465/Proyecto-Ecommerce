@@ -116,46 +116,6 @@ class TiendaController
             echo json_encode(['error' => 'Error al procesar la solicitud: ' . $e->getMessage()]);
         }
     }
-    //filtros de datos
-    public function searchAction()
-    {
-        header('Content-Type: application/json'); // Asegura que la respuesta esté en formato JSON
-
-        // Depuración: Log de parámetros recibidos
-        error_log("Parámetros GET recibidos: " . print_r($_GET, true));
-
-        // Validar que se proporcionó un término de búsqueda
-        if (!isset($_GET['q']) || empty(trim($_GET['q']))) {
-            echo json_encode(['error' => 'No se proporcionó un término de búsqueda.']);
-            return;
-        }
-
-        // Validar el parámetro 'action'
-        if (!isset($_GET['action']) || $_GET['action'] !== 'search') {
-            echo json_encode(['error' => 'No se proporcionó una acción válida.']);
-            return;
-        }
-
-        $query = trim($_GET['q']); // Sanitizar el término de búsqueda
-
-        // Llamar al modelo para buscar los productos
-        try {
-            $resultados = $this->productoModel->searchProducts($query);
-
-            if (empty($resultados)) {
-                echo json_encode(['message' => 'No se encontraron productos para el término proporcionado.']);
-            } else {
-                echo json_encode([
-                    'success' => true,
-                    'query' => $query,
-                    'productos' => $resultados
-                ]);
-            }
-        } catch (Exception $e) {
-            error_log("Error al buscar productos: " . $e->getMessage());
-            echo json_encode(['error' => 'Ocurrió un error al realizar la búsqueda.']);
-        }
-    }
 }
 
 
@@ -164,8 +124,8 @@ error_log("Parámetros GET recibidos: " . print_r($_GET, true));
 
 if (isset($_GET['action'])) {
     $action = isset($_GET['action']) ? $_GET['action'] : 'default'; // Valor por defecto si no se pasa acción
-    require_once "../Config/db.php";
-    require_once "../Models/SubcategoriaModel.php";
+require_once __DIR__ . "/../Config/db.php";
+require_once __DIR__ . "/../Models/SubcategoriaModel.php";
     $database = new Database1();
     $db = $database->getConnection();
     $SubcategoriaModel = new SubcategoriaModel($db);

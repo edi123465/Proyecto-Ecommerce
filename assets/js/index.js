@@ -20,9 +20,9 @@ function cargarProductosPromocion(pagina = 1) {
                     const precioDescuento = precioUnitario - (precioUnitario * Number(producto.descuento) / 100);
 
                     const productHTML = `
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card card-product">
-                            <div class="card-body">
+<div class="col-6 col-md-6 col-lg-3 mb-4">
+    <div class="card card-product h-100">
+        <div class="card-body d-flex flex-column">
                                 <div class="text-center position-relative">
                                ${producto.descuento > 0 ? `
                                                                   <div class="position-absolute top-0 start-0 p-2">
@@ -44,9 +44,7 @@ function cargarProductosPromocion(pagina = 1) {
                                         <img src="${imagenUrl}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
                                     </a>
 
-                                    <a href="#" class="btn btn-success btn-sm w-100 position-absolute bottom-0 start-0 mb-3" data-bs-toggle="modal" data-bs-target="#quickViewModal" data-id="${producto.id}" style="border-radius: 12px;">
-                                        Ver Detalle
-                                    </a>
+
                                 </div>
 
                                 <div class="text-small mb-1">
@@ -72,22 +70,34 @@ function cargarProductosPromocion(pagina = 1) {
                                             $${precioUnitario.toFixed(2)}
                                         </span>
                                     </div>
-
-                                    ${producto.is_talla == 0 ? `
-                                        <div>
-                                            <a href="#" class="btn btn-primary btn-sm add-to-cart" 
-                                                data-id="${producto.id}" 
-                                                data-nombre="${producto.nombreProducto}"
-                                                data-precio="${producto.precio_1}"
-                                                data-descuento="${producto.descuento}"
-                                                data-imagen="${imagenUrl}"
-                                                data-puntos="${producto.puntos_otorgados}"
-                                                data-minimo="${producto.cantidad_minima_para_puntos}">
-                                                <i class="feather feather-plus"></i> Add
-                                            </a>
-                                        </div>
-                                    ` : ''}
                                 </div>
+                            <div class="mt-2 d-grid gap-2">
+                                <!-- Botón Ver Detalle siempre visible -->
+                                <a href="#!" 
+                                class="btn btn-success w-100" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#quickViewModal" 
+                                data-id="${producto.id}"
+                                style="font-size: 1rem; padding: 0.6rem 0; border-radius: 12px;">
+                                Ver Detalle
+                                </a>
+
+                                <!-- Botón Agregar al carrito solo si no hay tallas -->
+                                ${producto.is_talla == 0 ? `
+                                    <a href="#!" 
+                                    class="btn btn-danger w-100 d-flex justify-content-center align-items-center add-to-cart" 
+                                    style="font-size: 1rem; padding: 0.6rem 0; border-radius: 12px;"
+                                    data-id="${producto.id}" 
+                                    data-nombre="${producto.nombreProducto}"
+                                    data-precio="${producto.precio_1}"
+                                    data-descuento="${producto.descuento}"
+                                    data-imagen="${imagenUrl}"
+                                    data-puntos="${producto.puntos_otorgados}"
+                                    data-minimo="${producto.cantidad_minima_para_puntos}">
+                                    <i class="bi bi-cart-plus me-2"></i> Agregar al carrito
+                                    </a>
+                                ` : ''}
+                            </div>
 
                                 <div class="mt-3">
                                     <h6>Deja tu comentario:</h6>
@@ -279,9 +289,6 @@ function cargarProductosPromocion(pagina = 1) {
                                             timerProgressBar: true,
                                         });
                                     });
-
-
-
                                 }
                             })
                             .catch(error => console.error("Error al obtener datos:", error));

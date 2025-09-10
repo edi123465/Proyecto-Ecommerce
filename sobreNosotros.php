@@ -768,7 +768,7 @@ $userId = $_SESSION['user_id'] ?? null;
     <!-- Agregar AOS JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-
+            
     <script>
         AOS.init({
             duration: 1000, // Duración de la animación en ms

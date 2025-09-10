@@ -605,54 +605,55 @@ class ProductoController
         }
     }
 
-    public function eliminarTalla() {
-    if (isset($_POST['producto_talla_id'])) {
-        $producto_talla_id = $_POST['producto_talla_id'];
+    public function eliminarTalla()
+    {
+        if (isset($_POST['producto_talla_id'])) {
+            $producto_talla_id = $_POST['producto_talla_id'];
 
-        // Puedes hacer un log por si quieres asegurarte
-        error_log("ID de talla recibido (POST): " . $producto_talla_id);
+            // Puedes hacer un log por si quieres asegurarte
+            error_log("ID de talla recibido (POST): " . $producto_talla_id);
 
-        $resultado = $this->model->eliminarTalla($producto_talla_id);
+            $resultado = $this->model->eliminarTalla($producto_talla_id);
 
-        if ($resultado) {
-            echo json_encode(['status' => 'success', 'message' => 'Talla eliminada correctamente']);
+            if ($resultado) {
+                echo json_encode(['status' => 'success', 'message' => 'Talla eliminada correctamente']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar la talla']);
+            }
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar la talla']);
+            echo json_encode(['status' => 'error', 'message' => 'ID de talla no proporcionado']);
         }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'ID de talla no proporcionado']);
     }
-}
-    
+
     public function obtenerProductoPorIdConTalla()
-{
-    if (isset($_GET['id'])) {
-        $productoId = intval($_GET['id']);
-        $database = new Database1();
-        $db = $database->getConnection();
-        require_once '../Models/ProductoModel.php';
-        $productoModel = new ProductoModel($db);
+    {
+        if (isset($_GET['id'])) {
+            $productoId = intval($_GET['id']);
+            $database = new Database1();
+            $db = $database->getConnection();
+            require_once '../Models/ProductoModel.php';
+            $productoModel = new ProductoModel($db);
 
-        $producto = $productoModel->getProductoPorIdConTalla($productoId);
+            $producto = $productoModel->getProductoPorIdConTalla($productoId);
 
-        if ($producto) {
-            echo json_encode([
-                'status' => 'success',
-                'data' => $producto
-            ]);
+            if ($producto) {
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $producto
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Producto no encontrado'
+                ]);
+            }
         } else {
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Producto no encontrado'
+                'message' => 'ID de producto no especificado'
             ]);
         }
-    } else {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'ID de producto no especificado'
-        ]);
     }
-}
 }
 
 
@@ -819,25 +820,31 @@ if (isset($_GET['action'])) {
             $productoController->obtenerProductoPorId();
             break;
         case 'search':
-
             $query = isset($_GET['q']) ? trim($_GET['q']) : '';
+            $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $itemsPerPage = 12;
+            $offset = ($page - 1) * $itemsPerPage;
 
             if (empty($query)) {
                 echo json_encode(['error' => 'No se proporcionó un término de búsqueda.']);
                 exit;
             }
 
-            // Llamamos al modelo para obtener los resultados de la búsqueda
-            $productos = $productoModel->searchProducts($query);
+            // Total de productos que coinciden
+            $totalProductos = $productoModel->countProducts($query);
 
-            if (!empty($productos)) {
-                echo json_encode(['productos' => $productos]); // Devuelve los productos en JSON
-            } else {
-                echo json_encode(['error' => 'No se encontraron productos.']);
-            }
+            // Productos de la página actual
+            $productos = $productoModel->searchProductsPaginated($query, $itemsPerPage, $offset);
+
+            echo json_encode([
+                'productos' => $productos,
+                'total' => $totalProductos,
+                'itemsPerPage' => $itemsPerPage,
+                'currentPage' => $page,
+                'totalPages' => ceil($totalProductos / $itemsPerPage)
+            ]);
             exit;
-            $productoController = new ProductoController($db);
-            $productoController->searchProducts();
+
         case 'searchProducts':
             // Lógica para 'searchProducts'
             $query = isset($_GET['q']) ? trim($_GET['q']) : '';

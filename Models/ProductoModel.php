@@ -743,53 +743,78 @@ class ProductoModel
         return $stmt->fetchAll();
     }
 
-    public function searchProducts($query)
-    {
-        // Asegúrate de que $query no esté vacío o sea nulo
-        if (empty($query)) {
-            return [];  // Retorna un arreglo vacío si no se proporciona una consulta
-        }
+    // 1️⃣ Método para buscar productos con límite y offset (paginación)
+public function searchProductsPaginated($query, $limit = 12, $offset = 0)
+{
+    if (empty($query)) return [];
 
-        // Agregar los comodines de búsqueda al término de búsqueda
-        $searchTerm = '%' . $query . '%';
+    $searchTerm = '%' . $query . '%';
 
-        // Consulta SQL para buscar productos, categorías y subcategorías
-        $sql = "
+    $sql = "
         SELECT p.*, c.nombreCategoria, s.nombrSubcategoria
         FROM Productos p
         JOIN Subcategorias s ON p.subcategoria_id = s.id
         JOIN Categorias c ON s.categoria_id = c.id
-        WHERE p.nombreProducto COLLATE utf8mb4_general_ci LIKE :queryProducto
-        OR c.nombreCategoria COLLATE utf8mb4_general_ci LIKE :queryCategoria
-        OR s.nombrSubcategoria COLLATE utf8mb4_general_ci LIKE :querySubcategoria
+        WHERE p.isActive = 1
+        AND (
+            p.nombreProducto COLLATE utf8mb4_general_ci LIKE :queryProducto
+            OR c.nombreCategoria COLLATE utf8mb4_general_ci LIKE :queryCategoria
+            OR s.nombrSubcategoria COLLATE utf8mb4_general_ci LIKE :querySubcategoria
+        )
+        ORDER BY p.id ASC
+        LIMIT :limit OFFSET :offset
     ";
 
-        try {
-            // Preparamos la sentencia
-            $stmt = $this->conn->prepare($sql);
-
-            // Ejecutamos la consulta pasando los parámetros de búsqueda con los comodines
-            $stmt->execute([
-                ':queryProducto' => $searchTerm,
-                ':queryCategoria' => $searchTerm,
-                ':querySubcategoria' => $searchTerm
-            ]);
-
-            // Obtenemos los resultados
-            $resultados = $stmt->fetchAll();
-
-            // Si no hay resultados, retornamos un arreglo vacío
-            if (empty($resultados)) {
-                return [];
-            }
-
-            return $resultados;  // Devolvemos los productos encontrados
-        } catch (PDOException $e) {
-            // Loguea el error si ocurre algún problema con la consulta
-            error_log("Error en la consulta: " . $e->getMessage());
-            return [];  // En caso de error, devolvemos un arreglo vacío
-        }
+    try {
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':queryProducto', $searchTerm, PDO::PARAM_STR);
+        $stmt->bindValue(':queryCategoria', $searchTerm, PDO::PARAM_STR);
+        $stmt->bindValue(':querySubcategoria', $searchTerm, PDO::PARAM_STR);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error en searchProductsPaginated: " . $e->getMessage());
+        return [];
     }
+}
+
+// 2️⃣ Método para obtener el total de productos encontrados (sin límite)
+public function countProducts($query)
+{
+    if (empty($query)) return 0;
+
+    $searchTerm = '%' . $query . '%';
+
+    $sql = "
+        SELECT COUNT(*) as total
+        FROM Productos p
+        JOIN Subcategorias s ON p.subcategoria_id = s.id
+        JOIN Categorias c ON s.categoria_id = c.id
+        WHERE p.isActive = 1
+        AND (
+            p.nombreProducto COLLATE utf8mb4_general_ci LIKE :queryProducto
+            OR c.nombreCategoria COLLATE utf8mb4_general_ci LIKE :queryCategoria
+            OR s.nombrSubcategoria COLLATE utf8mb4_general_ci LIKE :querySubcategoria
+        )
+    ";
+
+    try {
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            ':queryProducto' => $searchTerm,
+            ':queryCategoria' => $searchTerm,
+            ':querySubcategoria' => $searchTerm
+        ]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int)$row['total'] : 0;
+    } catch (PDOException $e) {
+        error_log("Error en countProducts: " . $e->getMessage());
+        return 0;
+    }
+}
+
 
     public function searchAdminProducts($query)
     {

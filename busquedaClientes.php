@@ -31,7 +31,18 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
     <script>
         const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
     </script>
-
+    <style>
+        .card-product img {
+            width: 200%;
+            height: 300px;
+            /* o ajusta según quieras */
+            object-fit: contain;
+            /* ahora se ve completa sin recorte */
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            /* opcional, para el espacio vacío */
+        }
+    </style>
 </head>
 
 <body>
@@ -60,8 +71,10 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
     <h3 style="display: none;">Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
 
     <div class="container mt-4">
-        <h2 class="mb-4">Resultados de búsqueda para: <span class="text-primary"><?php echo htmlspecialchars($search); ?></span></h2>
-
+        <h2 class="mb-4">
+            Resultados de búsqueda para:
+            <span id="search-text" class="text-primary"><?php echo htmlspecialchars($search); ?></span>
+        </h2>
         <!-- Contenedor dinámico de resultados -->
         <div id="resultados-busqueda-container" class="row g-3"></div>
     </div>
@@ -212,6 +225,9 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
             </div>
         </div>
     </div>
+
+    <?php require_once "Views/Navigation/footer.php"; ?>
+
     <script src="assets/libs/jquery/dist/jquery.min.js"></script>
     <script src="assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/libs/jquery-countdown/dist/jquery.countdown.min.js"></script>
@@ -239,125 +255,130 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
             const resultadosDiv = document.getElementById("resultados-busqueda-container");
             const BASE_URL = window.location.origin + "/Milogar";
 
-            const renderProductos = (productos, usuarioSesion = false, isAdmin = false) => {
-                const resultadosDiv = document.getElementById("resultados-busqueda-container");
+            const itemsPerPage = 12; // productos por página
+            let currentPage = 1;
+            let usuarioSesion = false; // ajustar según sesión real
+            let isAdmin = false; // ajustar según rol real
+            let currentQuery = '';
 
+            // Función para renderizar productos
+            const renderProductos = (productos) => {
                 if (!productos || productos.length === 0) {
                     resultadosDiv.innerHTML = "<h3 class='text-danger'>No se encontraron productos.</h3>";
                     return;
                 }
 
-                let productosHTML = "";
+                let productosHTML = '';
                 productos.forEach(producto => {
                     const rutaImagen = `/Milogar/assets/imagenesMilogar/productos/${producto.imagen}`;
                     productosHTML += `
-        <div class="col-12 col-sm-6 col-md-3 mb-4">
-            <div class="card card-product h-100">
-                <div class="card-body">
-                    <div class="text-center position-relative">
-                        ${producto.descuento > 0 ? `
-                            <div class="position-absolute top-0 start-0 p-2">
-                                <span class="badge bg-danger rounded-circle d-flex justify-content-center align-items-center text-white"
-                                    style="width: 50px; height: 50px; font-size: 0.8rem;">
-                                    ${producto.descuento}%<br>Desc.
-                                </span>
-                            </div>
-                        ` : ''}
-                        ${isAdmin ? `
-                            <div class="position-absolute top-0 end-0 p-2">
-                                <a href="#!" class="text-decoration-none text-primary" onclick="editarProducto(${producto.id})">
-                                    <i class="bi bi-pencil-square" style="font-size: 1.5rem;"></i>
-                                </a>
-                            </div>
-                        ` : ''}
-                        <a href="#!">
-                            <img src="${rutaImagen}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
-                        </a>
-                        <a href="#!" class="btn btn-success btn-sm w-100 position-absolute bottom-0 start-0 mb-3" 
-                            data-bs-toggle="modal" data-bs-target="#quickViewModal"
-                            data-id="${producto.id}" style="border-radius: 12px;">
-                            Ver Detalle
-                        </a>
-                    </div>
-
-                    <div class="text-small mb-1">
-                        <a href="#!" class="text-decoration-none text-muted">
-                            <small>${producto.nombrSubcategoria}</small>
-                        </a>
-                    </div>
-
-                    <h2 class="fs-6">
-                        <a href="#!" class="text-inherit text-decoration-none">${producto.nombreProducto}</a>
-                    </h2>
-
-                    ${(usuarioSesion && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0) ? `
-                        <p class="text-success fw-bold">
-                            Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
-                        </p>
-                    ` : ''}
-
-                    <div class="d-flex align-items-baseline gap-2 mt-2">
-                        <span class="fw-bold text-success fs-5">
-                            $${(producto.precio_1 - (producto.precio_1 * producto.descuento / 100)).toFixed(2)}
-                        </span>
-                        <span class="text-muted text-decoration-line-through fs-6">
-                            $${producto.precio_1}
-                        </span>
-                    </div>
-
-                    ${producto.is_talla == 0 ? `
-                        <div class="mt-2">
-                            <a href="#!" class="btn btn-primary btn-sm add-to-cart" 
-                                data-id="${producto.id}" 
-                                data-nombre="${producto.nombreProducto}"
-                                data-precio="${producto.precio_1}"
-                                data-descuento="${producto.descuento}"
-                                data-imagen="${rutaImagen}"
-                                data-puntos="${producto.puntos_otorgados}"
-                                data-minimo="${producto.cantidad_minima_para_puntos}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-plus">
-                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                                Add
+            <div class="col-12 col-sm-6 col-md-3 mb-4">
+                <div class="card card-product h-100">
+                    <div class="card-body">
+                        <div class="text-center position-relative">
+                            ${producto.descuento > 0 ? `
+                                <div class="position-absolute top-0 start-0 p-2">
+                                    <span class="badge bg-danger rounded-circle d-flex justify-content-center align-items-center text-white"
+                                        style="width: 50px; height: 50px; font-size: 0.8rem;">
+                                        ${producto.descuento}%<br>Desc.
+                                    </span>
+                                </div>` : ''}
+                            ${isAdmin ? `
+                                <div class="position-absolute top-0 end-0 p-2">
+                                    <a href="#!" class="text-decoration-none text-primary" onclick="editarProducto(${producto.id})">
+                                        <i class="bi bi-pencil-square" style="font-size: 1.5rem;"></i>
+                                    </a>
+                                </div>` : ''}
+                            <a href="#!">
+                                <img src="${rutaImagen}" alt="${producto.nombreProducto}" class="mb-3 img-fluid">
                             </a>
                         </div>
-                    ` : ''}
 
-                    <!-- Comentarios -->
-                    <div class="mt-3">
-                         <h6>Deja tu comentario:</h6>
+                        <div class="text-small mb-1">
+                            <a href="#!" class="text-decoration-none text-muted">
+                                <small>${producto.nombrSubcategoria}</small>
+                            </a>
+                        </div>
 
-                        <textarea id="comentarioSS-${producto.id}" class="form-control mb-2" rows="2" placeholder="Escribe tu comentario..."></textarea>
-                        <select id="calificacionSearch-${producto.id}" class="form-select mb-2">
-                            <option value="5">⭐️⭐️⭐️⭐️⭐️</option>
-                            <option value="4">⭐️⭐️⭐️⭐️</option>
-                            <option value="3">⭐️⭐️⭐️</option>
-                            <option value="2">⭐️⭐️</option>
-                            <option value="1">⭐️</option>
-                        </select>
-                        <button onclick="enviarComentarioSearch(${producto.id})" class="btn btn-outline-primary btn-sm">Enviar comentario</button>
+                        <h2 class="fs-6">
+                            <a href="#!" class="text-inherit text-decoration-none">${producto.nombreProducto}</a>
+                        </h2>
+
+                        ${(usuarioSesion && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0) ? `
+                            <p class="text-success fw-bold">
+                                Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
+                            </p>` : ''}
+
+                        <div class="d-flex align-items-baseline gap-2 mt-2">
+                            <span class="fw-bold text-success fs-5">
+                                $${(producto.precio_1 - (producto.precio_1 * producto.descuento / 100)).toFixed(2)}
+                            </span>
+                            <span class="text-muted text-decoration-line-through fs-6">
+                                $${producto.precio_1}
+                            </span>
+                        </div>
+                    ${producto.is_talla == 0 
+                        ? `
+                            <div class="mt-2 d-flex flex-column gap-2">
+                                <a href="#!" class="btn btn-danger btn-sm w-100 text-center fs-5 add-to-cart" 
+                                    data-id="${producto.id}" 
+                                    data-nombre="${producto.nombreProducto}"
+                                    data-precio="${producto.precio_1}"
+                                    data-descuento="${producto.descuento}"
+                                    data-imagen="${rutaImagen}"
+                                    data-puntos="${producto.puntos_otorgados}"
+                                    data-minimo="${producto.cantidad_minima_para_puntos}">
+                                    Agregar al carrito
+                                </a>
+                                <a href="#!" class="btn btn-success btn-sm w-100 text-center fs-5" 
+                                    data-bs-toggle="modal" data-bs-target="#quickViewModal"
+                                    data-id="${producto.id}" style="border-radius: 12px;">
+                                    Ver más detalles
+                                </a>
+                            </div>
+                        `
+                        : `
+                            <div class="mt-2">
+                                <a href="#!" class="btn btn-success btn-sm w-100 text-center fs-5" 
+                                    data-bs-toggle="modal" data-bs-target="#quickViewModal"
+                                    data-id="${producto.id}" style="border-radius: 12px;">
+                                    Ver más detalles
+                                </a>
+                            </div>
+                            
+                        `
+                    }
+
+                                <div class="mt-3">
+                                    <h6>Deja tu comentario:</h6>
+                                    <textarea id="comentario-${producto.id}" class="form-control mb-2" rows="2" placeholder="Escribe tu comentario..."></textarea>
+                                    <select id="calificacion-${producto.id}" class="form-select mb-2">
+                                        <option value="5">⭐️⭐️⭐️⭐️⭐️</option>
+                                        <option value="4">⭐️⭐️⭐️⭐️</option>
+                                        <option value="3">⭐️⭐️⭐️</option>
+                                        <option value="2">⭐️⭐️</option>
+                                        <option value="1">⭐️</option>
+                                    </select>
+                                    <button onclick="enviarComentario(${producto.id})" class="btn btn-outline-primary btn-sm">Enviar comentario</button>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h6>Comentarios:</h6>
+                                    <div id="comentarios-lista-${producto.id}">
+                                        <p class="text-muted">Cargando comentarios...</p>
+                                    </div>
+                                </div>
                     </div>
-
-                    <div class="mt-3">
-                        <div id="comentarios-lista-${producto.id}" class="comentarios mt-2"></div>
-                    </div>
+                    
                 </div>
-            </div>
-        </div>
-        `;
+            </div>`;
+                    // 👇 Aquí llamas a cargar los comentarios para este producto
+                    setTimeout(() => {
+                        cargarComentariosActivos(producto.id);
+                    }, 0);
                 });
 
                 resultadosDiv.innerHTML = `<div class="row g-3">${productosHTML}</div>`;
-                // ✅ Ahora que los elementos están en el DOM, cargamos los comentarios:
-                productos.forEach(producto => {
-                    const testContenedor = document.getElementById(`comentarios-lista-${producto.id}`);
-                    console.log(`Contenedor de comentarios para producto ${producto.id}:`, testContenedor);
-                    cargarComentariosActivos(producto.id);
-                });
-
                 document.querySelectorAll('.add-to-cart').forEach(btn => {
                     btn.addEventListener('click', (event) => {
                         event.preventDefault(); // ✅ Evita que el <a href="#"> recargue la página
@@ -442,6 +463,7 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
                         actualizarContadorCarrito();
                     });
                 });
+
                 // Escucha el evento cuando el modal se abre
                 $('#quickViewModal').off('show.bs.modal').on('show.bs.modal', function(event) {
                     var button = $(event.relatedTarget);
@@ -586,36 +608,115 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
                                         timerProgressBar: true,
                                     });
                                 });
-
-
-
                             }
                         })
                         .catch(error => console.error("Error al obtener datos:", error));
                 });
+
+
+            }
+
+
+
+            // Función para renderizar paginación
+            const renderPagination = (totalItems, currentPage, totalPages) => {
+                if (totalPages <= 1) return; // no mostrar paginación si solo hay 1 página
+
+                let paginationHTML = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center mt-3">';
+                paginationHTML += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" data-page="${currentPage - 1}">Anterior</a>
+    </li>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHTML += `<li class="page-item ${currentPage === i ? 'active' : ''}">
+            <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>`;
+                }
+
+                paginationHTML += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+        <a class="page-link" href="#" data-page="${currentPage + 1}">Siguiente</a>
+    </li>`;
+                paginationHTML += '</ul></nav>';
+
+                resultadosDiv.insertAdjacentHTML('beforeend', paginationHTML);
+
+                document.querySelectorAll('.page-link').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.preventDefault();
+                        const page = parseInt(btn.dataset.page);
+                        if (!isNaN(page) && page > 0 && page <= totalPages) {
+                            realizarBusqueda(currentQuery, page);
+                        }
+                    });
+                });
             };
 
-            function cargarComentariosActivos(productoId) {
-                const contenedor = document.getElementById(`comentarios-lista-${productoId}`);
-                if (!contenedor) return;
 
-                contenedor.innerHTML = '<p class="text-muted">Cargando comentarios...</p>';
+            const realizarBusqueda = (query, page = 1) => {
+                if (!query) {
+                    resultadosDiv.innerHTML = "<h3 class='text-muted'>Escribe algo para buscar.</h3>";
+                    return;
+                }
 
-                fetch(`http://localhost:8080/Milogar/Controllers/ProductoController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
-                    .then(response => response.json())
+                currentQuery = query;
+                currentPage = page;
+
+                fetch(`${BASE_URL}/Controllers/ProductoController.php?action=search&q=${encodeURIComponent(query)}&page=${page}`)
+                    .then(res => res.json())
                     .then(data => {
-                        if (data.success) {
-                            const comentariosProducto = data.data;
+                        console.log("Respuesta completa del backend:", data); // 👈 aquí vemos todo
+                        if (data.error) {
+                            resultadosDiv.innerHTML = `<h3 class="text-danger">${data.error}</h3>`;
+                        } else {
+                            console.log("Productos recibidos:", data.productos); // 👈 productos
+                            console.log("Total de productos:", data.total); // 👈 total
+                            console.log("Página actual:", data.currentPage); // 👈 página actual
+                            console.log("Total páginas:", data.totalPages); // 👈 total páginas
 
-                            if (comentariosProducto.length === 0) {
-                                contenedor.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
-                            } else {
-                                contenedor.innerHTML = '';
+                            renderProductos(data.productos);
+                            renderPagination(data.total, data.currentPage, data.totalPages);
+                        }
+                    })
+                    .catch(err => console.error("Error en búsqueda:", err));
+            }
 
-                                const primerComentario = comentariosProducto[0];
-                                if (primerComentario) {
+            // Submit del formulario
+            formularioBusqueda.addEventListener("submit", e => {
+                e.preventDefault();
+                const query = campoBusqueda.value.trim();
+                realizarBusqueda(query);
+            });
 
-                                    contenedor.innerHTML += `
+            // Buscar si hay query en URL
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("search")) {
+                const query = params.get("search");
+                campoBusqueda.value = query;
+                realizarBusqueda(query);
+            }
+        });
+
+        function cargarComentariosActivos(productoId) {
+            const contenedor = document.getElementById(`comentarios-lista-${productoId}`);
+            if (!contenedor) return;
+
+            contenedor.innerHTML = '<p class="text-muted">Cargando comentarios...</p>';
+
+            fetch(`http://localhost:8080/Milogar/Controllers/ProductoController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const comentariosProducto = data.data;
+
+                        if (comentariosProducto.length === 0) {
+                            contenedor.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
+                        } else {
+                            contenedor.innerHTML = '';
+
+                            const primerComentario = comentariosProducto[0];
+                            if (primerComentario) {
+
+                                contenedor.innerHTML += `
                             <div class="border rounded p-2 mb-2 bg-light" id="comentario-${primerComentario.id}">
                                 <strong>${primerComentario.nombreUsuario}</strong> 
                                 <span class="text-warning">${'⭐'.repeat(primerComentario.calificacion)}</span><br>
@@ -625,343 +726,306 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
                  
                             </div>
                         `;
-                                }
+                            }
 
-                                contenedor.innerHTML += `
+                            contenedor.innerHTML += `
                         <button class="btn btn-sm btn-primary d-flex align-items-center gap-1 px-3 py-1"
                                 onclick="mostrarModalTodosComentarios(${productoId})">
                             <i class="bi bi-chat-dots"></i> Ver comentarios
                         </button>
 
                     `;
-                            }
-                        } else {
-                            contenedor.innerHTML = `<p class="text-danger">${data.message}</p>`;
                         }
-                    })
-                    .catch(error => {
-                        contenedor.innerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
-                        console.error("Error:", error);
-                    });
-            }
+                    } else {
+                        contenedor.innerHTML = `<p class="text-danger">${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    contenedor.innerHTML = '<p class="text-danger">Error al cargar comentarios.</p>';
+                    console.error("Error:", error);
+                });
+        }
 
-            function mostrarModalTodosComentarios(productoId) {
-                const contenedor = document.getElementById("contenedor-todos-comentarios");
-                contenedor.innerHTML = '<p class="text-muted">Cargando comentarios...</p>';
+        function mostrarModalTodosComentarios(productoId) {
+            const contenedor = document.getElementById("contenedor-todos-comentarios");
+            contenedor.innerHTML = '<p class="text-muted">Cargando comentarios...</p>';
 
-                fetch(`http://localhost:8080/Milogar/Controllers/ProductoController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log("Comentarios:", data.data);
-                            const comentarios = data.data;
-                            if (comentarios.length === 0) {
-                                contenedor.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
-                                return;
-                            }
+            fetch(`http://localhost:8080/Milogar/Controllers/ProductoController.php?action=getComentariosPorProducto&producto_id=${productoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Comentarios:", data.data);
+                        const comentarios = data.data;
+                        if (comentarios.length === 0) {
+                            contenedor.innerHTML = '<p class="text-muted">Aún no hay comentarios.</p>';
+                            return;
+                        }
 
-                            const imagenDefecto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                        const imagenDefecto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
-                            contenedor.innerHTML = comentarios.map(c => {
-                                // Ahora la propiedad es c.usuario_id
-                                const esUsuario = usuarioSesion && parseInt(c.usuario_id) === parseInt(usuarioSesion);
+                        contenedor.innerHTML = comentarios.map(c => {
+                            // Ahora la propiedad es c.usuario_id
+                            const esUsuario = usuarioSesion && parseInt(c.usuario_id) === parseInt(usuarioSesion);
 
-                                return `
-                                    <div class="border rounded p-2 mb-2 bg-light d-flex">
-                                        <img src="${imagenDefecto}" alt="Usuario" class="rounded-circle me-2" width="50" height="50">
-                                        <div style="flex: 1">
-                                            <strong>${c.nombreUsuario}</strong>
-                                            <span class="text-warning">${'⭐'.repeat(c.calificacion)}</span><br>
-                                            <small class="text-muted">${new Date(c.fecha).toLocaleString()}</small>
-                                            <p class="mb-1">${c.comentario}</p>
+                            return `
+                        <div class="border rounded p-2 mb-2 bg-light d-flex">
+                            <img src="${imagenDefecto}" alt="Usuario" class="rounded-circle me-2" width="50" height="50">
+                            <div style="flex: 1">
+                                <strong>${c.nombreUsuario}</strong>
+                                <span class="text-warning">${'⭐'.repeat(c.calificacion)}</span><br>
+                                <small class="text-muted">${new Date(c.fecha).toLocaleString()}</small>
+                                <p class="mb-1">${c.comentario}</p>
 
-                                            ${esUsuario ? `
-                                                <button class="btn btn-sm btn-warning me-2"
-                                                    onclick="abrirModalEditarComentario(${c.id}, '${c.comentario.replace(/'/g, "\\'")}', ${c.calificacion}, ${productoId})">Editar</button>
-                                                <button class="btn btn-sm btn-danger"
-                                                    onclick="eliminarComentario(${c.id}, ${productoId})">Eliminar</button>
-                                            ` : ''}
-                                        </div>
-                                    </div>
+                                ${esUsuario ? `
+                                    <button class="btn btn-sm btn-warning me-2"
+                                        onclick="abrirModalEditarComentario(${c.id}, '${c.comentario.replace(/'/g, "\\'")}', ${c.calificacion}, ${productoId})">Editar</button>
+                                    <button class="btn btn-sm btn-danger"
+                                        onclick="eliminarComentario(${c.id}, ${productoId})">Eliminar</button>
+                                ` : ''}
+                            </div>
+                        </div>
                     `;
-                            }).join('');
-                        } else {
-                            contenedor.innerHTML = `<p class="text-danger">${data.message}</p>`;
-                        }
+                        }).join('');
+                    } else {
+                        contenedor.innerHTML = `<p class="text-danger">${data.message}</p>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al cargar comentarios:", err);
+                    contenedor.innerHTML = '<p class="text-danger">Error al cargar los comentarios.</p>';
+                });
+
+            const modal = new bootstrap.Modal(document.getElementById("modalTodosComentarios"));
+            modal.show();
+        }
+
+        function abrirModalEditarComentario(idComentario, comentario, calificacion, productoId) {
+            document.getElementById('edit-id-comentario').value = idComentario;
+            document.getElementById('edit-id-producto').value = productoId;
+            document.getElementById('edit-comentario').value = comentario;
+            document.getElementById('edit-calificacion').value = calificacion;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalEditarComentario'));
+            modal.show();
+        }
+
+        function guardarEdicionComentario(event) {
+            event.preventDefault();
+
+            const idComentario = document.getElementById('edit-id-comentario').value;
+            const productoId = document.getElementById('edit-id-producto').value;
+            const nuevoComentario = document.getElementById('edit-comentario').value.trim();
+            const nuevaCalificacion = document.getElementById('edit-calificacion').value;
+
+            if (!nuevoComentario) {
+                Swal.fire('Error', 'El comentario no puede estar vacío.', 'warning');
+                return;
+            }
+
+            fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: idComentario,
+                        comentario: nuevoComentario,
+                        calificacion: parseInt(nuevaCalificacion)
                     })
-                    .catch(err => {
-                        console.error("Error al cargar comentarios:", err);
-                        contenedor.innerHTML = '<p class="text-danger">Error al cargar los comentarios.</p>';
-                    });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Comentario actualizado',
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            cargarComentariosActivos(productoId); // ✅ Actualiza la lista
 
-                const modal = new bootstrap.Modal(document.getElementById("modalTodosComentarios"));
-                modal.show();
-            }
+                            // ✅ Cerrar ambos modales
+                            const modalEditar = bootstrap.Modal.getInstance(document.getElementById('modalEditarComentario'));
+                            if (modalEditar) modalEditar.hide();
 
-            function abrirModalEditarComentario(idComentario, comentario, calificacion, productoId) {
-                document.getElementById('edit-id-comentario').value = idComentario;
-                document.getElementById('edit-id-producto').value = productoId;
-                document.getElementById('edit-comentario').value = comentario;
-                document.getElementById('edit-calificacion').value = calificacion;
+                            const modalMostrar = bootstrap.Modal.getInstance(document.getElementById('modalMostrarComentarios'));
+                            if (modalMostrar) modalMostrar.hide();
 
-                const modal = new bootstrap.Modal(document.getElementById('modalEditarComentario'));
-                modal.show();
-            }
+                            // ✅ Opcional: recargar contenido de comentarios si lo necesitas
+                            cargarComentariosActivos(productoId);
+                        });
+                    } else {
+                        Swal.fire('Error', data.message || 'No se pudo actualizar el comentario.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al actualizar comentario:', error);
+                    Swal.fire('Error', 'Ocurrió un error al intentar actualizar el comentario.', 'error');
+                });
+        }
 
-
-            function guardarEdicionComentario(event) {
-                event.preventDefault();
-
-                const idComentario = document.getElementById('edit-id-comentario').value;
-                const productoId = document.getElementById('edit-id-producto').value;
-                const nuevoComentario = document.getElementById('edit-comentario').value.trim();
-                const nuevaCalificacion = document.getElementById('edit-calificacion').value;
-
-                if (!nuevoComentario) {
-                    Swal.fire('Error', 'El comentario no puede estar vacío.', 'warning');
-                    return;
-                }
-
-                fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=update`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            id: idComentario,
-                            comentario: nuevoComentario,
-                            calificacion: parseInt(nuevaCalificacion)
+        function eliminarComentario(idComentario, productoId) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Esta acción eliminará tu comentario.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=delete`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                id: idComentario
+                            })
                         })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Comentario actualizado',
-                                confirmButtonText: 'Aceptar'
-                            }).then(() => {
-                                cargarComentariosActivos(productoId); // ✅ Actualiza la lista
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Eliminado', 'Tu comentario ha sido eliminado.', 'success').then(() => {
 
-                                // ✅ Cerrar ambos modales
-                                const modalEditar = bootstrap.Modal.getInstance(document.getElementById('modalEditarComentario'));
-                                if (modalEditar) modalEditar.hide();
+                                    // 🟢 Cierra el modal si está abierto
+                                    const modalElement = document.getElementById('modalTodosComentarios');
+                                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                                    if (modalInstance) {
+                                        modalInstance.hide();
+                                    }
 
-                                const modalMostrar = bootstrap.Modal.getInstance(document.getElementById('modalMostrarComentarios'));
-                                if (modalMostrar) modalMostrar.hide();
+                                    // Recargar comentarios
+                                    if (typeof cargarComentariosActivos === 'function') {
+                                        cargarComentariosActivos(productoId);
+                                    }
+                                    if (typeof mostrarModalTodosComentarios === 'function') {
+                                        mostrarModalTodosComentarios(productoId);
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Error', data.message || 'No se pudo eliminar el comentario.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al eliminar comentario:', error);
+                            Swal.fire('Error', 'Ocurrió un error al intentar eliminar el comentario.', 'error');
+                        });
+                }
+            });
+        }
 
-                                // ✅ Opcional: recargar contenido de comentarios si lo necesitas
-                                cargarComentariosActivos(productoId);
-                            });
-                        } else {
-                            Swal.fire('Error', data.message || 'No se pudo actualizar el comentario.', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al actualizar comentario:', error);
-                        Swal.fire('Error', 'Ocurrió un error al intentar actualizar el comentario.', 'error');
-                    });
+
+        function enviarComentario(productoId) {
+            const userId = usuarioSesion;
+            const comentario = document.getElementById(`comentario-${productoId}`).value.trim();
+            const calificacion = document.getElementById(`calificacion-${productoId}`).value;
+
+            if (!userId) {
+                alert('Debes iniciar sesión para comentar.');
+                return;
+            }
+
+            if (!comentario || comentario.trim() === '') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Campo vacío!',
+                    text: 'El comentario no puede estar en blanco.',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
             }
 
 
-            function eliminarComentario(idComentario, productoId) {
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: 'Esta acción eliminará tu comentario.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=delete`, {
+            // Primero verificar si ya existe comentario para ese usuario y producto
+            fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=checkComentario&user_id=${userId}&producto_id=${productoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '¡Atención!',
+                            text: 'Solo puedes hacer un comentario por producto.',
+                            confirmButtonText: 'Aceptar'
+                        });
+                        return;
+
+
+                    } else {
+                        // Si no existe, enviamos el comentario
+                        return fetch('http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=create', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                    id: idComentario
+                                    user_id: userId,
+                                    producto_id: productoId,
+                                    comentario: comentario,
+                                    calificacion: parseInt(calificacion)
                                 })
                             })
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
-                                    Swal.fire('Eliminado', 'Tu comentario ha sido eliminado.', 'success').then(() => {
-
-                                        // 🟢 Cierra el modal si está abierto
-                                        const modalElement = document.getElementById('modalTodosComentarios');
-                                        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                                        if (modalInstance) {
-                                            modalInstance.hide();
-                                        }
-
-                                        // Recargar comentarios
-                                        if (typeof cargarComentariosActivos === 'function') {
-                                            cargarComentariosActivos(productoId);
-                                        }
-                                        if (typeof mostrarModalTodosComentarios === 'function') {
-                                            mostrarModalTodosComentarios(productoId);
-                                        }
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Comentario enviado correctamente',
+                                        text: '¡Gracias por compartir tu opinión!',
+                                        confirmButtonText: 'OK'
                                     });
+
+                                    // Limpiar campos después de enviar
+                                    document.getElementById(`comentario-${productoId}`).value = '';
+                                    document.getElementById(`calificacion-${productoId}`).value = '5';
+
+                                    // Recargar los comentarios
+                                    cargarComentariosActivos(productoId);
                                 } else {
-                                    Swal.fire('Error', data.message || 'No se pudo eliminar el comentario.', 'error');
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Ups...',
+                                        text: data.message || 'No se pudo guardar el comentario.',
+                                        confirmButtonText: 'OK'
+                                    });
                                 }
                             })
                             .catch(error => {
-                                console.error('Error al eliminar comentario:', error);
-                                Swal.fire('Error', 'Ocurrió un error al intentar eliminar el comentario.', 'error');
+                                console.error('Error al guardar comentario:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Ocurrió un error al enviar tu comentario.',
+                                    confirmButtonText: 'OK'
+                                });
                             });
                     }
+
+
+                })
+                .then(response => {
+                    if (!response) return; // ya mostró alerta, no continuar
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (data.success) {
+                        alert('Comentario enviado con éxito');
+                        // Opcional: limpiar campos, actualizar lista, etc.
+                    } else {
+                        alert('Error al enviar comentario: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al enviar el comentario.');
                 });
-            }
-
-
-            function enviarComentario(productoId) {
-                const userId = usuarioSesion;
-                const comentario = document.getElementById(`comentario-${productoId}`).value.trim();
-                const calificacion = document.getElementById(`calificacion-${productoId}`).value;
-
-                if (!userId) {
-                    alert('Debes iniciar sesión para comentar.');
-                    return;
-                }
-
-                if (!comentario || comentario.trim() === '') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '¡Campo vacío!',
-                        text: 'El comentario no puede estar en blanco.',
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: '#3085d6'
-                    });
-                    return;
-                }
-
-
-                // Primero verificar si ya existe comentario para ese usuario y producto
-                fetch(`http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=checkComentario&user_id=${userId}&producto_id=${productoId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.exists) {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: '¡Atención!',
-                                text: 'Solo puedes hacer un comentario por producto.',
-                                confirmButtonText: 'Aceptar'
-                            });
-                            return;
-
-
-                        } else {
-                            // Si no existe, enviamos el comentario
-                            return fetch('http://localhost:8080/Milogar/Controllers/ComentariosController.php?action=create', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        user_id: userId,
-                                        producto_id: productoId,
-                                        comentario: comentario,
-                                        calificacion: parseInt(calificacion)
-                                    })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        Swal.fire({
-                                            icon: 'success',
-                                            title: 'Comentario enviado correctamente',
-                                            text: '¡Gracias por compartir tu opinión!',
-                                            confirmButtonText: 'OK'
-                                        });
-
-                                        // Limpiar campos después de enviar
-                                        document.getElementById(`comentario-${productoId}`).value = '';
-                                        document.getElementById(`calificacion-${productoId}`).value = '5';
-
-                                        // Recargar los comentarios
-                                        cargarComentariosActivos(productoId);
-                                    } else {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            title: 'Ups...',
-                                            text: data.message || 'No se pudo guardar el comentario.',
-                                            confirmButtonText: 'OK'
-                                        });
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error al guardar comentario:', error);
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: 'Ocurrió un error al enviar tu comentario.',
-                                        confirmButtonText: 'OK'
-                                    });
-                                });
-                        }
-
-
-                    })
-                    .then(response => {
-                        if (!response) return; // ya mostró alerta, no continuar
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!data) return;
-                        if (data.success) {
-                            alert('Comentario enviado con éxito');
-                            // Opcional: limpiar campos, actualizar lista, etc.
-                        } else {
-                            alert('Error al enviar comentario: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Ocurrió un error al enviar el comentario.');
-                    });
-            }
-
-
-            // Función para buscar productos
-            const realizarBusqueda = (query) => {
-                if (!query) {
-                    resultadosDiv.innerHTML = "<h3 class='text-muted'>Escribe algo para buscar.</h3>";
-                    return;
-                }
-
-                fetch(`${BASE_URL}/Controllers/ProductoController.php?action=search&q=${encodeURIComponent(query)}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.error) {
-                            resultadosDiv.innerHTML = `<h3 class="text-danger">${data.error}</h3>`;
-                        } else {
-                            renderProductos(data.productos);
-                        }
-                    })
-                    .catch(err => console.error("Error en búsqueda:", err));
-            };
-
-            // Manejar submit del formulario
-            formularioBusqueda.addEventListener("submit", function(e) {
-                e.preventDefault();
-                const query = campoBusqueda.value.trim();
-                realizarBusqueda(query);
-            });
-
-            // Si ya hay un término en la URL, buscar automáticamente
-            const params = new URLSearchParams(window.location.search);
-            if (params.has("search")) {
-                const query = params.get("search");
-                campoBusqueda.value = query;
-                realizarBusqueda(query);
-            }
-
-        });
+        }
     </script>
-    <script src="assets/js/cart.js"></script>
 
+
+    <script src="assets/js/cart.js"></script>
+    <script src="assets/js/login.js"></script>
 </body>
 
 </html>

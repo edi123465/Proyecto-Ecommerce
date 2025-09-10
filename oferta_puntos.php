@@ -51,6 +51,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'mostrarProductosPorSubcategori
     <!-- Theme CSS -->
     <link rel="stylesheet" href="assets/css/theme.min.css">
     <style>
+
+        .card-product img {
+    width: 200%;
+    height: 300px; /* o ajusta según quieras */
+    object-fit: contain; /* ahora se ve completa sin recorte */
+    border-radius: 5px;
+    background-color: #f8f9fa; /* opcional, para el espacio vacío */
+}
 .promo-banner {
   display: flex;
   align-items: center;

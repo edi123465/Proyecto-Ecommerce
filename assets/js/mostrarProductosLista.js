@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <ul class="nav flex-column">
                                 ${categoria.subcategorias.map(sub => `
                                     <li class="nav-item">
-                                        <a href="#" class="nav-link subcategoria-item" data-id="${sub.id}">
+                                        <a  class="nav-link subcategoria-item" data-id="${sub.id}">
                                             <i class="feather-icon icon-chevron-right me-2"></i>${sub.nombrSubcategoria}
                                         </a>
                                     </li>
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const categoryHTML = `
                     <li class="nav-item category-item">
-                        <a href="#" class="nav-link category-item-link" data-id="${categoria.id}">
+                        <a class="nav-link category-item-link" data-id="${categoria.id}">
                             <i class="feather-icon icon-folder me-2"></i>${categoria.nombreCategoria}
                         </a>
                         ${subHTML}
@@ -198,10 +198,15 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <div>
-                                      <span class="text-dark">$${producto.precio_1 - (producto.precio_1 * producto.descuento / 100)}</span>
-                                    <span class="text-decoration-line-through text-muted">$${producto.precio_1}</span>
-                                    </div>
+ <div class="d-flex align-items-baseline gap-2">
+  <span class="fw-bold text-success fs-4">
+    $${(producto.precio_1 - (producto.precio_1 * producto.descuento / 100)).toFixed(2)}
+  </span>
+  <span class="text-muted text-decoration-line-through fs-6">
+    $${producto.precio_1}
+  </span>
+</div>
+
 
                                     ${producto.is_talla == 0 ? `
                                         <div>
