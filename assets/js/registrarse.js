@@ -35,10 +35,16 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 
     const checkDuplicateResult = await checkDuplicateResponse.json(); // Parsear respuesta JSON
 
-    if (checkDuplicateResult.success === false) {
-        alert(checkDuplicateResult.message); // Si hay error, mostrar el mensaje
-        return; // Detener el proceso si hay duplicados
-    }
+if (checkDuplicateResult.success === false) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: checkDuplicateResult.message, // Muestra el mensaje del backend
+        confirmButtonText: 'Entendido'
+    });
+    return; // Detener el proceso si hay duplicados
+}
+
 
     // Si no hay duplicados, proceder con el registro del usuario
     try {

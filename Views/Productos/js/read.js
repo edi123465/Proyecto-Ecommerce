@@ -113,6 +113,7 @@ function cargarProductos(page = 1, search = '') {
                                     document.querySelector('#desc').value = producto.descuento || '';
                                     document.querySelector('#puntosOtorgados').value = producto.puntos_otorgados || 0;
                                     document.querySelector('#cantidadMinimaPuntos').value = producto.cantidad_minima_para_puntos || 0;
+                                    document.querySelector('#talla').value = producto.is_talla || 0;
 
                                     // Aquí, en lugar de modificar el valor del campo file, mostramos la imagen.
                                     const imagenPreview = document.querySelector('#imagenPreview');
@@ -475,7 +476,7 @@ document.getElementById('formEditarProducto').addEventListener('submit', functio
             if (data.success) {
                 // Mostrar un mensaje de éxito (puedes usar alert o actualizar el DOM)
                 alert('Producto actualizado correctamente');
-                window.location.href = "./index.php";
+window.location.href = "http://localhost:8080/Milogar/Views/Productos/index.php";
                 // Cerrar el modal
                 $('#editarProductoModal').modal('hide');
                 // Actualizar la lista de productos o redirigir si es necesario
@@ -547,6 +548,8 @@ function searchProducts() {
                                 <td>${product.stock || '0'}</td>
                                       <td>${product.cantidad_minima_para_puntos || 0}</td>
                                 <td>${product.puntos_otorgados || 0}</td>
+                                <td>${product.is_talla || 0}</td>
+
                                 <td>
                                     <button class="btn btn-info btn-sm">
                                         <i class="fas fa-eye"></i> Ver
@@ -595,7 +598,9 @@ function searchProducts() {
                                         document.querySelector('#imagen_Producto').src = producto.imagen ? 'http://localhost:8080/Milogar/assets/imagenesMilogar/Productos/' + producto.imagen : 'http://localhost:8080/Milogar/assets/imagenesMilogar/Productos/default.png';
                                         document.querySelector('#estado').value = (producto.isActive === 1) ? '1' : (producto.isActive === 0 ? '0' : '');
                                         document.querySelector('#isPromocion').value = (producto.is_promocion === 1) ? '1' : (producto.is_promocion === 0 ? '0' : '');
-
+                                        document.querySelector('#cantidadMinimaPuntos').value = producto.cantidad_minima_para_puntos || 0;
+                                        document.querySelector('#puntosOtorgados').value = producto.puntos_otorgados || 0;
+                                        document.querySelector('#talla').value = producto.is_talla || 0;
                                         document.querySelector('#desc').value = producto.descuento || '';
                                         // Aquí, en lugar de modificar el valor del campo file, mostramos la imagen.
                                         const imagenPreview = document.querySelector('#imagenPreview');

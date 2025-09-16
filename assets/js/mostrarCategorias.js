@@ -39,7 +39,7 @@ function obtenerCategorias() {
                     console.log(`🖼️ Imagen usada para ${categoria.nombreCategoria}: ${imagen}`);
 let itemHTML = `
     <div class="swiper-slide">
-        <div class="card categoria-card h-100 text-center p-4">
+        <div class="card categoria-card text-center p-4">
             <img src="${imagen}" 
                 alt="${categoria.nombreCategoria}" 
                 class="categoria-img mx-auto mb-3">

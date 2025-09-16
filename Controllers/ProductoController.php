@@ -521,10 +521,59 @@ class ProductoController
     {
         $db = new Database1();
         $productoModel = new ProductoModel($db->getConnection());
-        $productos = $productoModel->obtenerProductosConPuntos();
 
-        echo json_encode($productos); // Devuelve en formato JSON
+        // Obtener página desde query string, por defecto 1
+        $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+        $porPagina = 12; // productos por página
+
+        // Traer productos paginados
+        $productos = $productoModel->obtenerProductosConPuntos($pagina, $porPagina);
+
+        // Contar total de productos para calcular páginas
+        $totalProductos = $productoModel->contarProductosConPuntos();
+        $totalPaginas = ceil($totalProductos / $porPagina);
+
+        // Devolver JSON
+        echo json_encode([
+            'success' => true,
+            'pagina' => $pagina,
+            'porPagina' => $porPagina,
+            'totalPaginas' => $totalPaginas,
+            'totalProductos' => $totalProductos,
+            'productos' => $productos
+        ]);
     }
+
+    public function productosMasVendidos()
+    {
+        $db = new Database1();
+        $productoModel = new ProductoModel($db->getConnection());
+
+        // Obtener página desde query string, por defecto 1
+        $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+        $porPagina = 12; // productos por página
+
+        // Calcular offset
+        $offset = ($pagina - 1) * $porPagina;
+
+        // Traer productos más vendidos
+        $productos = $productoModel->ObtenerMasvendidos($porPagina, $offset);
+
+        // Contar total de productos activos (para paginación)
+        $totalProductos = $productoModel->contarProductosActivos(); // este método debe devolver todos los productos activos
+        $totalPaginas = ceil($totalProductos / $porPagina);
+
+        // Devolver JSON
+        echo json_encode([
+            'success' => true,
+            'pagina' => $pagina,
+            'porPagina' => $porPagina,
+            'totalPaginas' => $totalPaginas,
+            'totalProductos' => $totalProductos,
+            'productos' => $productos
+        ]);
+    }
+
 
     public function asignarTalla()
     {
@@ -867,6 +916,11 @@ if (isset($_GET['action'])) {
             $controller = new ProductoController($db);
             $controller->productosConPuntos();
             exit;
+        case 'productosMasVendidos':   // <-- Nuevo action
+            $productoController = new ProductoController($db);
+            $productoController->productosMasVendidos();
+            break;
+
         case 'getComentariosPorProducto':
             header('Content-Type: application/json');
             $producto_id = $_GET['producto_id'] ?? null;

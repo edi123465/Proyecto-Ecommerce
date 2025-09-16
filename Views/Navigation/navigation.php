@@ -79,6 +79,31 @@ if (
         .dropdown-submenu:hover .dropdown-menu-sub {
             display: block;
         }
+
+        /* Estilo base para links del menú */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        /* Subrayado animado */
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #1e9c17ff;
+            /* color azul de Bootstrap */
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Hover opcional */
+        .nav-link:hover::after {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -343,10 +368,10 @@ if (
                             <?php
                             if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
                                 echo "<li class='nav-item'>
-        <a class='nav-link' href='" . BASE_URL . "/menu.php'>
-            <i class='feather-icon icon-settings me-2'></i>Panel administrativo
-        </a>
-    </li>";
+                                <a class='nav-link' href='" . BASE_URL . "/menu.php'>
+                                    <i class='feather-icon icon-settings me-2'></i>Panel administrativo
+                                </a>
+                            </li>";
                             }
                             ?>
 
@@ -357,26 +382,26 @@ if (
                             ) {
 
                                 echo '
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="feather-icon icon-gift me-2"></i>Oferta de puntos
-        </a>
-        <ul class="dropdown-menu">
-            <li>
-                <a class="dropdown-item" href="' . BASE_URL . '/oferta_puntos.php">
-                    <i class="feather-icon icon-star me-2"></i>Ganar puntos
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item" href="' . BASE_URL . '/canjear.php">
-                    <i class="feather-icon icon-refresh-ccw me-2"></i>Canjear puntos
-                </a>
-            </li>
-        </ul>
-    </li>';
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="feather-icon icon-gift me-2"></i>Oferta de puntos
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="' . BASE_URL . '/oferta_puntos.php">
+                                                    <i class="feather-icon icon-star me-2"></i>Ganar puntos
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="' . BASE_URL . '/canjear.php">
+                                                    <i class="feather-icon icon-refresh-ccw me-2"></i>Canjear puntos
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>';
                             }
 
-                            
+
                             ?>
 
                             <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'Administrador' || $_SESSION['user_role'] === 'Cliente')): ?>
@@ -424,13 +449,13 @@ if (
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>shop-checkout">
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/shop-checkout">
                                     <i class="feather-icon icon-shopping-cart me-2"></i>Ver Carrito
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>sobreNosotros">
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/sobreNosotros">
                                     <i class="feather-icon icon-users me-2"></i>Acerca de nosotros
                                 </a>
                             </li>
@@ -446,12 +471,12 @@ if (
                                     </a>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>account-orders">
+                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-orders">
                                                 <i class="feather-icon icon-list me-2"></i>Pedidos
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>account-settings">
+                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account-settings">
                                                 <i class="feather-icon icon-settings me-2"></i>Configuración
                                             </a>
                                         </li>
@@ -466,13 +491,13 @@ if (
                             <?php endif; ?>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>signup">
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/signup">
                                     <i class="feather-icon icon-user-plus me-2"></i>Suscríbete
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>terminos_condiciones.php">
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/terminos_condiciones.php">
                                     <i class="feather-icon icon-file-text me-2"></i>Términos y condiciones
                                 </a>
                             </li>
@@ -486,7 +511,7 @@ if (
                             <?php
                             if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Administrador') {
                                 echo "<li class='nav-item'>
-        <a class='nav-link' href='" . BASE_URL . "menu.php'>
+        <a class='nav-link' href='" . BASE_URL . "/menu.php'>
             <i class='feather-icon icon-bar-chart me-2'></i>Panel administrativo
         </a>
     </li>";
@@ -506,12 +531,12 @@ if (
         </a>
         <ul class="dropdown-menu">
             <li>
-                <a class="dropdown-item" href="' . BASE_URL . 'oferta_puntos.php">
+                <a class="dropdown-item" href="' . BASE_URL . '/oferta_puntos.php">
                     <i class="feather-icon icon-trending-up me-2"></i>Ganar puntos
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="' . BASE_URL . 'canjear.php">
+                <a class="dropdown-item" href="' . BASE_URL . '/canjear.php">
                     <i class="feather-icon icon-shopping-bag me-2"></i>Canjear puntos
                 </a>
             </li>
@@ -563,7 +588,7 @@ if (
 
                         <!-- Enlace de recuperación de contraseña -->
                         <div class="text-end mb-3">
-                            <a href="<?php echo BASE_URL; ?>forgot-password" class="text-decoration-none small text-primary">¿Olvidaste tu contraseña?</a>
+                            <a href="<?php echo BASE_URL; ?>/forgot-password" class="text-decoration-none small text-primary">¿Olvidaste tu contraseña?</a>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar sesión</button>
@@ -588,13 +613,30 @@ if (
 
                 <div class="modal-footer border-0 justify-content-center flex-column flex-sm-row">
                     <span class="me-2">¿No tienes una cuenta?</span>
-                    <a href="<?php echo BASE_URL; ?>signup" class="text-decoration-none text-primary">Regístrate gratis.</a>
+                    <a href="<?php echo BASE_URL; ?>/signup" class="text-decoration-none text-primary">Regístrate gratis.</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const links = document.querySelectorAll('.navbar-nav .nav-link');
+
+            links.forEach(link => {
+                // Comparar la URL actual con el href del link
+                if (link.href === window.location.href) {
+                    link.classList.add('active');
+                }
+
+                // Alternativa: marcar al hacer click (si no recarga la página)
+                link.addEventListener('click', function() {
+                    links.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const logoutLinks = document.querySelectorAll('.logout-link');
 

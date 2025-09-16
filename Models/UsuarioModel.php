@@ -288,6 +288,11 @@ class UsuarioModel
     public function deleteUser($id)
     {
         try {
+            // Eliminar los comentarios asociados al usuario
+            $sqlComentarios = "DELETE FROM comentarios_tienda WHERE usuario_id = :id";
+            $queryComentarios = $this->conn->prepare($sqlComentarios);
+            $queryComentarios->bindParam(":id", $id, PDO::PARAM_INT);
+            $queryComentarios->execute();
             // Eliminar los detalles de pedidos asociados a los pedidos del usuario
             $sqlDetalles = "DELETE FROM detallesPedidos WHERE pedido_id IN (SELECT id FROM pedidos WHERE usuario_id = :id)";
             $queryDetalles = $this->conn->prepare($sqlDetalles);
@@ -370,16 +375,17 @@ class UsuarioModel
         }
     }
 
-    public function descontarPuntos($usuarioId, $puntosUsar) {
+    public function descontarPuntos($usuarioId, $puntosUsar)
+    {
         $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
         $stmt->execute([$usuarioId]);
         $puntosActuales = $stmt->fetchColumn();
-    
+
         if ($puntosActuales >= $puntosUsar) {
             $nuevoTotal = $puntosActuales - $puntosUsar;
             $stmtUpdate = $this->conn->prepare("UPDATE usuarios SET total_puntos = ? WHERE id = ?");
             $stmtUpdate->execute([$nuevoTotal, $usuarioId]);
-    
+
             return [
                 'status' => 'ok',
                 'puntos' => $nuevoTotal
@@ -392,57 +398,57 @@ class UsuarioModel
         }
     }
 
-    
- // UsuarioModel.php
-public function actualizarPuntosPorCantidad($usuarioId, $puntosUnitarios, $cantidad) {
-    $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
-    $stmt->execute([$usuarioId]);
-    $puntosActuales = $stmt->fetchColumn();
 
-    $totalPuntosUsar = $puntosUnitarios * $cantidad;
+    // UsuarioModel.php
+    public function actualizarPuntosPorCantidad($usuarioId, $puntosUnitarios, $cantidad)
+    {
+        $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
+        $stmt->execute([$usuarioId]);
+        $puntosActuales = $stmt->fetchColumn();
 
-    if ($puntosActuales >= $totalPuntosUsar) {
-        $nuevoTotal = $puntosActuales - $totalPuntosUsar;
-        return [
-            'status' => 'ok',
-            'nuevoTotal' => $nuevoTotal,
-            'puedeCanjear' => true,
-            'mensaje' => 'Puntos suficientes'
-        ];
-    } else {
-        return [
-            'status' => 'error',
-            'nuevoTotal' => $puntosActuales,
-            'puedeCanjear' => false,
-            'mensaje' => 'No tienes suficientes puntos para esta cantidad'
-        ];
+        $totalPuntosUsar = $puntosUnitarios * $cantidad;
+
+        if ($puntosActuales >= $totalPuntosUsar) {
+            $nuevoTotal = $puntosActuales - $totalPuntosUsar;
+            return [
+                'status' => 'ok',
+                'nuevoTotal' => $nuevoTotal,
+                'puedeCanjear' => true,
+                'mensaje' => 'Puntos suficientes'
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'nuevoTotal' => $puntosActuales,
+                'puedeCanjear' => false,
+                'mensaje' => 'No tienes suficientes puntos para esta cantidad'
+            ];
+        }
     }
-}
 
-public function actualizarPuntosDinamico($usuarioId, $puntosUnitarios, $cantidad)
-{
-    $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
-    $stmt->execute([$usuarioId]);
-    $puntosActuales = $stmt->fetchColumn();
+    public function actualizarPuntosDinamico($usuarioId, $puntosUnitarios, $cantidad)
+    {
+        $stmt = $this->conn->prepare("SELECT total_puntos FROM usuarios WHERE id = ?");
+        $stmt->execute([$usuarioId]);
+        $puntosActuales = $stmt->fetchColumn();
 
-    $puntosPorUsar = $puntosUnitarios * $cantidad;
+        $puntosPorUsar = $puntosUnitarios * $cantidad;
 
-    if ($puntosActuales >= $puntosPorUsar) {
-        $nuevoTotal = $puntosActuales - $puntosPorUsar;
+        if ($puntosActuales >= $puntosPorUsar) {
+            $nuevoTotal = $puntosActuales - $puntosPorUsar;
 
-        $stmtUpdate = $this->conn->prepare("UPDATE usuarios SET total_puntos = ? WHERE id = ?");
-        $stmtUpdate->execute([$nuevoTotal, $usuarioId]);
+            $stmtUpdate = $this->conn->prepare("UPDATE usuarios SET total_puntos = ? WHERE id = ?");
+            $stmtUpdate->execute([$nuevoTotal, $usuarioId]);
 
-        return [
-            'status' => 'ok',
-            'nuevoTotal' => $nuevoTotal
-        ];
-    } else {
-        return [
-            'status' => 'error',
-            'mensaje' => 'No tienes suficientes puntos disponibles.'
-        ];
+            return [
+                'status' => 'ok',
+                'nuevoTotal' => $nuevoTotal
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'mensaje' => 'No tienes suficientes puntos disponibles.'
+            ];
+        }
     }
-}
-
 }

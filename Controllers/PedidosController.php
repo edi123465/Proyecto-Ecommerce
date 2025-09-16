@@ -523,7 +523,7 @@ $pdf->SetY($y + $height + 5);
 
 
         // Salida del PDF
-$pdfPath = $_SERVER['DOCUMENT_ROOT'] . '/assets/pedidos/pedido_' . $numeroPedido . '.pdf';
+$pdfPath = $_SERVER['DOCUMENT_ROOT'] . '/Milogar/assets/pedidos/pedido_' . $numeroPedido . '.pdf';
         // Guardar el PDF temporalmente en el servidor
         $pdf->Output($pdfPath, 'F'); // 'F' guarda el archivo en el servidor, pero no lo envía ni descarga
 

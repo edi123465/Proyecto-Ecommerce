@@ -193,53 +193,77 @@ public function crearPedido($usuario_id, $subtotal, $iva, $total, $estado, $nume
 
 
     public function getDetallePedidoById($pedido_id)
-    {
-        try {
-            error_log("Ejecutando consulta para el pedido_id: " . $pedido_id);
+{
+    try {
+        error_log("Ejecutando consulta para el pedido_id: " . $pedido_id);
 
-            $sql = "SELECT 
-                    p.id, 
-                    p.nombreProducto, 
-                    dp.cantidad, 
-                    dp.precio_unitario, 
-                    (dp.cantidad * dp.precio_unitario) AS subtotal, 
-                    ped.numeroPedido,  -- Número de pedido
-                    ped.fechaCreacion,  -- Fecha de creación del pedido
-                    ped.estado,  -- Estado del pedido
-                    ped.descuento  -- Descuento del pedido
+        // Consulta para obtener el pedido y sus detalles
+        $sql = "SELECT 
+                    ped.id AS pedido_id,
+                    ped.numeroPedido,
+                    ped.fechaCreacion,
+                    ped.estado,
+                    ped.subtotal AS pedido_subtotal,
+                    ped.iva AS pedido_iva,
+                    ped.descuento AS pedido_descuento,
+                    ped.total AS pedido_total,
+                    p.id AS producto_id,
+                    p.nombreProducto,
+                    dp.cantidad,
+                    dp.precio_unitario,
+                    (dp.cantidad * dp.precio_unitario) AS subtotal_producto
                 FROM 
                     detallespedidos dp
                 JOIN 
                     productos p ON dp.producto_id = p.id
                 JOIN 
-                    pedidos ped ON dp.pedido_id = ped.id  -- Unir con la tabla Pedidos
+                    pedidos ped ON dp.pedido_id = ped.id
                 WHERE 
                     dp.pedido_id = :pedido_id";
 
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':pedido_id', $pedido_id, PDO::PARAM_INT);
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':pedido_id', $pedido_id, PDO::PARAM_INT);
 
-            if ($stmt->execute()) {
-                $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($stmt->execute()) {
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Verifica si los resultados están vacíos o no
-                if (!empty($resultados)) {
-                    error_log("Detalles encontrados: " . print_r($resultados, true));
-                    return $resultados;
-                } else {
-                    error_log("No se encontraron detalles para el pedido con ID: " . $pedido_id);
-                    return null;
+            if (!empty($resultados)) {
+                // Separar datos del pedido y productos
+                $pedido = [
+                    'numeroPedido' => $resultados[0]['numeroPedido'],
+                    'fechaCreacion' => $resultados[0]['fechaCreacion'],
+                    'estado' => $resultados[0]['estado'],
+                    'subtotal' => $resultados[0]['pedido_subtotal'],
+                    'iva' => $resultados[0]['pedido_iva'],
+                    'descuento' => $resultados[0]['pedido_descuento'],
+                    'total' => $resultados[0]['pedido_total'],
+                    'productos' => []
+                ];
+
+                foreach ($resultados as $row) {
+                    $pedido['productos'][] = [
+                        'id' => $row['producto_id'],
+                        'nombreProducto' => $row['nombreProducto'],
+                        'cantidad' => $row['cantidad'],
+                        'precio_unitario' => $row['precio_unitario'],
+                        'subtotal' => $row['subtotal_producto']
+                    ];
                 }
+
+                return $pedido;
             } else {
-                $errorInfo = $stmt->errorInfo();
-                error_log("Error al ejecutar la consulta: " . $errorInfo[2]);
                 return null;
             }
-        } catch (PDOException $e) {
-            error_log("Error en la base de datos: " . $e->getMessage());
+        } else {
+            error_log("Error al ejecutar la consulta: " . print_r($stmt->errorInfo(), true));
             return null;
         }
+    } catch (PDOException $e) {
+        error_log("Error en la base de datos: " . $e->getMessage());
+        return null;
     }
+}
+
 
     
     public function actualizarEstadoPedido($pedidoID, $nuevoEstado)

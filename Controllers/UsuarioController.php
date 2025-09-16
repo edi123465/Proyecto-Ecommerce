@@ -53,6 +53,8 @@ class UsuarioController
 
 
 
+
+
     public function create()
     {
         header('Content-Type: application/json');
@@ -503,7 +505,7 @@ class UsuarioController
                 if ($this->model->guardarTokenRecuperacion($email, $token)) {
                     error_log("Token guardado en la base de datos");
 
-                    $enlace = "http://localhost:8088/Milogar/reset-password.php?token=" . $token;
+                    $enlace = "http://localhost:8080/Milogar/reset-password.php?token=" . $token;
                     error_log("Enlace generado: " . $enlace);
 
                     if ($this->enviarEnlacePorCorreo($email, $enlace)) {
@@ -538,13 +540,13 @@ class UsuarioController
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';  // Cambia esto si usas otro proveedor
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'ddonmilo100@gmail.com';
-            $mail->Password   = 'fjju ugeu xrrq vrrd';  // O mejor, usa una contraseña de aplicación
+            $mail->Username   = 'edi.borja1310@gmail.com';
+            $mail->Password   = 'udzm podh mvvb hbve';  // O mejor, usa una contraseña de aplicación
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
 
             // Configuración del correo
-            $mail->setFrom('ddonmilo100@gmail.com', 'MILOGAR');
+            $mail->setFrom('edi.borja1310@gmail.com', 'MILOGAR');
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Restablecer contraseña';
@@ -754,6 +756,31 @@ if (isset($_GET['action'])) {
                 ]);
             }
             break;
+        case 'contarUsuarios':
+            // Crear la conexión igual que en el case 'delete'
+            $db = new Database1();
+
+            // Obtener la conexión PDO desde tu wrapper - adapta el método si tu clase se llama distinto
+            // Ejemplos comunes: $db->getConnection(), $db->connect(), $db->conn
+            $pdo = $db->getConnection(); // <-- reemplaza por el método correcto
+
+            $usuarioModel = new UsuarioModel($pdo);
+            $total = $usuarioModel->contarUsuarios();
+
+            header('Content-Type: application/json');
+            if ($total !== false && $total !== null) {
+                echo json_encode([
+                    'success' => true,
+                    'total' => intval($total)
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No se pudo obtener la cantidad de usuarios'
+                ]);
+            }
+            break;
+
         case 'actualizarUsuario':
             // Asegúrate de tener el ID del usuario en la URL
             if (isset($_GET['id'])) {
@@ -806,19 +833,19 @@ if (isset($_GET['action'])) {
             $controller->descontarPuntos();
             break;
         case 'actualizarPuntosModal':
-                $data = json_decode(file_get_contents("php://input"), true);
-            
-                $usuarioId = $data['usuarioId'];
-                $puntosUnitarios = $data['puntosUnitarios'];
-                $cantidad = $data['cantidad'];
-            
-                $usuarioModel = new UsuarioModel($db);
-            
-                $resultado = $usuarioModel->actualizarPuntosDinamico($usuarioId, $puntosUnitarios, $cantidad);
-            
-                echo json_encode($resultado);
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            $usuarioId = $data['usuarioId'];
+            $puntosUnitarios = $data['puntosUnitarios'];
+            $cantidad = $data['cantidad'];
+
+            $usuarioModel = new UsuarioModel($db);
+
+            $resultado = $usuarioModel->actualizarPuntosDinamico($usuarioId, $puntosUnitarios, $cantidad);
+
+            echo json_encode($resultado);
             break;
-            
+
         default:
             // Si la acción no es válida, retornar un error
             echo json_encode([

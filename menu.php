@@ -46,7 +46,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome Icons -->
-<!-- CSS de AdminLTE desde CDN -->
+    <!-- CSS de AdminLTE desde CDN -->
     <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- CSS de FontAwesome desde CDN (opcional, si lo necesitas) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
@@ -56,7 +56,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
     <div class="wrapper">
 
-<!-- Navbar -->
+        <!-- Navbar -->
         <nav class="main-header navbar navbar-expand navbar-dark">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
@@ -201,7 +201,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
                                 </p>
                             </a>
                         </li>
-                       
+
                         <li class="nav-item">
                             <a href="Views/Canjeables/index" class="nav-link">
                                 <i class="nav-icon fas fa-gift"></i>
@@ -332,23 +332,23 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
                         </div>
                         <!-- /.col -->
                         <div class="col-12 col-sm-6 col-md-3">
-                        <div class="info-box mb-3">
-                            <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-users"></i></span>
+                            <div class="info-box mb-3">
+                                <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-users"></i></span>
 
-                            <div class="info-box-content">
-                            <span class="info-box-text">New Members</span>
-                            <span class="info-box-number" id="cantidadUsuarios">2,000</span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Todos los usuarios</span>
+                                    <span class="info-box-number" id="cantidadUsuarios">2,000</span>
 
-                            <!-- Botón para administrar usuarios -->
-                            <a href="Views/Usuarios/index.php" 
-                                class="btn btn-sm btn-primary mt-2" 
-                                role="button" 
-                                aria-label="Administrar usuarios">
-                                Administrar Usuarios
-                            </a>
+                                    <!-- Botón para administrar usuarios -->
+                                    <a href="Views/Usuarios/index.php"
+                                        class="btn btn-sm btn-primary mt-2"
+                                        role="button"
+                                        aria-label="Administrar usuarios">
+                                        Administrar Usuarios
+                                    </a>
+                                </div>
+                                <!-- /.info-box-content -->
                             </div>
-                            <!-- /.info-box-content -->
-                        </div>
                         </div>
 
                         <!-- /.col -->
@@ -389,7 +389,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
                     <h2>Productos vendidos</h2>
                     <canvas id="productosMasVendidosChart" width="400" height="200"></canvas>
 
-                    
+
                     <!-- /.row -->
                 </div><!--/. container-fluid -->
             </section>
@@ -416,34 +416,54 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'Administrador') 
 
     <!-- REQUIRED SCRIPTS -->
     <!-- jQuery -->
- <!-- JS de AdminLTE y dependencias desde CDN -->
+    <!-- JS de AdminLTE y dependencias desde CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.1.0/dist/js/adminlte.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="Views/graficos/js/read.js"></script>
-<script>
-document.getElementById("logoutBtn").addEventListener("click", function(e) {
-    e.preventDefault(); // Evita que el enlace se ejecute inmediatamente
+    <script>
+        document.getElementById("logoutBtn").addEventListener("click", function(e) {
+            e.preventDefault(); // Evita que el enlace se ejecute inmediatamente
 
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¿Deseas cerrar sesión?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, cerrar sesión',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-            // Redirige al logout
-            window.location.href = "Views/login/logout.php";
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¿Deseas cerrar sesión?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirige al logout
+                    window.location.href = "Views/login/logout.php";
+                }
+            });
+        });
+
+        // Función para actualizar la cantidad de usuarios en la UI
+        function actualizarCantidadUsuarios() {
+            fetch('http://localhost:8080/Milogar/Controllers/UsuarioController.php?action=contarUsuarios')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Actualizar el contenido del span con el número de usuarios
+                        document.getElementById('cantidadUsuarios').textContent = data.total.toLocaleString();
+                    } else {
+                        console.error('Error al obtener la cantidad de usuarios:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en la solicitud:', error);
+                });
         }
-    });
-});
-</script>
+
+        // Llamamos a la función al cargar la página
+        document.addEventListener('DOMContentLoaded', actualizarCantidadUsuarios);
+    </script>
 
 </body>
 

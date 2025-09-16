@@ -105,6 +105,8 @@ $token = $_GET["token"];
     <script src="assets/libs/tiny-slider/dist/min/tiny-slider.js"></script>
     <script src="assets/libs/dropzone/dist/min/dropzone.min.js"></script>
     <script src="assets/libs/flatpickr/dist/flatpickr.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Theme JS -->
     <script src="assets/js/theme.min.js"></script>
     <script src="assets/js/cart.js"></script>
@@ -118,7 +120,7 @@ $token = $_GET["token"];
             const token = document.getElementById("token").value;
             const password = document.getElementById("password").value;
 
-            fetch("http://localhost:8088/Milogar/Controllers/UsuarioController.php?action=restablecerPassword", {
+            fetch("http://localhost:8080/Milogar/Controllers/UsuarioController.php?action=restablecerPassword", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

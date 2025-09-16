@@ -173,7 +173,7 @@ function actualizarCarrito() {
 
         let mensajePuntos = '';
 
-        if (producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
+        if (usuarioSesion != null && producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
             mensajePuntos = `¡Ganas ${producto.puntos_otorgados} puntos de canje!`;
         }
 
@@ -539,12 +539,13 @@ function actualizarDetallePedido() {
 
         // Verificar si gana puntos
         let mensajePuntos = '';
-        if (producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
+        if (usuarioSesion !== null && producto.cantidad >= producto.cantidad_minima_para_puntos && producto.puntos_otorgados > 0) {
             mensajePuntos = `<small class="text-success d-block mt-1">¡Ganas ${producto.puntos_otorgados} puntos de canje!</small>`;
             totalPuntos += producto.puntos_otorgados;
         } else {
-            console.log(`-> Este producto NO otorga puntos.`);
+            console.log('-> Este producto NO otorga puntos o no hay sesión activa.');
         }
+
 
         let mensajeCanjeado = '';
         if (producto.puntos_necesarios && producto.puntos_necesarios > 0) {
@@ -947,31 +948,48 @@ document.getElementById("proceder").addEventListener("click", function (event) {
             });
 
     } else {
-        // Validar todos los campos obligatorios
-        if (
-            !email ||
-            !telefono ||
-            !tipoEnvio ||
-            !provinciaEnvio ||
-            !ciudad ||
-            !direccion ||
-            !fecha ||
-            !numeroPedido ||
-            !estado ||
-            !metodoPago ||
-            !deliveryOption ||
-            !totalNeto ||
-            productos.length === 0
-        ) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campos incompletos',
-                text: 'Faltan datos obligatorios para realizar el pedido. Por favor, completa todos los campos.',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
 
+
+        // --- VALIDACIÓN ---
+        // Si la entrega es en tienda → solo validar correo y teléfono
+        if (deliveryOption === "recogerEnTienda") {
+            if (!email || !telefono) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Campos incompletos",
+                    text: "Para recoger en tienda debes ingresar tu correo y teléfono.",
+                    confirmButtonText: "Entendido",
+                });
+                return;
+            }
+        } else {
+            // Si es envío a domicilio → validar todos los campos obligatorios
+            if (
+                !email ||
+                !telefono ||
+                !tipoEnvio ||
+                !empresaEnvio ||
+                !provinciaEnvio ||
+                !ciudad ||
+                !direccion ||
+                !referencias ||
+                !fecha ||
+                !numeroPedido ||
+                !estado ||
+                !metodoPago ||
+                !deliveryOption ||
+                !totalNeto ||
+                productos.length === 0
+            ) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Campos incompletos",
+                    text: "Faltan datos obligatorios para realizar el pedido. Por favor, completa todos los campos.",
+                    confirmButtonText: "Entendido",
+                });
+                return;
+            }
+        }
         // Si el usuario está logeado, procede con el fetch normal para crear el pedido
         fetch("http://localhost:8080/Milogar/Controllers/PedidosController.php?action=ordenPedido", {
             method: "POST",
@@ -1043,7 +1061,7 @@ document.getElementById("proceder").addEventListener("click", function (event) {
                                                     },
                                                     body: JSON.stringify({
                                                         usuario_id: userId,
-                                                        puntos: puntosADescontar
+                                                        puntosDescontar: puntosADescontar
                                                     })
                                                 })
                                                     .then(response => response.json())

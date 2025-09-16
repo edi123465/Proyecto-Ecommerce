@@ -64,6 +64,7 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <link href="assets/libs/dropzone/dist/min/dropzone.min.css" rel="stylesheet" />
     <link href="assets/libs/prismjs/themes/prism-okaidia.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Theme CSS -->
     <link rel="stylesheet" href="assets/css/theme.min.css">
@@ -71,7 +72,8 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <style>
         /* Estilos para el carrusel */
         .product-carousel {
-            width: 90%;
+            width: 70%;
+            height: 100%;
             margin: 0 auto;
             /* Centra el carrusel */
         }
@@ -271,91 +273,147 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             cursor: pointer;
         }
 
-.card-product {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-}
+        .card-product {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
 
-.card-product:hover {
-    transform: translateY(-5px);
-}
+        .card-product:hover {
+            transform: translateY(-5px);
+        }
 
-.card-product img {
-    width: 200%;
-    height: 300px; /* o ajusta según quieras */
-    object-fit: contain; /* ahora se ve completa sin recorte */
-    border-radius: 5px;
-    background-color: #f8f9fa; /* opcional, para el espacio vacío */
-}
-
-/* Contenedor general de categorías */
-.categoria-card {
-  border: none;
-  border-radius: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background: #fff;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-  padding: 1.5rem 1rem;
-}
-
-.categoria-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-}
-
-/* Imagen circular de la categoría */
-.categoria-img {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #f1f1f1;
-  transition: transform 0.3s ease, border 0.3s ease;
-}
-
-.categoria-card:hover .categoria-img {
-  transform: scale(1.08);
-  border: 3px solid #7be986ff; /* cambia a color primario al hover */
-}
-
-/* Título */
-.categoria-card h6 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #222;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  text-transform: capitalize;
-}
-
-/* Botón */
-.categoria-card .btn {
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 500;
-  padding: 0.6rem 1.2rem;
-  background: linear-gradient(90deg, #45e848ff, #76f02fff);
-  border: none;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.categoria-card .btn:hover {
-  background: linear-gradient(90deg, #75ca68ff, #7ddf64ff);
-  transform: scale(1.03);
-}
-
-/* Descripción elegante para categorías */
-.categoria-desc {
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.4;
-  margin-top: 5px;
-  font-style: italic;
-}
+        .card-product img {
+            width: 200%;
+            height: 300px;
+            /* o ajusta según quieras */
+            object-fit: contain;
+            /* ahora se ve completa sin recorte */
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            /* opcional, para el espacio vacío */
+        }
 
 
+
+
+
+
+        /* Contenedor relativo para los botones */
+        .swiper {
+            position: relative;
+        }
+
+        /* Ajuste de imágenes: mismo alto y centrado */
+        .mySwiper .swiper-slide img {
+            width: 100%;
+            height: 700px;
+            /* ajusta al alto de tu banner */
+            object-fit: cover;
+            border-radius: 12px;
+            transition: transform 0.5s ease;
+        }
+
+        .product-carousel .swiper-slide img.categoria-img {
+            width: 100%;
+            height: 300px;
+            object-fit: contain;
+            /* para que se vea completa la imagen */
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            transition: transform 0.5s ease;
+        }
+
+
+        .swiper-slide:hover img {
+            transform: scale(1.03);
+            /* efecto leve de zoom al pasar el mouse */
+        }
+
+        /* Overlay oscuro y elegante */
+        .overlay-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            border-radius: 12px;
+            text-shadow: 2px 2px 8px rgba(242, 238, 238, 0.7);
+            transition: background 0.3s ease;
+        }
+
+
+
+        .overlay-text h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .overlay-text p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        /* Botones de navegación al lado de la imagen */
+        .swiper-button-prev,
+        .swiper-button-next {
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: background 0.3s ease;
+        }
+
+        .swiper-button-prev:hover,
+        .swiper-button-next:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Posición lateral de botones */
+        .swiper-button-prev {
+            left: 15px;
+        }
+
+        .swiper-button-next {
+            right: 15px;
+        }
+
+        /* Ajuste responsive en móviles */
+        @media (max-width: 768px) {
+            .swiper-slide img {
+                height: 400px;
+                /* alto reducido */
+            }
+
+            .overlay-text h2 {
+                font-size: 1.6rem;
+            }
+
+            .overlay-text p {
+                font-size: 1rem;
+            }
+
+            .swiper-button-prev {
+                left: 5px;
+            }
+
+            .swiper-button-next {
+                right: 5px;
+            }
+        }
     </style>
     <script>
         const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
@@ -495,230 +553,143 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
             </div>
         </div>
     </section>
+    <div class="container my-5">
+        <!-- Swiper -->
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                <!-- Slide 1 -->
+                <div class="swiper-slide position-relative text-center">
+                    <img src="assets/imagenesMilogar/plasticosHogar.webp" class="img-fluid rounded" alt="Plásticos para el Hogar">
+                    <div class="overlay-text">
+                        <h2 style="color: white; font-size: 60px;">¡Transforma tu Hogar!</h2>
+                        <p style="font-size: 25px;">Plásticos duraderos y prácticos para hacer tu vida más fácil. Aprovecha nuestras ofertas exclusivas.</p>
+                        <!-- btn -->
+                        <a href="/Milogar/busquedaClientes?search=Hogar" class="btn btn-primary text-light">Explora ofertas
+                            <i class="feather-icon icon-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="swiper-slide position-relative text-center">
+                    <img src="assets/imagenesMilogar/canasta_basica.png" class="img-fluid rounded" alt="Canasta Básica">
+                    <div class="overlay-text">
+                        <h2 style="color: white; font-size: 60px;">Lo Esencial al Mejor Precio</h2>
+                        <p style="font-size: 25px;">Canasta básica completa para tu familia con descuentos que no puedes dejar pasar.</p>
+                        <a href="/Milogar/busquedaClientes?search=Primera" class="btn btn-primary text-light">Explorar Ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
+
+                    </div>
+                </div>
+
+                <!-- Slide 3 -->
+                <div class="swiper-slide position-relative text-center">
+                    <img src="assets/imagenesMilogar/cristaleria.jpg" class="img-fluid rounded" alt="Cristalería Elegante">
+                    <div class="overlay-text">
+                        <h2 style="color: white; font-size: 60px;">Elegancia en Cada Mesa</h2>
+                        <p style="font-size: 25px;">Cristalería fina para tus momentos especiales. Dale estilo a tus reuniones y cenas familiares.</p>
+                        <a href="/Milogar/busquedaClientes?search=cristaleria" class="btn btn-primary text-white">Explorar ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
+
+                    </div>
+                </div>
+
+                <!-- Slide 4 -->
+                <div class="swiper-slide position-relative text-center">
+                    <img src="assets/imagenesMilogar/mueblesHogar.jpg" class="img-fluid rounded" alt="Muebles para el Hogar">
+                    <div class="overlay-text">
+                        <h2 style="color: white; font-size: 60px;">Confort y Estilo</h2>
+                        <p style="font-size: 25px;">Muebles funcionales y elegantes para que tu hogar refleje tu personalidad.</p>
+                        <a href="/Milogar/busquedaClientes?search=muebles" class="btn btn-primary text-white">Explorar ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
+
+                    </div>
+                </div>
+
+                <!-- Slide 5 -->
+                <div class="swiper-slide position-relative text-center">
+                    <img src="assets/imagenesMilogar/desechables.jpg" class="img-fluid rounded" alt="Desechables">
+                    <div class="overlay-text">
+                        <h2 style="color: white; font-size: 60px;">Practicidad al Instante</h2>
+                        <p style="font-size: 25px;">Desechables de alta calidad para tu día a día. Comodidad y ahorro en un solo lugar.</p>
+                        <a href="/Milogar/busquedaClientes?search=desechables" class="btn btn-primary">Explorar ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+
+            <!-- Paginación (dots) -->
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+
 
     <!-- section -->
     <section class="mt-8">
         <div class="container">
-            <!-- row -->
-            <div class="row">
-                <div class="col-xxl-8 col-xl-7 ">
-                    <!-- hero slider -->
-                    <div class="hero-slider">
-                        <div
-                            style="background: url(assets/imagenesMilogar/desechables.jpg) no-repeat center center; 
-           background-size: cover; 
-           border-radius: .5rem; 
-           height: 550px; 
-           position: relative;">
-                            <div class="ps-lg-12 py-lg-16 col-md-7 py-14 px-8 text-xs-center"
-                                style="background-color: rgba(0, 0, 0, 0.6); 
-                border-radius: .5rem; 
-                position: absolute; 
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                height: 100%; 
-                color: #fff; 
-                display: flex; 
-                flex-direction: column; 
-                justify-content: center; 
-                align-items: center; 
-                padding: 20px;">
-                                <!-- badge -->
-                                <div class="d-flex align-items-center mb-4">
-                                    <span style="color: #fff;">Oferta Especial</span>
-                                    <span class="badge bg-danger ms-2">Descuentos de hasta el 15%</span>
-                                </div>
-                                <!-- title -->
-                                <h2 class="text-white display-5 fw-bold mb-3">Plásticos Desechables para Alimentos</h2>
-                                <p class="fs-5 text-white">¡Equipa tu negocio o evento! Encuentra precios increíbles en productos de calidad.</p>
-                                <!-- btn -->
-                                <a href="/Milogar/busquedaClientes?search=desechables" class="btn btn-primary">Explorar Descuentos <i class="feather-icon icon-arrow-right ms-1"></i></a>
-                            </div>
-                        </div>
-                        <div class=" "
-                            style="background: url(assets/imagenesMilogar/plasticosHogar.webp) no-repeat center center; 
-           background-size: cover; 
-           border-radius: .5rem; 
-           height: 550px; 
-           position: relative;">
-                            <div class="ps-lg-12 py-lg-10 col-md-7 py-10 ps-8 text-xs-center"
-                                style="background-color: rgba(255, 255, 255, 0.1); 
-               border-radius: .5rem; 
-               position: absolute; 
-               top: 0; 
-               left: 0; 
-               width: 100%; 
-               height: 100%; 
-               color: #212529; 
-               display: flex; 
-               flex-direction: column; 
-               justify-content: center; 
-               align-items: center; 
-               padding: 20px;">
-                                <!-- badge -->
-                                <div class="d-flex align-items-center mb-4">
-                                    <span style="color: #212529;">Oferta Especial</span>
-                                    <span class="badge bg-warning ms-2 text-dark">20% OFF</span>
-                                </div>
-                                <!-- title -->
-                                <h2 class="text-white display-5 fw-bold mb-3">¡Transforma tu Hogar con Plásticos Prácticos!</h2>
-                                <!-- para -->
-                                <p class="fs-5 text-white">Organiza tu espacio con productos duraderos y de alta calidad.</p>
+            <div class="row g-3"> <!-- g-3 agrega espacio entre columnas -->
 
-                                <!-- btn -->
-                                <a href="/Milogar/busquedaClientes?search=Hogar" class="btn btn-primary text-light">Explora la Colección
-                                    <i class="feather-icon icon-arrow-right ms-1"></i>
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- img -->
-                        <div class=""
-                            style="background: url(assets/imagenesMilogar/canasta_basica.png) no-repeat center center; 
-           background-size: cover; 
-           border-radius: .5rem; 
-           position: relative; 
-           height: 550px;">
-                            <div class="ps-lg-12 py-lg-16 col-md-7 py-14 ps-8 text-xs-center"
-                                style="background-color: rgba(0, 0, 0, 0.5); 
-               border-radius: .5rem; 
-               position: absolute; 
-               top: 0; 
-               left: 0; 
-               width: 100%; 
-               height: 100%; 
-               color: #fff; 
-               display: flex; 
-               flex-direction: column; 
-               justify-content: center; 
-               align-items: center; 
-               padding: 20px;">
-                                <!-- badge -->
-                                <div class="d-flex align-items-center mb-4">
-                                    <span style="color: #fff;">Oferta Exclusiva</span>
-                                    <span class="badge bg-success ms-2">20% de Descuento</span>
-                                </div>
-                                <!-- title -->
-                                <h2 class="text-white display-5 fw-bold mb-3">Productos de Primera Necesidad</h2>
-                                <!-- para -->
-                                <p class="fs-5 text-light">Equipa tu hogar con productos esenciales que garantizan bienestar y satisfacción para toda la familia.</p>
-                                <!-- btn -->
-                                <a href="/Milogar/busquedaClientes?search=Primera" class="btn btn-primary text-dark">Explorar Ofertas <i class="feather-icon icon-arrow-right ms-1"></i></a>
-                            </div>
-                        </div>
-                        <div class=""
-                            style="background: url(assets/imagenesMilogar/cristaleria.jpg) no-repeat center center;
-                        background-size: cover;
-                        border-radius: .5rem;
-                        position: relative;
-                        height: 550px;">
-                            <div class="ps-lg-12 py-lg-16 col-md-7 py-14 ps-8 text-xs-center"
-                                style="background-color: rgba(0, 0, 0, 0.6); 
-               border-radius: .5rem; 
-               position: absolute; 
-               top: 0; 
-               left: 0; 
-               width: 100%; 
-               height: 100%; 
-               color: #000; 
-               display: flex; 
-               flex-direction: column; 
-               justify-content: center; 
-               align-items: center; 
-               padding: 20px;">
-                                <!-- badge -->
-                                <div class="d-flex align-items-center mb-4">
-                                    <span style="color: #000;">Oferta Exclusiva</span>
-                                    <span class="badge bg-primary ms-2 text-light">30% de Descuento</span>
-                                </div>
-                                <!-- title -->
-                                <h2 class="text-white display-5 fw-bold mb-3">Elegancia y Estilo en Cada Detalle</h2>
-                                <!-- para -->
-                                <p class="fs-5 text-white">Descubre nuestra colección de cristal y porcelana, perfecta para realzar la belleza de tu mesa.</p>
-                                <!-- btn -->
-                                <a href="/Milogar/busquedaClientes?search=cristaleria" class="btn btn-primary text-white">Explorar Colección <i class="feather-icon icon-arrow-right ms-1"></i></a>
-                            </div>
-                        </div>
-                        <div class=""
-                            style="background: url(assets/imagenesMilogar/mueblesHogar.jpg) no-repeat center center; 
-           background-size: cover; 
-           border-radius: .5rem; 
-           position: relative; 
-           height: 550px;">
-                            <div class="ps-lg-12 py-lg-16 col-md-7 py-14 ps-8 text-xs-center"
-                                style="background-color: rgba(0, 0, 0, 0.6); 
-                                    border-radius: .5rem; 
-                                    position: absolute; 
-                                    top: 0; 
-                                    left: 0; 
-                                    width: 100%; 
-                                    height: 100%; 
-                                    color: #fff; 
-                                    display: flex; 
-                                    flex-direction: column; 
-                                    justify-content: center; 
-                                    align-items: center; 
-                                    padding: 20px;">
-                                <!-- badge -->
-                                <div class="d-flex align-items-center mb-4">
-                                    <span style="color: #fff;">Oferta Exclusiva</span>
-                                    <span class="badge bg-success ms-2 text-light">Hasta 40% OFF</span>
-                                </div>
-                                <!-- title -->
-                                <h2 class="text-white display-5 fw-bold mb-3">Muebles que Transforman Tu Espacio</h2>
-                                <!-- para -->
-                                <p class="fs-5 text-white">Encuentra el equilibrio perfecto entre diseño, comodidad y funcionalidad para tu hogar.</p>
-                                <!-- btn -->
-                                <a href="/Milogar/busquedaClientes?search=muebles" class="btn btn-light text-dark">Explorar Muebles <i class="feather-icon icon-arrow-right ms-1"></i></a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="col-xxl-4 col-xl-5 col-12 d-md-flex d-xl-block">
-
-                    <div class="banner mb-6 w-100" style="height: 260px; position: relative;">
-                        <!-- Banner Design -->
-                        <div class="banner-img" style="height: 100%; overflow: hidden; position: relative;">
-                            <!-- Superposición oscura -->
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1;"></div>
-                            <!-- Imagen -->
-                            <img src="assets/imagenesMilogar/licores.jpg" alt="" class="img-fluid rounded-3 w-100" style="height: 100%; object-fit: cover; position: relative; z-index: 0;">
-                            <!-- Texto -->
-                            <div class="banner-text" style="position: absolute; top: 50%; right: 10%; text-align: left; color: white; z-index: 2;">
-                                <h3 class="mb-2" style="font-size: 1.8rem; font-weight: bold; color: white;">Licores y bebidas</h3>
-                                <div class="my-2" style="font-size: 1rem;">
-                                    <span style="color: white; font-weight: 600;">Lo mejor en bebidas alcoholicas para eventos.</span>
-                                </div>
-                                <a href="/Milogar/busquedaClientes?search=bebidas" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 25px;">Shop Now</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="banner w-100">
-                        <!-- Banner Design -->
-                        <div class="banner-img">
-                            <img src="assets/imagenesMilogar/aseoLimpieza.jpg" alt="Productos de limpieza y aseo personal" class="img-fluid rounded-3 w-100">
-                            <div class="banner-text"
-                                style="position: absolute; top: 0; left: 0; transform: translate(0, 0); 
-                                color: #fff; text-align: center; background-color: rgba(0, 0, 0, 0.4); 
-                                padding: 20px; border-radius: .5rem; width: 100%; height: 100%;">
-                                <h3 class="fs-4 fw-bold lh-1 mb-2">¡Limieza y aseo personal!</h3>
-                                <p class="fs-6">Descubre productos de limpieza y aseo personal que te brindan frescura y confianza todos los días.</p>
-                                <a href="/Milogar/busquedaClientes?search=aseo" class="btn btn-primary mt-2">Explora las Ofertas</a>
-                            </div>
+                <!-- Primer Banner -->
+                <div class="col-12 col-md-4">
+                    <div class="banner position-relative rounded-3 overflow-hidden" style="height: 260px;">
+                        <img src="assets/imagenesMilogar/licores.jpg" alt="" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        <!-- Overlay oscuro -->
+                        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:1;"></div>
+                        <div class="banner-text position-absolute top-50 start-0 translate-middle-y ms-3 text-white" style="z-index:2;">
+                            <h3 class="mb-2 fw-bold" style="font-size: 1.3rem; text-shadow: 2px 2px 6px rgba(0,0,0,0.7); color:#f8f9fa">Licores y bebidas</h3>
+                            <p class="mb-2" style="font-size:0.9rem; text-shadow: 1px 1px 4px rgba(0,0,0,0.7);">Lo mejor en bebidas alcohólicas para eventos.</p>
+                            <!-- Primer Banner -->
+                            <a href="/Milogar/busquedaClientes?search=bebidas"
+                                class="btn btn-primary rounded-pill"
+                                style="padding: 12px 25px; font-size: 1rem;">Explorar ofertas</a>
                         </div>
                     </div>
                 </div>
+
+                <!-- Segundo Banner -->
+                <div class="col-12 col-md-4">
+                    <div class="banner position-relative rounded-3 overflow-hidden" style="height: 260px;">
+                        <img src="assets/imagenesMilogar/aseoLimpieza.jpg" alt="" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        <!-- Overlay oscuro -->
+                        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:1;"></div>
+                        <div class="banner-text position-absolute top-50 start-50 translate-middle text-center text-white" style="z-index:2; padding: 10px; border-radius: 0.5rem;">
+                            <h3 class="fs-5 fw-bold mb-1" style="text-shadow: 2px 2px 6px rgba(0,0,0,0.7); color: #f8f8f8;">¡Limpieza y aseo!</h3>
+                            <p class="mb-1" style="font-size:0.85rem; text-shadow: 1px 1px 4px rgba(0,0,0,0.7);">Productos de limpieza y aseo personal que te brindan frescura y confianza.</p>
+                            <!-- Segundo Banner -->
+                            <a href="/Milogar/busquedaClientes?search=aseo"
+                                class="btn btn-primary rounded-pill mt-1"
+                                style="padding: 12px 25px; font-size: 1rem;">Explora Ofertas</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tercer Banner -->
+                <div class="col-12 col-md-4">
+                    <div class="banner position-relative rounded-3 overflow-hidden" style="height: 260px;">
+                        <img src="assets/imagenesMilogar/mueblesHogar.jpg" alt="" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        <!-- Overlay oscuro -->
+                        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:1;"></div>
+                        <div class="banner-text position-absolute top-50 start-0 translate-middle-y ms-3 text-white" style="z-index:2;">
+                            <h3 class="mb-2 fw-bold" style="font-size: 1.3rem; color: white; text-shadow: 2px 2px 6px rgba(0,0,0,0.7);">Muebles para el Hogar</h3>
+                            <p class="mb-2" style="font-size:0.9rem; text-shadow: 1px 1px 4px rgba(0,0,0,0.7);">Confort y estilo para tu hogar, funcionales y elegantes.</p>
+                            <a href="/Milogar/busquedaClientes?search=muebles"
+                                class="btn btn-primary rounded-pill"
+                                style="padding: 12px 25px; font-size: 1rem;">Explorar ofertas</a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
+
     <br>
     <h2 style="text-align: center;">Todas nuestras categorias</h2><br>
     <div class="product-carousel">
         <!-- Las categorías se agregarán dinámicamente aquí -->
     </div>
-    <h3>Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
+    <h3 style="display: none;">Tienes <span id="puntosUsuario">0</span> puntos acumulados 🎁</h3>
 
     <!-- Modal de Edición de Producto -->
     <div class="modal fade" id="editarProductoModal" tabindex="-1" aria-labelledby="editarProductoModalLabel">
@@ -1144,27 +1115,44 @@ ob_end_clean(); // Limpia el buffer al final del archivo si no se necesita
     <script src="assets/js/mostrarCategorias.js"></script>
     <!-- choose one -->
     <script>
-        var swiper = new Swiper(".mySwiper", {
-            slidesPerView: 4,
+        $(document).ready(function() {
+            $('.slick-carousel').slick({
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                dots: true,
+                arrows: true,
+                prevArrow: '<button type="button" class="slick-prev btn btn-light rounded-circle shadow"><i class="bi bi-chevron-left"></i></button>',
+                nextArrow: '<button type="button" class="slick-next btn btn-light rounded-circle shadow"><i class="bi bi-chevron-right"></i></button>'
+            });
+        });
+        // Inicialización específica para este carrusel
+        var swiperBanner = new Swiper(".mySwiper", {
+            slidesPerView: 1, // un slide visible a la vez
             spaceBetween: 20,
             loop: true,
             autoplay: {
-                delay: 2500,
+                delay: 3000,
                 disableOnInteraction: false,
             },
             navigation: {
                 nextEl: ".swiper-button-next",
                 prevEl: ".swiper-button-prev",
             },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true
+            },
             breakpoints: {
-                320: {
-                    slidesPerView: 2
+                576: {
+                    slidesPerView: 1
                 },
                 768: {
-                    slidesPerView: 3
+                    slidesPerView: 1
                 },
-                1024: {
-                    slidesPerView: 5
+                992: {
+                    slidesPerView: 1
                 }
             }
         });

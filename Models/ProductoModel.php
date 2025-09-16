@@ -70,7 +70,7 @@ class ProductoModel
                    p.precio_2, p.precio_3, p.precio_4, p.stock, 
                    s.id AS subcategoria_id, s.nombre AS subcategoria_nombre, 
                    c.id AS categoria_id, c.nombre AS categoria_nombre, 
-                   p.codigo_barras
+                   p.codigo_barras, p.is_talla
             FROM Productos p
             JOIN Subcategorias s ON p.subcategoria_id = s.id
             JOIN Categorias c ON s.categoria_id = c.id
@@ -702,6 +702,68 @@ class ProductoModel
         }
     }
 
+    public function ObtenerMasvendidos($limit = 12, $offset = 0)
+{
+    $sql = "
+        SELECT p.id, 
+               p.nombreProducto, 
+               p.descripcionProducto, 
+               p.precio, 
+               p.precio_1, 
+               p.precio_2, 
+               p.precio_3, 
+               p.precio_4, 
+               p.stock, 
+               p.codigo_barras, 
+               p.imagen, 
+               p.isActive, 
+               p.fechaCreacion, 
+               p.is_promocion, 
+               p.descuento,
+               p.is_talla,
+               p.cantidad_minima_para_puntos,
+               p.puntos_otorgados,
+               c.nombreCategoria AS nombreCategoria, 
+               s.nombrSubcategoria AS nombreSubcategoria,
+               SUM(dp.cantidad) AS total_vendidos
+        FROM productos p
+        INNER JOIN subcategorias s ON p.subcategoria_id = s.id
+        INNER JOIN categorias c ON s.categoria_id = c.id
+        INNER JOIN detallesPedidos dp ON dp.producto_id = p.id
+        WHERE p.isActive = 1
+        GROUP BY p.id
+        ORDER BY total_vendidos DESC
+        LIMIT :limit OFFSET :offset
+    ";
+
+    try {
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        error_log("Error en ObtenerProductosPopulares(): " . $e->getMessage());
+        return false;
+    }
+}
+public function contarProductosActivos()
+{
+    $sql = "SELECT COUNT(*) as total FROM productos WHERE isActive = 1";
+
+    try {
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    } catch (Exception $e) {
+        error_log("Error en contarProductosActivos(): " . $e->getMessage());
+        return 0;
+    }
+}
+
+
 
     // Método para obtener productos por categoría
     // Método para obtener productos por categoría
@@ -871,12 +933,29 @@ public function countProducts($query)
         }
     }
 
-    //para el sistema de canje de puntos
-    public function obtenerProductosConPuntos()
-    {
-        $query = "SELECT * FROM productos WHERE puntos_otorgados > 0 AND isActive = 1";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+public function obtenerProductosConPuntos($pagina = 1, $porPagina = 12)
+{
+    $offset = ($pagina - 1) * $porPagina;
+
+    $query = "SELECT * 
+              FROM productos 
+              WHERE puntos_otorgados > 0 AND isActive = 1
+              ORDER BY id DESC
+              LIMIT :porPagina OFFSET :offset";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindValue(':porPagina', (int)$porPagina, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+public function contarProductosConPuntos()
+{
+    $query = "SELECT COUNT(*) as total FROM productos WHERE puntos_otorgados > 0 AND isActive = 1";
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row['total'];
+}
 }

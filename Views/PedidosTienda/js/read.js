@@ -168,26 +168,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let currentPedidoId = null;  // Variable global para almacenar el ID del pedido
 
-// Función para mostrar los detalles del pedido
 function mostrarDetallesPedido(pedidoId) {
-    currentPedidoId = pedidoId;  // Guardamos el ID del pedido cuando se abre el modal
-
-    console.log("Obteniendo detalles del pedido con ID:", pedidoId);
+    currentPedidoId = pedidoId;  // Guardamos el ID del pedido
 
     fetch(`http://localhost:8080/Milogar/Controllers/PedidosController.php?action=obtenerDetallePedidosPorId&id=${pedidoId}`)
         .then(response => response.json())
         .then(data => {
-            console.log(data);
-            if (data.success) {
-                // Verificar que 'data.pedido' es un array
-                if (Array.isArray(data.pedido)) {
-                    // Llamar a la función para mostrar los detalles en el modal
-                    mostrarEnModal(data.pedido);
-                } else {
-                    alert("Los detalles del pedido no tienen el formato esperado.");
-                }
+            console.log("Detalles del pedido recibidos:", data);
+            if (data.success && data.pedido) {
+                mostrarEnModalAdmin(data.pedido);  // Nota el cambio aquí
             } else {
-                alert("Error al obtener los detalles del pedido.");
+                alert("Los detalles del pedido no tienen el formato esperado.");
             }
         })
         .catch(error => {
@@ -196,40 +187,30 @@ function mostrarDetallesPedido(pedidoId) {
         });
 }
 
-function mostrarEnModal(pedido) {
+function mostrarEnModalAdmin(pedido) {
     const modalBody = document.querySelector("#modal-pedido-body");
-
-    // Limpiar contenido previo
     modalBody.innerHTML = "";
 
-    // Calcular el subtotal total
+    // Calcular subtotal neto sumando los productos
     let subtotalTotal = 0;
-    pedido.forEach(producto => {
-        subtotalTotal += parseFloat(producto.subtotal); // Sumar los subtotales de todos los productos
-    });
+    pedido.productos.forEach(p => subtotalTotal += parseFloat(p.subtotal));
 
-    // Obtener el valor del descuento del primer producto
-    const descuentoTotal = parseFloat(pedido[0].descuento); // Asegúrate de que este valor esté correctamente en la respuesta
+    const descuentoTotal = parseFloat(pedido.descuento);
+    const totalConDescuento = parseFloat(pedido.total);
 
-    // Calcular el total con descuento
-    const totalConDescuento = subtotalTotal - descuentoTotal;
-
-    // Llenar el modal con los detalles del pedido
     modalBody.innerHTML = `
         <div class="form-group">
             <label for="estadoPedido"><strong>Estado:</strong></label>
-          <select class="form-control" id="estadoPedido">
-                <option value="Pendiente" ${pedido[0].estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                <option value="Autorizado" ${pedido[0].estado === 'Autorizado' ? 'selected' : ''}>Autorizado</option>
-                <option value="En camino" ${pedido[0].estado === 'En camino' ? 'selected' : ''}>En camino</option>
-                <option value="Entregado" ${pedido[0].estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
-                <option value="Cancelado" ${pedido[0].estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+            <select class="form-control" id="estadoPedido">
+                <option value="Pendiente" ${pedido.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                <option value="Autorizado" ${pedido.estado === 'Autorizado' ? 'selected' : ''}>Autorizado</option>
+                <option value="En camino" ${pedido.estado === 'En camino' ? 'selected' : ''}>En camino</option>
+                <option value="Entregado" ${pedido.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                <option value="Cancelado" ${pedido.estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
             </select>
         </div>
-        <p><strong>Numero de Pedido:</strong> ${pedido[0].numeroPedido}</p>
-        <p><strong>ID del Pedido:</strong> ${pedido[0].id}</p>
-        <p><strong>Fecha de Creación:</strong> ${pedido[0].fechaCreacion || 'Fecha no disponible'}</p>
-        <p><strong>Usuario:</strong> ${pedido[0].nombreUsuario || 'Nombre no disponible'}</p> <!-- Agregado nombre del usuario -->
+        <p><strong>Numero de Pedido:</strong> ${pedido.numeroPedido}</p>
+        <p><strong>Fecha de Creación:</strong> ${pedido.fechaCreacion || 'Fecha no disponible'}</p>
 
         <h5>Productos:</h5>
         <table class="table table-bordered">
@@ -244,51 +225,33 @@ function mostrarEnModal(pedido) {
             <tbody id="productos-lista"></tbody>
         </table>
 
-        <!-- Sección de totales -->
         <div class="mt-3">
             <p><strong>Subtotal Neto:</strong> $${subtotalTotal.toFixed(2)}</p>
             <p><strong>Descuento:</strong> $${descuentoTotal.toFixed(2)}</p>
             <p><strong>Total a Pagar:</strong> $${totalConDescuento.toFixed(2)}</p>
         </div>
-    
-        <!-- Botones de acción en el pie del modal -->
+
         <div class="modal-footer">
-<button class="btn btn-primary" onclick="guardarEstadoPedido(${pedido[0].id})">Guardar Estado</button>
+            <button class="btn btn-primary" onclick="guardarEstadoPedido(${pedido.pedido_id})">Guardar Estado</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
         </div>
     `;
 
-    // Mostrar los productos asociados al pedido
     const productosLista = document.querySelector("#productos-lista");
-    pedido.forEach(producto => {
+    pedido.productos.forEach(producto => {
         const tr = document.createElement("tr");
-
-        // Crear las celdas de la tabla
-        const tdProducto = document.createElement("td");
-        tdProducto.textContent = producto.nombreProducto;
-
-        const tdCantidad = document.createElement("td");
-        tdCantidad.textContent = producto.cantidad;
-
-        const tdPrecioUnitario = document.createElement("td");
-        tdPrecioUnitario.textContent = `$${producto.precio_unitario}`;
-
-        const tdTotal = document.createElement("td");
-        tdTotal.textContent = `$${(producto.cantidad * producto.precio_unitario).toFixed(2)}`;
-
-        // Agregar las celdas a la fila
-        tr.appendChild(tdProducto);
-        tr.appendChild(tdCantidad);
-        tr.appendChild(tdPrecioUnitario);
-        tr.appendChild(tdTotal);
-
-        // Agregar la fila al cuerpo de la tabla
+        tr.innerHTML = `
+            <td>${producto.nombreProducto}</td>
+            <td>${producto.cantidad}</td>
+            <td>$${parseFloat(producto.precio_unitario).toFixed(2)}</td>
+            <td>$${parseFloat(producto.subtotal).toFixed(2)}</td>
+        `;
         productosLista.appendChild(tr);
     });
 
-    // Mostrar el modal (usando Bootstrap)
     $('#modalDetalles').modal('show');
 }
+
 function guardarEstadoPedido() {
     const estadoSeleccionado = document.querySelector("#estadoPedido").value;
 

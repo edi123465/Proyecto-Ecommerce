@@ -70,6 +70,8 @@ function mostrarPedidosEnHTML(pedidos) {
                 <td>${pedido.EstadoPedido}</td>
             <td>${pedido.SubtotalPedido}</td> <!-- Usar el valor convertido a número -->
                             <td>${pedido.IVAPedido}</td>
+                                                        <td>${pedido.DescuentoPedido}</td>
+
                                                         <td>${total}</td>
 
 
@@ -98,7 +100,6 @@ document.querySelectorAll('.btn-primary').forEach(button => {
     });
 });
 
-// Función para mostrar los detalles del pedido
 function mostrarDetallesPedido(pedidoId) {
     console.log("Obteniendo detalles del pedido con ID:", pedidoId);
 
@@ -107,9 +108,7 @@ function mostrarDetallesPedido(pedidoId) {
         .then(data => {
             console.log(data);
             if (data.success) {
-                // Verificar que 'data.pedido' es un array
-                if (Array.isArray(data.pedido)) {
-                    // Llamar a la función para mostrar los detalles en el modal
+                if (data.pedido && data.pedido.productos) {
                     mostrarEnModal(data.pedido);
                 } else {
                     alert("Los detalles del pedido no tienen el formato esperado.");
@@ -124,34 +123,56 @@ function mostrarDetallesPedido(pedidoId) {
         });
 }
 
-// Función para mostrar los detalles en el modal
 function mostrarEnModal(pedido) {
     const modalBody = document.querySelector("#modal-pedido-body");
-
-    // Limpiar contenido previo
     modalBody.innerHTML = "";
 
-    // Llenar el modal con los detalles del pedido
+    // Información general del pedido
     modalBody.innerHTML = `
-        <p><strong>Numero de Pedido:</strong> ${pedido[0].numeroPedido}</p> <!-- Asumiendo que el primer producto tiene la info del pedido -->
-        <p><strong>Fecha de Creación:</strong> ${pedido[0].fechaCreacion || 'Fecha no disponible'}</p>
-        <p><strong>Subtotal:</strong> $${pedido[0].subtotal}</p>
-        <p><strong>Estado:</strong> ${pedido[0].estado || 'Estado no disponible'}</p>
-        
+        <div class="mb-3">
+            <p><strong>Número de Pedido:</strong> ${pedido.numeroPedido}</p>
+            <p><strong>Fecha de Creación:</strong> ${pedido.fechaCreacion || 'Fecha no disponible'}</p>
+            
+            <p><strong>Estado:</strong> ${pedido.estado || 'Estado no disponible'}</p>
+        </div>
+
         <h5>Productos:</h5>
-        <ul id="productos-lista"></ul>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="productos-lista"></tbody>
+            </table>
+            <p><strong>Subtotal:</strong> $${parseFloat(pedido.subtotal).toFixed(2)}</p>
+            <p><strong>IVA:</strong> $${parseFloat(pedido.iva).toFixed(2)}</p>
+            <p><strong>Descuento:</strong> $${parseFloat(pedido.descuento).toFixed(2)}</p>
+            <p><strong>Total:</strong> $${parseFloat(pedido.total).toFixed(2)}</p>
+        </div>
     `;
 
-    // Mostrar los productos asociados al pedido
     const productosLista = document.querySelector("#productos-lista");
-    pedido.forEach(producto => {
-        const li = document.createElement("li");
-        li.textContent = `${producto.nombreProducto} - ${producto.cantidad} x $${producto.precio_unitario}`;
-        productosLista.appendChild(li);
+    pedido.productos.forEach(producto => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${producto.nombreProducto}</td>
+            <td>${producto.cantidad}</td>
+            <td>$${parseFloat(producto.precio_unitario).toFixed(2)}</td>
+            <td>$${parseFloat(producto.subtotal).toFixed(2)}</td>
+        `;
+        productosLista.appendChild(tr);
     });
 
-    // Mostrar el modal (usando Bootstrap)
     $('#modalDetalles').modal('show');
 }
+
+
+
+
 
 

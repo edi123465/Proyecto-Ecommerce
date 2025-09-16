@@ -25,6 +25,9 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
     <link href="assets/libs/dropzone/dist/min/dropzone.min.css" rel="stylesheet" />
     <link href="assets/libs/prismjs/themes/prism-okaidia.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    <!-- Slick CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
 
     <!-- Theme CSS -->
     <link rel="stylesheet" href="assets/css/theme.min.css">
@@ -32,6 +35,7 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
         const usuarioSesion = <?php echo isset($_SESSION['user_id']) ? json_encode($_SESSION['user_id']) : 'null'; ?>;
     </script>
     <style>
+        /* Estilos para las tarjetas de productos */
         .card-product img {
             width: 200%;
             height: 300px;
@@ -41,6 +45,20 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
             border-radius: 5px;
             background-color: #f8f9fa;
             /* opcional, para el espacio vacío */
+        }
+
+        .d-grid.mt-3 a {
+            display: block;
+            width: 100%;
+            font-size: 1rem;
+            padding: 0.6rem 0;
+            border-radius: 50px;
+            /* pill effect */
+        }
+
+        .d-grid.mt-3 a+a {
+            margin-top: 8px;
+            /* pequeño salto de línea entre los botones */
         }
     </style>
 </head>
@@ -77,6 +95,11 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
         </h2>
         <!-- Contenedor dinámico de resultados -->
         <div id="resultados-busqueda-container" class="row g-3"></div>
+        <h1>Nuestros clientes tambien buscaron:</h1><br><br><br>
+        <div class="product-slider" id="slider-mas-vendidos">
+        </div>
+
+        <!-- Los productos se insertarán aquí dinámicamente -->
     </div>
     <!-- Modal -->
     <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
@@ -146,15 +169,15 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
                                     <table class="table table-borderless">
                                         <tbody>
                                             <tr>
-                                                <td>Description:</td>
+                                                <td>Descripción:</td>
                                                 <td id="product-description"></td>
                                             </tr>
                                             <tr>
-                                                <td>Product Code:</td>
+                                                <td>Código:</td>
                                                 <td id="product-code">FBB00255</td>
                                             </tr>
                                             <tr>
-                                                <td>Availability:</td>
+                                                <td>Disponibilidad:</td>
                                                 <td id="availability">In Stock</td>
                                             </tr>
                                             <tr>
@@ -245,6 +268,7 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
     <script src="assets/libs/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
     <!-- Theme JS -->
     <script src="assets/js/theme.min.js"></script>
@@ -257,7 +281,6 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 
             const itemsPerPage = 12; // productos por página
             let currentPage = 1;
-            let usuarioSesion = false; // ajustar según sesión real
             let isAdmin = false; // ajustar según rol real
             let currentQuery = '';
 
@@ -304,10 +327,10 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
                             <a href="#!" class="text-inherit text-decoration-none">${producto.nombreProducto}</a>
                         </h2>
 
-                        ${(usuarioSesion && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0) ? `
-                            <p class="text-success fw-bold">
-                                Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
-                            </p>` : ''}
+${usuarioSesion !== null && producto.puntos_otorgados > 0 && producto.cantidad_minima_para_puntos > 0 ? `
+    <p class="text-success fw-bold">
+        Compra ${producto.cantidad_minima_para_puntos} y gana ${producto.puntos_otorgados} puntos de canje
+    </p>` : ''}
 
                         <div class="d-flex align-items-baseline gap-2 mt-2">
                             <span class="fw-bold text-success fs-5">
@@ -1026,6 +1049,7 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 
     <script src="assets/js/cart.js"></script>
     <script src="assets/js/login.js"></script>
+    <script src="assets/js/losMasVendidos.js"></script>
 </body>
 
 </html>

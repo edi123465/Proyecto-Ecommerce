@@ -65,9 +65,6 @@
                         data.productos.forEach(producto => {
                             const rutaImagen = `/Milogar/assets/imagenesMilogar/productos/${producto.imagen}`;
                             productosHTML += `
-                                <div class="col">
-                            <div class="card card-product">
-                                <div class="card-body">
                                     <div class="text-center position-relative">
                                         <!-- Badge de descuento redondo dentro de la tarjeta -->
                                         ${producto.descuento > 0 ? `
